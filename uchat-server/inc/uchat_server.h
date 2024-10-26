@@ -2,8 +2,10 @@
 
 #include <arpa/inet.h>
 #include <cJSON.h>
+#include <database.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <sha256.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,19 +13,42 @@
 #include <sys/select.h>
 #include <unistd.h>
 
+#define SHA256_HASH_SIZE (SHA256_SIZE_BYTES * 2 + 1)
 #define PORT 8080
 #define BUFFER_SIZE 1024
-#define MAX_CLIENTS 30  // Max number of clients to handle
+#define MAX_CLIENTS 30 // Max number of clients to handle
+#define IP_LENGTH 16   // IPv4 address length
+#define FINGERPRINT_LENGTH 64
 
 typedef struct {
-    int socket;
-    char username[50];  // Store the username for the client
+  int socket;
+  char username[50];
+  char ip_address[IP_LENGTH];             // Store the client's IP address
+  char serial_number[FINGERPRINT_LENGTH]; // Store the username for the
 } Client;
 
-// Function prototypes
+// network
 int server_init(struct sockaddr_in *address);
 void check_client_activities(int server_fd, Client clients[], fd_set *readfds);
-void handle_request(Client *client, char *buffer, Client clients[], int max_clients);
-bool send_message_to_client(Client clients[], const char *message, const char *receiver_username,
-                            int max_clients);
-void push_message_to_all_clients(Client clients[], const char *message, int max_clients);
+
+bool send_message_to_client(Client clients[], const char *message,
+                            const char *receiver_username, int max_clients);
+void send_status_responce_to_client(Client *client, const char *action,
+                                    const char *status);
+void send_json_responce_to_client(Client *client, cJSON *json);
+void push_message_to_all_clients(Client clients[], const char *message,
+                                 int max_clients);
+
+// requests
+void handle_request(Client *client, char *buffer, Client clients[],
+                    int max_clients, sqlite3 *db);
+int handle_register(sqlite3 *db, cJSON *json);
+int handle_login(sqlite3 *db, cJSON *json, char *session_token, Client *client);
+int handle_logout(sqlite3 *db, char *username);
+int handle_disconnect(sqlite3 *db, char *username);
+
+// utils
+void hash_password(const char *password, char *outputBuffer);
+cJSON *build_json_login(const char *username, const char *token);
+int handle_check_session(sqlite3 *db, cJSON *json, char *session_token,
+                         Client *client);

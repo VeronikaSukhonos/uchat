@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "makefile": "cpp",
+        "Makefile": "makefile",
+        "uchat_server.h": "c",
+        "select.h": "c",
+        "unistd.h": "c"
+    }
+}
