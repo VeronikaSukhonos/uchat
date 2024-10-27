@@ -30,16 +30,13 @@ int authenticate_user(sqlite3 *db, const char *username,
 int create_session(sqlite3 *db, int user_id, char *session_token,
                    int token_size) {
   sqlite3_stmt *stmt;
-  delete_user_tokens(db, user_id);
+  // delete_user_tokens(db, user_id);
   const char *sql =
       "INSERT INTO sessions (user_id, token, created_at, expires_at) VALUES "
       "(?, ?, CURRENT_TIMESTAMP, datetime(CURRENT_TIMESTAMP, '+1 hour'));";
 
   // Generate a random session token (use secure generation in production)
-  for (int i = 0; i < token_size - 1; ++i) {
-    session_token[i] = 'A' + (rand() % 26);
-  }
-  session_token[token_size - 1] = '\0';
+  generate_insecure_token(session_token, token_size);
 
   if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
     fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));

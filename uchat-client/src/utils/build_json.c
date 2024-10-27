@@ -35,3 +35,20 @@ char *build_json_message(const char *receiver, const char *message) {
   cJSON_Delete(json);
   return json_str;
 }
+
+char *build_json_group_chat(const char *chat_name, char usernames[][50],
+                            int num_users) {
+  cJSON *json = cJSON_CreateObject();
+  cJSON_AddStringToObject(json, "action", "CREATE_GROUP_CHAT");
+  cJSON_AddStringToObject(json, "chat_name", chat_name);
+
+  cJSON *usernames_array = cJSON_CreateArray();
+  for (int i = 0; i < num_users; i++) {
+    cJSON_AddItemToArray(usernames_array, cJSON_CreateString(usernames[i]));
+  }
+  cJSON_AddItemToObject(json, "usernames", usernames_array);
+
+  char *json_str = cJSON_Print(json);
+  cJSON_Delete(json);
+  return json_str;
+}

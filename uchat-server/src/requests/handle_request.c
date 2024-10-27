@@ -46,6 +46,7 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     sqlite3_close(db);
   } else if (strcmp(action->valuestring, "LOGOUT") == 0) {
+    // Handle logout
     if (open_database(&db) != 0) {
       fprintf(stderr, "Failed to open database.\n");
     }
@@ -55,7 +56,7 @@ void handle_request(Client *client, char *buffer, Client clients[],
       send_status_responce_to_client(client, "LOGOUT", "FAILURE");
     }
     sqlite3_close(db);
-    // Handle logout
+
   } else if (strcmp(action->valuestring, "UPDATE_PROFILE") == 0) {
     // Handle profile update
   } else if (strcmp(action->valuestring, "DELETE_ACCOUNT") == 0) {
@@ -82,8 +83,26 @@ void handle_request(Client *client, char *buffer, Client clients[],
     // Handle sending a read receipt
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {
     // Handle creating a new chat
-  } else if (strcmp(action->valuestring, "CREATE_GROUP") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    if (handle_create_chat(db, json, client) == 0) {
+      send_status_responce_to_client(client, "CREATE_CHAT", "SUCCESS");
+    } else {
+      send_status_responce_to_client(client, "CREATE_CHAT", "FAILURE");
+    }
+    sqlite3_close(db);
+  } else if (strcmp(action->valuestring, "CREATE_GROUP_CHAT") == 0) {
     // Handle creating a new group chat
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    if (handle_create_group_chat(db, json, client) == 0) {
+      send_status_responce_to_client(client, "CREATE_CHAT", "SUCCESS");
+    } else {
+      send_status_responce_to_client(client, "CREATE_CHAT", "FAILURE");
+    }
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "ADD_MEMBER") == 0) {
     // Handle adding a member to a group
   } else if (strcmp(action->valuestring, "REMOVE_MEMBER") == 0) {
@@ -92,6 +111,11 @@ void handle_request(Client *client, char *buffer, Client clients[],
     // Handle leaving a group
   } else if (strcmp(action->valuestring, "GET_CHAT_LIST") == 0) {
     // Handle retrieving a list of chats
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_get_chat_list(db, client);
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "PULL_NEW_NOTIFICATIONS") == 0) {
     // Handle pulling new notifications
   } else if (strcmp(action->valuestring, "SEND_FILE") == 0) {
@@ -121,8 +145,6 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     sqlite3_close(db);
     // Handle checking session status
-  } else if (strcmp(action->valuestring, "REFRESH_SESSION") == 0) {
-    // Handle refreshing a session token
   } else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
     // Handle updating the user's password
   } else if (strcmp(action->valuestring, "RESET_PASSWORD") == 0) {

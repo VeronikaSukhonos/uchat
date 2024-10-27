@@ -6,6 +6,9 @@ int handle_disconnect(sqlite3 *db, char *username) {
   if (id == -1) {
     return 1;
   }
+  if (logged_in(db, id) != 1) {
+    return 1;
+  }
 
   update_last_seen(db, id, 1);
 

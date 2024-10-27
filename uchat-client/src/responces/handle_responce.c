@@ -60,9 +60,49 @@ void handle_response(int sock, int *logged_in) {
       } else {
         printf("Unknown error received.\n");
       }
+    } else if (strcmp(action->valuestring, "CHAT_LIST") == 0) {
+      cJSON *chats = cJSON_GetObjectItem(response, "chats");
+      if (cJSON_IsArray(chats)) {
+        printf("Your Chats:\n");
+        int chat_count = cJSON_GetArraySize(chats);
+        for (int i = 0; i < chat_count; i++) {
+          cJSON *chat = cJSON_GetArrayItem(chats, i);
+          cJSON *chat_id = cJSON_GetObjectItem(chat, "chat_id");
+          cJSON *chat_name = cJSON_GetObjectItem(chat, "name");
+          cJSON *chat_type = cJSON_GetObjectItem(chat, "type");
 
-    } else {
-      printf("Unknown action: %s\n", action->valuestring);
+          if (chat_id && chat_name && chat_type) {
+            printf("Chat ID: %d, Name: %s, Type: %s\n", chat_id->valueint,
+                   chat_name->valuestring, chat_type->valuestring);
+          }
+        }
+
+        // Ask user if they want to message or close a chat
+        printf("Enter Chat ID to message, or 0 to go back: ");
+        int selected_chat_id;
+        scanf("%d", &selected_chat_id);
+        getchar(); // Consume newline
+
+        if (selected_chat_id > 0) {
+          printf("Enter message: ");
+          char message[256];
+          fgets(message, sizeof(message), stdin);
+          message[strcspn(message, "\n")] = 0;
+
+          cJSON *msg_json = cJSON_CreateObject();
+          cJSON_AddStringToObject(msg_json, "action", "SEND_MESSAGE_TO_CHAT");
+          cJSON_AddNumberToObject(msg_json, "chat_id", selected_chat_id);
+          cJSON_AddStringToObject(msg_json, "message", message);
+          char *msg_str = cJSON_Print(msg_json);
+          cJSON_Delete(msg_json);
+
+          send(sock, msg_str, strlen(msg_str), 0);
+          printf("Sent message to Chat ID %d: %s\n", selected_chat_id, msg_str);
+          free(msg_str);
+        }
+      } else {
+        printf("Unknown action: %s\n", action->valuestring);
+      }
     }
   } else {
     printf("Invalid or missing 'action' field in server response.\n");

@@ -30,10 +30,11 @@ int handle_login(sqlite3 *db, cJSON *json, char *session_token,
   // Hash the password
   char hashed_password[SHA256_HASH_SIZE];
   hash_password(password->valuestring, hashed_password);
+  char hashed_serial[SHA256_HASH_SIZE];
+  hash_password(client->serial_number, hashed_serial);
   // Attempt to register the user
-  if (login_user(db, username->valuestring, client->serial_number,
-                 client->ip_address, hashed_password, session_token,
-                 sizeof(session_token)) == 0) {
+  if (login_user(db, username->valuestring, hashed_serial, client->ip_address,
+                 hashed_password, session_token, sizeof(session_token)) == 0) {
     return LOGIN_SUCCESS; // Registration successful
   }
 

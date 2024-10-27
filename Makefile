@@ -35,3 +35,4 @@ clean:
 	rm -f $(SRV_BIN) $(CLI_BIN)
 	rm -rf uchat_server.dSYM
 	rm -rf uchat.dSYM
+	rm session.txt

@@ -25,7 +25,12 @@ char *build_json_register(const char *username, const char *email,
 char *build_json_login(const char *username, const char *password,
                        const char *serial_number);
 char *build_json_message(const char *receiver, const char *message);
+char *build_json_group_chat(const char *chat_name, char usernames[][50],
+                            int num_users);
 void handle_response(int sock, int *logged_in);
 
 int connect_to_server(const char *server_ip, int port);
 void get_serial_number(char *serial, size_t len);
+
+void handle_not_logged_in_choice(int sock);
+void handle_logged_in_choice(int sock, const char *username);

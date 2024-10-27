@@ -6,6 +6,9 @@ int handle_logout(sqlite3 *db, char *username) {
   if (id == -1) {
     return 1;
   }
+  if (logged_in(db, id) != 1) {
+    return 1;
+  }
 
   delete_user_tokens(db, id);
   update_last_seen(db, id, 1);

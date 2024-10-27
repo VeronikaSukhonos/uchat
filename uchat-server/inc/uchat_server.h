@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
+#include <time.h>
 #include <unistd.h>
 
 #define SHA256_HASH_SIZE (SHA256_SIZE_BYTES * 2 + 1)
@@ -18,7 +19,7 @@
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 30 // Max number of clients to handle
 #define IP_LENGTH 16   // IPv4 address length
-#define FINGERPRINT_LENGTH 64
+#define FINGERPRINT_LENGTH 256
 
 typedef struct {
   int socket;
@@ -46,6 +47,9 @@ int handle_register(sqlite3 *db, cJSON *json);
 int handle_login(sqlite3 *db, cJSON *json, char *session_token, Client *client);
 int handle_logout(sqlite3 *db, char *username);
 int handle_disconnect(sqlite3 *db, char *username);
+int handle_create_chat(sqlite3 *db, cJSON *json, Client *client);
+int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client);
+int handle_get_chat_list(sqlite3 *db, Client *client);
 
 // utils
 void hash_password(const char *password, char *outputBuffer);
