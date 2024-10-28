@@ -20,10 +20,8 @@ int handle_register(sqlite3 *db, cJSON *json) {
   }
 
   // Retrieve and check 'email' and 'password' fields
-  cJSON *email = cJSON_GetObjectItem(json, "email");
   cJSON *password = cJSON_GetObjectItem(json, "password");
-  if (!email || !cJSON_IsString(email) || !password ||
-      !cJSON_IsString(password)) {
+  if (!password || !cJSON_IsString(password)) {
     fprintf(stderr, "Invalid or missing email/password in JSON.\n");
     return REGISTRATION_FAILURE;
   }
@@ -33,8 +31,7 @@ int handle_register(sqlite3 *db, cJSON *json) {
   hash_password(password->valuestring, hashed_password);
 
   // Attempt to register the user
-  if (register_user(db, username->valuestring, email->valuestring,
-                    hashed_password) == 0) {
+  if (register_user(db, username->valuestring, hashed_password) == 0) {
     return REGISTRATION_SUCCESS; // Registration successful
   }
 

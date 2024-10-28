@@ -52,19 +52,20 @@ int check_session_on_server(int sock, const char *username,
   int valread = read(sock, buffer, sizeof(buffer));
   if (valread > 0) {
     buffer[valread] = '\0';
-    printf("Server response: %s\n", buffer);
+    g_print("Server response: %s\n", buffer);
     cJSON *response = cJSON_Parse(buffer);
     if (response == NULL) {
-      printf("Failed to parse server response.\n");
+      g_print("Failed to parse server response.\n");
       return 0;
     }
 
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Session valid.\n");
       return 1;
     }
   } else if (valread == 0) {
-    printf("Server disconnected\n");
+    g_print("Server disconnected\n");
   }
   return 0;
 }

@@ -1,11 +1,9 @@
 #include <uchat.h>
 
-char *build_json_register(const char *username, const char *email,
-                          const char *password) {
+char *build_json_register(const char *username, const char *password) {
   cJSON *json = cJSON_CreateObject();
   cJSON_AddStringToObject(json, "action", "REGISTER");
   cJSON_AddStringToObject(json, "username", username);
-  cJSON_AddStringToObject(json, "email", email);
   cJSON_AddStringToObject(json, "password", password);
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);

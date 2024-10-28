@@ -105,49 +105,8 @@ void handle_not_logged_in_choice(int sock) {
       printf("Exiting...\n");
       exit(0);
     case 1: {
-      char reg_username[20], email[100], password[100];
-      printf("Enter username: ");
-      fflush(stdout);
-      bytes_read = read(STDIN_FILENO, reg_username, sizeof(reg_username) - 1);
-      reg_username[bytes_read - 1] = '\0';
-
-      printf("Enter email: ");
-      fflush(stdout);
-      bytes_read = read(STDIN_FILENO, email, sizeof(email) - 1);
-      email[bytes_read - 1] = '\0';
-
-      printf("Enter password: ");
-      fflush(stdout);
-      bytes_read = read(STDIN_FILENO, password, sizeof(password) - 1);
-      password[bytes_read - 1] = '\0';
-
-      char *json_str = build_json_register(reg_username, email, password);
-      send(sock, json_str, strlen(json_str), 0);
-      printf("Sent: %s\n", json_str);
-      free(json_str);
-      break;
     }
     case 2: {
-      char login_username[20], password[100];
-      printf("Enter username: ");
-      fflush(stdout);
-      bytes_read =
-          read(STDIN_FILENO, login_username, sizeof(login_username) - 1);
-      login_username[bytes_read - 1] = '\0';
-
-      printf("Enter password: ");
-      fflush(stdout);
-      bytes_read = read(STDIN_FILENO, password, sizeof(password) - 1);
-      password[bytes_read - 1] = '\0';
-
-      char serial_number[256] = {0};
-      get_serial_number(serial_number, sizeof(serial_number));
-      char *json_str =
-          build_json_login(login_username, password, serial_number);
-      send(sock, json_str, strlen(json_str), 0);
-      printf("Sent: %s\n", json_str);
-      free(json_str);
-      break;
     }
     default:
       printf("Invalid choice\n");

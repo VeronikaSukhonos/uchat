@@ -8,8 +8,7 @@
 
 int open_database(sqlite3 **db);
 int search_username(sqlite3 *db, const char *username);
-int register_user(sqlite3 *db, const char *username, const char *gmail,
-                  const char *password_hash);
+int register_user(sqlite3 *db, const char *username, const char *password_hash);
 int login_user(sqlite3 *db, const char *username, const char *serial_number,
                const char *ip_address, const char *password_hash,
                char *session_token, int token_size);
