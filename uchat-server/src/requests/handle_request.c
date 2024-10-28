@@ -61,20 +61,18 @@ void handle_request(Client *client, char *buffer, Client clients[],
     // Handle profile update
   } else if (strcmp(action->valuestring, "DELETE_ACCOUNT") == 0) {
     // Handle account deletion
-  } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_USER") == 0) {
-    // Handle sending a message to another user
-    cJSON *receiver = cJSON_GetObjectItem(json, "receiver");
-    cJSON *message = cJSON_GetObjectItem(json, "message");
-
-    cJSON *responce = cJSON_CreateObject();
-    cJSON_AddStringToObject(responce, "action", "MESSAGE_FROM_USER");
-    cJSON_AddStringToObject(responce, "sender", client->username);
-    cJSON_AddStringToObject(responce, "message", message->valuestring);
-    char *json_str = cJSON_Print(responce);
-    send_message_to_client(clients, json_str, receiver->valuestring,
-                           max_clients);
-    free(json_str);
-    cJSON_Delete(responce); // need to send JSON, so remake
+  } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_CHAT") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    if (handle_send_message_to_chat(db, client, json, clients, max_clients) ==
+        0) {
+      printf("Message sent to chat ID %d\n",
+             cJSON_GetObjectItem(json, "chat_id")->valueint);
+    } else {
+      send_status_responce_to_client(client, "SEND_MESSAGE_TO_CHAT", "FAILURE");
+    }
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "EDIT_MESSAGE") == 0) {
     // Handle editing a previously sent message
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE") == 0) {

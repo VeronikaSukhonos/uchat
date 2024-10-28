@@ -50,6 +50,8 @@ int handle_disconnect(sqlite3 *db, char *username);
 int handle_create_chat(sqlite3 *db, cJSON *json, Client *client);
 int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client);
 int handle_get_chat_list(sqlite3 *db, Client *client);
+int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
+                                Client clients[], int max_clients);
 
 // utils
 void hash_password(const char *password, char *outputBuffer);

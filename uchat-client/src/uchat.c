@@ -31,6 +31,8 @@ int main() {
     printf("Session is valid. Starting application...\n");
   }
 
+  // Make stdin non-blocking
+
   // Main loop to handle user actions based on login status
   while (1) {
     fd_set readfds;
@@ -44,10 +46,12 @@ int main() {
       break;
     }
 
+    // Handle server response
     if (FD_ISSET(sock, &readfds)) {
       handle_response(sock, &logged_in);
     }
 
+    // Handle user input
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
       if (logged_in) {
         handle_logged_in_choice(sock, username);
@@ -57,6 +61,7 @@ int main() {
     }
   }
 
+  // Reset stdin to blocking mode before exit
   close(sock);
   return 0;
 }

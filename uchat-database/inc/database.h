@@ -32,3 +32,8 @@ int check_existing_chat(sqlite3 *db, int user_id, int other_user_id);
 int create_private_chat(sqlite3 *db, const char *chat_name);
 int add_chat_member(sqlite3 *db, int chat_id, int user_id);
 cJSON *retrieve_chat_list(sqlite3 *db, int user_id);
+int store_message(sqlite3 *db, int chat_id, int sender_id, const char *content);
+cJSON *get_online_chat_members(sqlite3 *db, int chat_id);
+int store_notification(sqlite3 *db, int user_id, int message_id);
+int create_private_group_chat(sqlite3 *db, const char *chat_name);
+cJSON *get_chat_members(sqlite3 *db, int chat_id);

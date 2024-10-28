@@ -103,7 +103,21 @@ void handle_response(int sock, int *logged_in) {
       } else {
         printf("Unknown action: %s\n", action->valuestring);
       }
+
+    } else if (strcmp(action->valuestring, "MESSAGE_FROM_CHAT") == 0) {
+      // Handle receiving a message from a chat
+      cJSON *chat_id = cJSON_GetObjectItem(response, "chat_id");
+      cJSON *sender = cJSON_GetObjectItem(response, "sender");
+      cJSON *message = cJSON_GetObjectItem(response, "message");
+
+      if (chat_id && sender && message) {
+        printf("New message in Chat ID %d from %s: %s\n", chat_id->valueint,
+               sender->valuestring, message->valuestring);
+      } else {
+        printf("Error: Missing fields in MESSAGE_FROM_CHAT response.\n");
+      }
     }
+
   } else {
     printf("Invalid or missing 'action' field in server response.\n");
   }

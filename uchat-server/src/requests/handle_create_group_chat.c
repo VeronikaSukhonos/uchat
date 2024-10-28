@@ -29,7 +29,7 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
   }
 
   // Create the group chat
-  int chat_id = create_private_chat(
+  int chat_id = create_private_group_chat(
       db, chat_name); // Create chat with `create_private_chat` helper function
   if (chat_id == -1) {
     return 1; // Failed to create chat
