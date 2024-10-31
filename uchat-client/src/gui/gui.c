@@ -1,6 +1,3 @@
-// sudo apt install libgtk-3-dev
-// clang gui.c -o gui `pkg-config --cflags --libs gtk+-3.0`
-
 #include <uchat.h>
 
 void load_css(const gchar *file) {
@@ -14,80 +11,75 @@ void load_css(const gchar *file) {
   g_object_unref(provider);
 }
 
-void show_login(GtkWidget *login_link_button, gpointer data) {
-  t_form_data *user_data = (t_form_data *)data;
+void show_login(GtkWidget *login_link_button, t_form_data *data) {
   GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(user_data->form));
+      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
-  gtk_entry_set_text(GTK_ENTRY(user_data->username), "");
-  gtk_entry_set_text(GTK_ENTRY(user_data->password), "");
-  gtk_entry_set_text(GTK_ENTRY(user_data->repassword), "");
-  gtk_label_set_text(GTK_LABEL(user_data->message), "");
+  gtk_entry_set_text(GTK_ENTRY(data->username), "");
+  gtk_entry_set_text(GTK_ENTRY(data->password), "");
+  gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
+  gtk_label_set_text(GTK_LABEL(data->message), "");
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "login");
 }
 
-void show_registration(GtkWidget *registration_link_button, gpointer data) {
-  t_form_data *user_data = (t_form_data *)data;
+void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
   GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(user_data->form));
+      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
-  gtk_entry_set_text(GTK_ENTRY(user_data->username), "");
-  gtk_entry_set_text(GTK_ENTRY(user_data->password), "");
-  gtk_label_set_text(GTK_LABEL(user_data->message), "");
+  gtk_entry_set_text(GTK_ENTRY(data->username), "");
+  gtk_entry_set_text(GTK_ENTRY(data->password), "");
+  gtk_label_set_text(GTK_LABEL(data->message), "");
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "registration");
 }
 
-void registration_submit(GtkWidget *registration_button, gpointer data) {
-  t_form_data *user_data = (t_form_data *)data;
+void registration_submit(GtkWidget *registration_button, t_form_data *data) {
   GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(user_data->form));
-  char *username = (char *)gtk_entry_get_text(GTK_ENTRY(user_data->username));
-  char *password = (char *)gtk_entry_get_text(GTK_ENTRY(user_data->password));
-  char *repassword =
-      (char *)gtk_entry_get_text(GTK_ENTRY(user_data->repassword));
+      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  char *username = (char *)gtk_entry_get_text(GTK_ENTRY(data->username));
+  char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
+  char *repassword = (char *)gtk_entry_get_text(GTK_ENTRY(data->repassword));
 
-  if (check_form_data(username, password, user_data->message) == 1) {
+  if (check_form_data(username, password, data->message) == 1) {
     if (strcmp(password, repassword) != 0)
-      gtk_label_set_text(GTK_LABEL(user_data->message),
+      gtk_label_set_text(GTK_LABEL(data->message),
                          "Passwords must be the same");
     else {
       // send JSON REGISTER
       char *json_str = build_json_register(username, password);
-      g_print("Sock: %i", user_data->sock);
-      send(user_data->sock, json_str, strlen(json_str), 0);
+      g_print("Sock: %i", data->sock);
+      send(data->sock, json_str, strlen(json_str), 0);
       free(json_str);
       g_print("Registration sended to server:\nUsername: %s\nPassword: "
               "%s\nRepassword: %s\n",
               username, password, repassword);
-      gtk_entry_set_text(GTK_ENTRY(user_data->username), "");
-      gtk_entry_set_text(GTK_ENTRY(user_data->password), "");
-      gtk_entry_set_text(GTK_ENTRY(user_data->repassword), "");
-      gtk_label_set_text(GTK_LABEL(user_data->message), "");
+      gtk_entry_set_text(GTK_ENTRY(data->username), "");
+      gtk_entry_set_text(GTK_ENTRY(data->password), "");
+      gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
+      gtk_label_set_text(GTK_LABEL(data->message), "");
       // gtk_stack_set_visible_child_name(GTK_STACK(pages), "chats");
     }
   }
 }
 
-void login_submit(GtkWidget *login_button, gpointer data) {
-  t_form_data *user_data = (t_form_data *)data;
+void login_submit(GtkWidget *login_button, t_form_data *data) {
   GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(user_data->form));
-  char *username = (char *)gtk_entry_get_text(GTK_ENTRY(user_data->username));
-  char *password = (char *)gtk_entry_get_text(GTK_ENTRY(user_data->password));
+      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  char *username = (char *)gtk_entry_get_text(GTK_ENTRY(data->username));
+  char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
 
-  if (check_form_data(username, password, user_data->message) == 1) {
+  if (check_form_data(username, password, data->message) == 1) {
     // send JSON LOGIN
     char serial_number[64] = {0};
     get_serial_number(serial_number, sizeof(serial_number));
     char *json_str = build_json_login(username, password, serial_number);
-    g_print("Sock: %i", user_data->sock);
-    send(user_data->sock, json_str, strlen(json_str), 0);
+    g_print("Sock: %i", data->sock);
+    send(data->sock, json_str, strlen(json_str), 0);
     free(json_str);
     g_print("Login sended to server:\nUsername: %s\nPassword: %s\n", username,
             password);
-    gtk_entry_set_text(GTK_ENTRY(user_data->username), "");
-    gtk_entry_set_text(GTK_ENTRY(user_data->password), "");
-    gtk_label_set_text(GTK_LABEL(user_data->message), "");
+    gtk_entry_set_text(GTK_ENTRY(data->username), "");
+    gtk_entry_set_text(GTK_ENTRY(data->password), "");
+    gtk_label_set_text(GTK_LABEL(data->message), "");
     // gtk_stack_set_visible_child_name(GTK_STACK(pages), "chats");
   }
 }

@@ -1,13 +1,13 @@
 .log-reg {
 	background-color: #1A1A1D;
 	color: white;
-	font-size: 20px;
-	padding: 50px;
+	font-size: 22px;
+	padding: 80px;
 }
 
 .form {
 	background-color: #29292C;
-	padding: 30px;
+	padding: 40px;
 	border: solid 2px #3B3B3E;
 	border-radius: 8px;
 }
@@ -15,12 +15,13 @@
 .form-name-label {
 	font-weight: bold;
 	color: #5BCD91;
-	font-size: 26px;
-	padding-bottom: 20px;
+	font-size: 30px;
+	margin-bottom: 20px;
 }
 
 .form-label {
 	font-weight: bold;
+	margin-top: 5px;
 }
 
 .form-entry {
@@ -30,6 +31,7 @@
 	border-radius: 8px;
 	caret-color: white;
 	margin: 5px 0;
+	padding: 3px 10px;
 }
 
 .form-entry:focus {

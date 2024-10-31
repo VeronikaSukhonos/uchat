@@ -61,7 +61,8 @@ int main(int argc, char *argv[]) {
 
   GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(main_window), "Green Chat");
-  gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 450);
+  gtk_window_set_default_size(GTK_WINDOW(main_window), 1280, 720);
+  gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
   g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
   GtkWidget *pages = gtk_stack_new();

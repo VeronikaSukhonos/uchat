@@ -60,10 +60,10 @@ void create_registration_page(GtkWidget *pages, GtkWidget *registration,
 void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data);
 void create_chats_page(GtkWidget *pages, GtkWidget *chats);
 
-void show_registration(GtkWidget *registration_link_button, gpointer pages);
-void show_login(GtkWidget *login_link_button, gpointer pages);
+void show_registration(GtkWidget *registration_link_button, t_form_data *data);
+void show_login(GtkWidget *login_link_button, t_form_data *data);
 
-void registration_submit(GtkWidget *registration_button, gpointer data);
-void login_submit(GtkWidget *login_button, gpointer data);
+void registration_submit(GtkWidget *registration_button, t_form_data *data);
+void login_submit(GtkWidget *login_button, t_form_data *data);
 
 int check_form_data(char *username, char *password, GtkWidget *message);
