@@ -12,8 +12,7 @@ void load_css(const gchar *file) {
 }
 
 void show_login(GtkWidget *login_link_button, t_form_data *data) {
-  GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
@@ -23,8 +22,7 @@ void show_login(GtkWidget *login_link_button, t_form_data *data) {
 }
 
 void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
-  GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
@@ -33,8 +31,7 @@ void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
 }
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data) {
-  GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
   char *username = (char *)gtk_entry_get_text(GTK_ENTRY(data->username));
   char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
   char *repassword = (char *)gtk_entry_get_text(GTK_ENTRY(data->repassword));
@@ -62,8 +59,7 @@ void registration_submit(GtkWidget *registration_button, t_form_data *data) {
 }
 
 void login_submit(GtkWidget *login_button, t_form_data *data) {
-  GtkWidget *pages =
-      gtk_widget_get_parent(gtk_widget_get_parent(data->form));
+  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
   char *username = (char *)gtk_entry_get_text(GTK_ENTRY(data->username));
   char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
 
@@ -86,7 +82,11 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
 
 int check_form_data(char *username, char *password, GtkWidget *message) {
   int username_len = strlen(username);
-  int password_len = strlen(password);
+  int password_len = password != NULL
+                         ? strlen(password)
+                         : -1; /* this function is used to check
+                               user's nick when creating a chat/group
+                               and in this case password == NULL*/
 
   if (username_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Username is required");
@@ -95,10 +95,10 @@ int check_form_data(char *username, char *password, GtkWidget *message) {
     gtk_label_set_text(GTK_LABEL(message),
                        "Username must contain 2-20 symbols");
     return 0;
-  } else if (password_len == 0) {
+  } else if (password != NULL && password_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Password is required");
     return 0;
-  } else if (password_len < 0 || password_len > 20) {
+  } else if (password != NULL && (password_len < 0 || password_len > 20)) {
     gtk_label_set_text(GTK_LABEL(message),
                        "Password must contain 8-20 symbols");
     return 0;

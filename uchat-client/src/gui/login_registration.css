@@ -1,13 +1,13 @@
 .log-reg {
 	background-color: #1A1A1D;
 	color: white;
-	font-size: 22px;
-	padding: 80px;
+	font-size: 20px;
+	padding: 50px;
 }
 
 .form {
 	background-color: #29292C;
-	padding: 40px;
+	padding: 30px;
 	border: solid 2px #3B3B3E;
 	border-radius: 8px;
 }
@@ -15,13 +15,12 @@
 .form-name-label {
 	font-weight: bold;
 	color: #5BCD91;
-	font-size: 30px;
-	margin-bottom: 20px;
+	font-size: 26px;
+	padding-bottom: 20px;
 }
 
 .form-label {
 	font-weight: bold;
-	margin-top: 5px;
 }
 
 .form-entry {
@@ -31,7 +30,6 @@
 	border-radius: 8px;
 	caret-color: white;
 	margin: 5px 0;
-	padding: 3px 10px;
 }
 
 .form-entry:focus {
@@ -78,5 +76,73 @@
 .form-link:hover, .form-link:active {
 	color: #A2CD91;
 	transition: 0.3s;
+}
+
+.menu {
+    background-color: #29292C;
+    margin: 0;
+    border: solid 2px #3B3B3E;
+}
+
+.menu-button {
+    background: rgba(0,0,0,0);
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.menu-button:hover, .menu-button:active {
+    background: #3B3B3E;
+    transition: 0.3s;
+    border-radius: 0px;
+    border-right: solid 5px #5BCD91;
+}
+
+.box {
+    background-color: #1A1A1D;
+}
+
+.gchats {
+        font-weight: bold;
+        color: #5BCD91;
+        font-size: 26px;
+        padding: 20px;
+}
+
+.dots {
+    background: rgba(0,0,0,0);
+    color: #5F4BDA;
+    font-size: 25px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.dots:hover {
+    color: #5946AB;
+    transition: 0.3s
+}
+
+.newchats {
+    background-color: #29292C;
+    color: white;
+    padding: 30px;
+    border: solid 2px #3B3B3E;
+    border-radius: 8px;
+}
+
+.newchats-button {
+    background: #5F4BDA;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 100%;
+    margin-left: 5px;
+}
+
+.newgroup-label {
+    font-weight: bold;
+    padding-bottom: 10px;
 }
 

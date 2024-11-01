@@ -10,7 +10,7 @@ int handle_logout(sqlite3 *db, char *username) {
     return 1;
   }
 
-  delete_user_tokens(db, id);
+  // delete_user_tokens(db, id);
   update_last_seen(db, id, 1);
 
   return 0;

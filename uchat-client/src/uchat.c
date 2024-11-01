@@ -40,17 +40,17 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
-                         t_form_data *login_data) {
+                         t_form_data *login_data, t_main_page_data *main_page) {
 
   load_css("uchat-client/src/gui/login_registration.css");
 
   // Use logged_in flag to set the starting page
   if (logged_in == 1) {
-    create_chats_page(pages, chats);
+    create_chats_page(pages, chats, main_page);
     create_login_page(pages, login, login_data);
   } else {
     create_login_page(pages, login, login_data);
-    create_chats_page(pages, chats);
+    create_chats_page(pages, chats, main_page);
   }
   create_registration_page(pages, registration, registration_data);
 }
@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
   // Declare the pages and form data structures here
   GtkWidget *registration, *login, *chats;
   t_form_data registration_data, login_data;
+  t_main_page_data main_page;
 
   // Connect to the server
   sock = connect_to_server("127.0.0.1", PORT);
@@ -80,6 +81,7 @@ int main(int argc, char *argv[]) {
   }
   login_data.sock = sock;
   registration_data.sock = sock;
+  main_page.sock = sock;
   g_print("Connected to the server successfully.%i\n", login_data.sock);
 
   // Load session data and check status
@@ -96,14 +98,15 @@ int main(int argc, char *argv[]) {
 
   // Initialize GTK interface
   setup_gtk_interface(pages, registration, login, chats, &registration_data,
-                      &login_data);
+                      &login_data, &main_page);
   gtk_widget_show_all(main_window);
   gtk_stack_set_transition_type(GTK_STACK(pages),
                                 GTK_STACK_TRANSITION_TYPE_CROSSFADE);
 
   // Set up AppData struct
-  AppData app_data = {pages, registration,       login,
-                      chats, &registration_data, &login_data};
+  AppData app_data = {pages,     registration,       login,
+                      chats,     &registration_data, &login_data,
+                      &main_page};
 
   // Monitor the socket with GIOChannel
   GIOChannel *gio_channel = g_io_channel_unix_new(sock);

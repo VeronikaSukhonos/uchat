@@ -13,6 +13,22 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
+typedef struct s_chat_form_data {
+  GtkWidget *form;
+  GtkWidget *name;
+  GtkWidget *username;
+  GtkWidget *message;
+} t_chat_form_data;
+
+typedef struct s_main_page_data {
+  int sock;
+  GtkWidget *menu_stack;
+  int menu_opened;
+  GtkWidget *central_area_stack;
+  t_chat_form_data create_chat_data;
+  t_chat_form_data create_group_data;
+} t_main_page_data;
+
 typedef struct s_form_data {
   int sock;
   GtkWidget *form;
@@ -29,6 +45,7 @@ typedef struct {
   GtkWidget *chats;
   t_form_data *registration_data;
   t_form_data *login_data;
+  t_main_page_data *main_page;
 } AppData;
 
 int save_session(const char *username, const char *session_token);
@@ -45,7 +62,10 @@ char *build_json_login(const char *username, const char *password,
 char *build_json_message(const char *receiver, const char *message);
 char *build_json_group_chat(const char *chat_name, char usernames[][50],
                             int num_users);
+
+// response
 int handle_response(int sock, int *logged_in, AppData *app_data);
+int handle_login_response(cJSON *response);
 
 int connect_to_server(const char *server_ip, int port);
 void get_serial_number(char *serial, size_t len);
@@ -58,7 +78,8 @@ void load_css(const gchar *file);
 void create_registration_page(GtkWidget *pages, GtkWidget *registration,
                               t_form_data *data);
 void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data);
-void create_chats_page(GtkWidget *pages, GtkWidget *chats);
+void create_chats_page(GtkWidget *pages, GtkWidget *chats,
+                       t_main_page_data *main_page);
 
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
 void show_login(GtkWidget *login_link_button, t_form_data *data);
