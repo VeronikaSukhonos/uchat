@@ -27,19 +27,22 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     } else {
       g_print("Error: Login Error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->login_data->message),
-                         "Wrong password or login!");
+                         "Wrong password or login");
     }
 
   } else if (strcmp(action->valuestring, "REGISTER") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("Registration successful\n");
+      gtk_style_context_add_class(gtk_widget_get_style_context(
+      								app_data->registration_data->message),
+									"form-message-success");
       gtk_label_set_text(GTK_LABEL(app_data->registration_data->message),
-                         "Please login!");
+                         "Registration was successful. Please log in!");
     } else {
       g_print("Error: Registration error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->registration_data->message),
-                         "Choose another username!");
+                         "Choose another username");
     }
 
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {

@@ -36,6 +36,11 @@ void registration_submit(GtkWidget *registration_button, t_form_data *data) {
   char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
   char *repassword = (char *)gtk_entry_get_text(GTK_ENTRY(data->repassword));
 
+	if (gtk_style_context_has_class(gtk_widget_get_style_context(
+									data->message), "form-message-success")) {
+		gtk_style_context_remove_class(gtk_widget_get_style_context(
+									data->message), "form-message-success");
+	}
   if (check_form_data(username, password, data->message) == 1) {
     if (strcmp(password, repassword) != 0)
       gtk_label_set_text(GTK_LABEL(data->message),
@@ -81,27 +86,37 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
 }
 
 int check_form_data(char *username, char *password, GtkWidget *message) {
-  int username_len = strlen(username);
-  int password_len = password != NULL
+	int username_len = strlen(username);
+	int password_len = password != NULL
                          ? strlen(password)
                          : -1; /* this function is used to check
                                user's nick when creating a chat/group
                                and in this case password == NULL*/
 
-  if (username_len == 0) {
-    gtk_label_set_text(GTK_LABEL(message), "Username is required");
-    return 0;
-  } else if (username_len < 2 || username_len > 20) {
-    gtk_label_set_text(GTK_LABEL(message),
-                       "Username must contain 2-20 symbols");
-    return 0;
-  } else if (password != NULL && password_len == 0) {
-    gtk_label_set_text(GTK_LABEL(message), "Password is required");
-    return 0;
-  } else if (password != NULL && (password_len < 0 || password_len > 20)) {
-    gtk_label_set_text(GTK_LABEL(message),
-                       "Password must contain 8-20 symbols");
-    return 0;
-  }
-  return 1;
+	if (username_len == 0) {
+		gtk_label_set_text(GTK_LABEL(message), "Username is required");
+		return 0;
+	} else if (username_len < 2 || username_len > 20) {
+		gtk_label_set_text(GTK_LABEL(message),
+						   "Username must contain 2-20 symbols");
+		return 0;
+	}
+	for (int i = 0; i < username_len; i++) {
+  		if (!isalpha(username[i])) {
+  			gtk_label_set_text(GTK_LABEL(message),
+							   "Username must contain only letters");
+			return 0;
+  		}
+	}
+	if (password != NULL && password_len == 0) {
+		gtk_label_set_text(GTK_LABEL(message), "Password is required");
+		return 0;
+		// do not forget to change to 8
+	} else if (password != NULL && (password_len < 0 || password_len > 20)) {
+		gtk_label_set_text(GTK_LABEL(message),
+						   "Password must contain 8-20 symbols");
+		return 0;
+	}
+	return 1;
 }
+
