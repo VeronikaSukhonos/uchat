@@ -1,0 +1,176 @@
+window {
+	background-color: #1A1A1D;
+	font-size: 20px;
+	color: white;
+}
+
+.log-reg {
+	padding: 50px;
+}
+
+.form {
+	background-color: #29292C;
+	padding: 40px;
+	border: solid 2px #3B3B3E;
+	border-radius: 8px;
+}
+
+.form-name-label {
+	font-weight: bold;
+	color: #5BCD91;
+	font-size: 26px;
+	margin-bottom: 20px;
+}
+
+.form-label {
+	font-weight: bold;
+	margin-top: 5px;
+}
+
+.form-entry {
+	background-color: #1A1A1D;
+	color: white;
+	border: solid 2px transparent;
+	border-radius: 8px;
+	caret-color: white;
+	margin: 5px 0;
+	padding: 2.5px 8px;
+}
+
+.form-entry:focus {
+	border-color: #5BCD91;
+	box-shadow: none;
+	transition: 0.3s;
+}
+
+.form-message {
+	color: #D13325;
+	font-size: 18px;
+	margin: 5px 0;
+}
+
+.form-message-success {
+	color: #5BCD91;
+}
+
+.form-button {
+	background: #5F4BDA;
+	color: white;
+	font-weight: bold;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	margin: 5px 0;
+	padding: 8px;
+}
+
+.form-button:hover, .form-button:active {
+	background: #5946AB;
+	transition: 0.3s;
+}
+
+.form-link-label, .form-link {
+	margin-top: 5px;
+	font-size: 18px;
+}
+
+.form-link {
+	background: transparent;
+	color: #5BCD91;
+	border: none;
+	outline: none;
+	padding: 0;
+}
+
+.form-link:hover, .form-link:active {
+	color: #A2CD91;
+	transition: 0.3s;
+}
+
+.menu {
+    background-color: #29292C;
+    margin: 0;
+    border: none;
+    border-right: solid 2px #3B3B3E;
+}
+
+.menu-button {
+    background: rgba(0,0,0,0);
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.menu-button:hover, .menu-button:active {
+    background: #3B3B3E;
+    transition: 0.3s;
+    border-radius: 0px;
+    border-right: solid 5px #5BCD91;
+}
+
+.box {
+    background-color: #1A1A1D;
+}
+
+.gchats {
+    font-weight: bold;
+    color: #5BCD91;
+    font-size: 26px;
+    padding: 20px;
+}
+
+.dots {
+    background: rgba(0,0,0,0);
+    color: #5F4BDA;
+    font-size: 25px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.dots:hover {
+    color: #5946AB;
+    transition: 0.3s
+}
+
+.newchats-button {
+    background: #5F4BDA;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 100%;
+    margin-left: 5px;
+}
+
+.newchats-button:hover, .newchats-button:active {
+	background: #5946AB;
+	transition: 0.3s;
+}
+
+.newchats-users-button {
+	background: #5F4BDA;
+	color: white;
+	font-weight: bold;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	margin: 5px;
+	padding: 8px;
+}
+
+.newchats-users-button:hover, .newchats-users-button:active {
+	background: #5946AB;
+	transition: 0.3s;
+}
+
+.newchats-entry {
+	background-color: #1A1A1D;
+	color: white;
+	border: solid 2px transparent;
+	border-radius: 8px;
+	caret-color: white;
+	margin: 5px 0;
+	padding: 2.5px 8px;
+}
+
