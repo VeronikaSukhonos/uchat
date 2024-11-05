@@ -1,4 +1,35 @@
 #include <uchat.h>
+void send_message_to_server(const gchar *receiver, const gchar *message) {
+    // Construct JSON for the message
+    cJSON *json_message = cJSON_CreateObject();
+    cJSON_AddStringToObject(json_message, "action", "SEND_MESSAGE_TO_USER");
+    cJSON_AddStringToObject(json_message, "receiver", receiver);
+    cJSON_AddStringToObject(json_message, "message", message);
+
+    char *json_string = cJSON_Print(json_message);
+    
+    // Here you would send json_string through the socket
+    g_print("Sending message to server: %s\n", json_string);
+
+    cJSON_Delete(json_message);  // Clean up
+    free(json_string);            // Free the printed string
+}
+void send_message_f(GtkWidget *widget, gpointer data) {
+    GtkEntry *message_entry = GTK_ENTRY(data);
+    const gchar *message_text = gtk_entry_get_text(message_entry);
+    
+    // Assume you have a way to get the current user's username
+    const gchar *receiver_username = "current_user"; // Replace this with the actual current username
+
+    if (g_strcmp0(message_text, "") != 0) {
+        // Send the message to the server with the receiver's username
+        send_message_to_server(receiver_username, message_text);
+        gtk_entry_set_text(message_entry, ""); // Clear the entry after sending
+    } else {
+        g_print("Cannot send an empty message.\n");
+    }
+}
+
 
 void open_close_menu(GtkWidget *menu_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
@@ -165,15 +196,36 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   chats_list = gtk_label_new("chats_list");
   gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), chats_list,
                       "chats_list");
-
   // central area
   (*main_page).central_area_stack = gtk_stack_new();
   gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, FALSE,
                      FALSE, 0);
-
   chat = gtk_label_new("chat");
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), chat, "chat");
+  GtkWidget *message_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+  gtk_box_pack_start(GTK_BOX(chats), message_box, TRUE, TRUE, 0);
 
+  (*main_page).central_area_stack = gtk_stack_new();
+  gtk_box_pack_start(GTK_BOX(message_box), (*main_page).central_area_stack, TRUE, TRUE, 0);
+
+  GtkWidget *chat_label = gtk_label_new("chat");
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), chat_label, "chat");
+
+
+  //input box
+  GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+  gtk_style_context_add_class(gtk_widget_get_style_context(input_box), "input-box"); 
+  gtk_box_pack_start(GTK_BOX(message_box), input_box, FALSE, FALSE, 5);
+
+  GtkWidget *message_entry = gtk_entry_new();
+  gtk_style_context_add_class(gtk_widget_get_style_context(message_entry), "message-entry");
+  gtk_box_pack_start(GTK_BOX(input_box), message_entry, TRUE, TRUE, 5);
+
+  GtkWidget *send_button = gtk_button_new_with_label("Send");
+  gtk_style_context_add_class(gtk_widget_get_style_context(send_button), "send-button");
+  gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 5);
+
+g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f), message_entry);
   // create chat
   create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_chat,
