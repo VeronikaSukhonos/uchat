@@ -69,4 +69,3 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data) {
 	g_signal_connect(registration_link_button, "clicked",
 					 G_CALLBACK(show_registration), data);
 }
-

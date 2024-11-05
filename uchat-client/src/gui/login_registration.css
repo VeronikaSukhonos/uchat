@@ -160,8 +160,6 @@ window {
     padding: 5px;
     border-radius: 8px; 
 }
-
-/* Message entry style */
 .message-entry {
     background-color: #1A1A1D; 
     color: white;
@@ -177,22 +175,20 @@ window {
     transition: 0.3s;
 }
 
-/* Send button style */
 .send-button {
-    background-color: #1A1A1D;
-    color: #5F4BDA; /* Purple text */
-    font-weight: bold; /* Bold text */
-    border: none; /* No border */
-    outline: none; /* Remove outline */
-    border-radius: 8px; /* Rounded corners */
-    padding: 8px; /* Padding inside button */
-    transition: background-color 0.3s, color 0.3s; /* Smooth transition for background and text color */
+    background:  #1A1A1D;
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    border-radius: 8px;
+    padding: 8px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* Button hover and active state */
 .send-button:hover, .send-button:active {
-    background-color: #1A1A1D;
-    color: #5BCD91;
+    background: #46a974;
+    color: white;
     transition: 0.3s;
 }
 
