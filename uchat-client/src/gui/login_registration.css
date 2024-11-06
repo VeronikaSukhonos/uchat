@@ -155,11 +155,29 @@ window {
     font-weight: bold;
     padding-bottom: 10px;
 }
+
+.newchats-button:hover, .newchats-button:active {
+	background: #5946AB;
+	transition: 0.3s;
+}
+
 .input-box {
     background-color: #2C2C2E;
     padding: 5px;
     border-radius: 8px; 
 }
+
+.newchats-users-button {
+	background: #5F4BDA;
+	color: white;
+	font-weight: bold;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	margin: 5px;
+	padding: 8px;
+}
+
 .message-entry {
     background-color: #1A1A1D; 
     color: white;

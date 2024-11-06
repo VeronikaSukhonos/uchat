@@ -1,11 +1,11 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <sys/select.h>
 #include <unistd.h>
 
@@ -13,6 +13,7 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
+#define USERS_IN_GROUP_COUNT 5
 
 typedef struct s_chat_form_data {
   GtkWidget *form;
@@ -21,6 +22,11 @@ typedef struct s_chat_form_data {
   GtkWidget *message;
 } t_chat_form_data;
 
+typedef struct s_group_users_data {
+  char username[50];
+  GtkWidget *button;
+} t_group_users_data;
+
 typedef struct s_main_page_data {
   int sock;
   GtkWidget *menu_stack;
@@ -28,6 +34,9 @@ typedef struct s_main_page_data {
   GtkWidget *central_area_stack;
   t_chat_form_data create_chat_data;
   t_chat_form_data create_group_data;
+  GtkWidget *group_box;
+  int group_users_count;
+  t_group_users_data group_users[USERS_IN_GROUP_COUNT];
 } t_main_page_data;
 
 typedef struct s_form_data {
@@ -87,5 +96,6 @@ void show_login(GtkWidget *login_link_button, t_form_data *data);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
 void login_submit(GtkWidget *login_button, t_form_data *data);
+void removing_user(GtkWidget *clicked_button, gpointer data);
 
 int check_form_data(char *username, char *password, GtkWidget *message);

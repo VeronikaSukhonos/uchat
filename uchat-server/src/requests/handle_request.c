@@ -57,6 +57,15 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     sqlite3_close(db);
 
+  } else if (strcmp(action->valuestring, "FIND_USER") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    if (handle_find_user(db, json, client) == 0) {
+    } else {
+      send_status_responce_to_client(client, "FIND_USER", "FAILURE");
+    }
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "UPDATE_PROFILE") == 0) {
     // Handle profile update
   } else if (strcmp(action->valuestring, "DELETE_ACCOUNT") == 0) {

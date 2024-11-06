@@ -34,9 +34,9 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("Registration successful\n");
-      gtk_style_context_add_class(gtk_widget_get_style_context(
-      								app_data->registration_data->message),
-									"form-message-success");
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context(app_data->registration_data->message),
+          "form-message-success");
       gtk_label_set_text(GTK_LABEL(app_data->registration_data->message),
                          "Registration was successful. Please log in!");
     } else {
@@ -45,6 +45,46 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
                          "Choose another username");
     }
 
+  } else if (strcmp(action->valuestring, "FIND_USER") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      char username[50];
+      strcpy(username, cJSON_GetObjectItem(response, "username")->valuestring);
+      app_data->main_page->group_users[app_data->main_page->group_users_count]
+          .button = gtk_button_new_with_label(username);
+      strcpy(app_data->main_page
+                 ->group_users[app_data->main_page->group_users_count]
+                 .username,
+             username);
+      gtk_flow_box_insert(
+          GTK_FLOW_BOX(app_data->main_page->group_box),
+          app_data->main_page
+              ->group_users[app_data->main_page->group_users_count]
+              .button,
+          -1);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context(
+              app_data->main_page
+                  ->group_users[app_data->main_page->group_users_count]
+                  .button),
+          "newchats-users-button");
+      g_signal_connect(app_data->main_page
+                           ->group_users[app_data->main_page->group_users_count]
+                           .button,
+                       "clicked", G_CALLBACK(removing_user),
+                       app_data->main_page);
+      gtk_widget_set_visible(
+          app_data->main_page
+              ->group_users[app_data->main_page->group_users_count]
+              .button,
+          1);
+      app_data->main_page->group_users_count += 1;
+
+    } else {
+      gtk_label_set_text(
+          GTK_LABEL(app_data->main_page->create_group_data.message),
+          "User does not found");
+    }
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
