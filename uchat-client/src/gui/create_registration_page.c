@@ -35,12 +35,32 @@ void create_registration_page(GtkWidget *pages, GtkWidget *registration,
 	gtk_style_context_add_class(gtk_widget_get_style_context(password_label),
 								"form-label");
 
+	GtkWidget *pw_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(data->form), pw_container, FALSE, FALSE, 0);
+	gtk_style_context_add_class(gtk_widget_get_style_context(pw_container),
+								"form-pw-container");
+
 	data->password = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(data->form), data->password, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(pw_container), data->password, TRUE, TRUE, 0);
 	gtk_entry_set_visibility(GTK_ENTRY(data->password), FALSE);
 	g_object_set(data->password, "caps-lock-warning", FALSE, NULL);
 	gtk_style_context_add_class(gtk_widget_get_style_context(data->password),
-								"form-entry");
+								"form-pw-entry");
+	g_signal_connect(data->password, "focus-in-event",
+					 G_CALLBACK(change_password_focus), pw_container);
+	g_signal_connect(data->password, "focus-out-event",
+					 G_CALLBACK(change_password_focus), pw_container);
+
+	data->pw_button = gtk_button_new();
+	gtk_box_pack_start(GTK_BOX(pw_container), data->pw_button, FALSE, FALSE, 0);
+	gtk_style_context_add_class(
+		gtk_widget_get_style_context(data->pw_button), "form-pw-button");
+
+	GtkWidget *show_pw_image =
+		gtk_image_new_from_file("uchat-client/src/gui/resources/eye-open.png");
+	gtk_button_set_image(GTK_BUTTON(data->pw_button), show_pw_image);
+	g_signal_connect(data->pw_button, "clicked",
+					 G_CALLBACK(change_password_visibility), data->password);
 
 	GtkWidget *repassword_label = gtk_label_new("Repeat password");
 	gtk_box_pack_start(GTK_BOX(data->form), repassword_label, FALSE, FALSE, 0);
@@ -48,12 +68,32 @@ void create_registration_page(GtkWidget *pages, GtkWidget *registration,
 	gtk_style_context_add_class(gtk_widget_get_style_context(repassword_label),
 								"form-label");
 
+	GtkWidget *repw_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_box_pack_start(GTK_BOX(data->form), repw_container, FALSE, FALSE, 0);
+	gtk_style_context_add_class(gtk_widget_get_style_context(repw_container),
+								"form-pw-container");
+
 	data->repassword = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(data->form), data->repassword, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(repw_container), data->repassword, TRUE, TRUE, 0);
 	gtk_entry_set_visibility(GTK_ENTRY(data->repassword), FALSE);
 	g_object_set(data->repassword, "caps-lock-warning", FALSE, NULL);
 	gtk_style_context_add_class(gtk_widget_get_style_context(data->repassword),
-								"form-entry");
+								"form-pw-entry");
+	g_signal_connect(data->repassword, "focus-in-event",
+					 G_CALLBACK(change_password_focus), repw_container);
+	g_signal_connect(data->repassword, "focus-out-event",
+					 G_CALLBACK(change_password_focus), repw_container);
+
+	data->repw_button = gtk_button_new();
+	gtk_box_pack_start(GTK_BOX(repw_container), data->repw_button, FALSE, FALSE, 0);
+	gtk_style_context_add_class(
+		gtk_widget_get_style_context(data->repw_button), "form-pw-button");
+
+	GtkWidget *show_repw_image =
+		gtk_image_new_from_file("uchat-client/src/gui/resources/eye-open.png");
+	gtk_button_set_image(GTK_BUTTON(data->repw_button), show_repw_image);
+	g_signal_connect(data->repw_button, "clicked",
+					 G_CALLBACK(change_password_visibility), data->repassword);
 
 	data->message = gtk_label_new("");
 	gtk_box_pack_start(GTK_BOX(data->form), data->message, FALSE, FALSE, 0);

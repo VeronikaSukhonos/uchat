@@ -43,6 +43,37 @@ window {
 	transition: 0.3s;
 }
 
+.form-pw-container {
+	background-color: #1A1A1D;
+	border: solid 2px transparent;
+	border-radius: 8px;
+	margin: 5px 0;
+	transition: 0.2s;
+}
+
+.form-pw-container-focus {
+	border-color: #5BCD91;
+	transition: 0.3s;
+}
+
+.form-pw-entry, .form-pw-entry:focus {
+	background-color: #1A1A1D;
+	color: white;
+	border: none;
+	border-radius: 8px;
+	box-shadow: none;
+	caret-color: white;
+	padding: 2.5px 8px;
+}
+
+.form-pw-button {
+	background: transparent;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	padding: 5px;
+}
+
 .form-message {
 	color: #D13325;
 	font-size: 18px;
@@ -54,7 +85,7 @@ window {
 }
 
 .form-button {
-	background: #5F4BDA;
+	background: #604BDC;
 	color: white;
 	font-weight: bold;
 	border: none;
@@ -65,7 +96,7 @@ window {
 }
 
 .form-button:hover, .form-button:active {
-	background: #5946AB;
+	background: #6F54F8;
 	transition: 0.3s;
 }
 
@@ -83,7 +114,7 @@ window {
 }
 
 .form-link:hover, .form-link:active {
-	color: #A2CD91;
+	color: #70F7B5;
 	transition: 0.3s;
 }
 
@@ -122,7 +153,7 @@ window {
 
 .dots {
     background: rgba(0,0,0,0);
-    color: #5F4BDA;
+    color: #604BDC;
     font-size: 25px;
     font-weight: bold;
     border: none;
@@ -130,7 +161,7 @@ window {
 }
 
 .dots:hover {
-    color: #5946AB;
+    color: #6F54F8;
     transition: 0.3s
 }
 
@@ -143,10 +174,11 @@ window {
 }
 
 .newchats-button {
-    background: #5F4BDA;
+    background: #604BDC;
     color: white;
     font-weight: bold;
     border: none;
+    outline: none;
     border-radius: 100%;
     margin-left: 5px;
 }
@@ -157,7 +189,7 @@ window {
 }
 
 .newchats-button:hover, .newchats-button:active {
-	background: #5946AB;
+	background: #6F54F8;
 	transition: 0.3s;
 }
 
@@ -168,7 +200,7 @@ window {
 }
 
 .newchats-users-button {
-	background: #5F4BDA;
+	background: #604BDC;
 	color: white;
 	font-weight: bold;
 	border: none;
@@ -187,6 +219,7 @@ window {
     margin: 0 5px; 
     padding: 2.5px 8px;
 }
+
 .message-entry:focus {
     border-color: #5BCD91; 
     box-shadow: none; 
@@ -205,7 +238,7 @@ window {
 }
 
 .send-button:hover, .send-button:active {
-    background: #46a974;
+    background: #5BCD91;
     color: white;
     transition: 0.3s;
 }

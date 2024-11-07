@@ -45,6 +45,8 @@ typedef struct s_form_data {
   GtkWidget *username;
   GtkWidget *password;
   GtkWidget *repassword;
+  GtkWidget *pw_button;
+  GtkWidget *repw_button;
   GtkWidget *message;
 } t_form_data;
 
@@ -93,6 +95,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
 void show_login(GtkWidget *login_link_button, t_form_data *data);
+void change_password_focus(GtkWidget *pw_entry, GdkEventFocus *event,
+						   GtkWidget *pw_container);
+void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
 void login_submit(GtkWidget *login_button, t_form_data *data);

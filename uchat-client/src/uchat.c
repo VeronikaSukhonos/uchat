@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
   setup_gtk_interface(pages, registration, login, chats, &registration_data,
                       &login_data, &main_page);
   gtk_widget_show_all(main_window);
+  gtk_window_set_focus(GTK_WINDOW(main_window), NULL);
   gtk_stack_set_transition_type(GTK_STACK(pages),
                                 GTK_STACK_TRANSITION_TYPE_CROSSFADE);
 
