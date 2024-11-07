@@ -27,13 +27,28 @@ typedef struct s_group_users_data {
   GtkWidget *button;
 } t_group_users_data;
 
+// profile_data
+typedef struct s_profile_data {
+    GtkWidget *username;
+    GtkWidget *description;
+    GtkWidget *status;
+    GtkWidget *form;
+    GtkWidget *message;
+}              t_profile_data;
+
 typedef struct s_main_page_data {
   int sock;
   GtkWidget *menu_stack;
   int menu_opened;
+  GtkWidget *menu_button_selected;
   GtkWidget *central_area_stack;
+  GtkWidget *chats_stack;
   t_chat_form_data create_chat_data;
   t_chat_form_data create_group_data;
+  // profile_data
+  t_profile_data profile_data;
+  // edit_data
+  t_profile_data edit_data;
   GtkWidget *group_box;
   int group_users_count;
   t_group_users_data group_users[USERS_IN_GROUP_COUNT];

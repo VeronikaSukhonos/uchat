@@ -131,9 +131,16 @@ window {
     font-weight: bold;
     border: none;
     outline: none;
+    padding: 5px;
 }
 
 .menu-button:hover, .menu-button:active {
+    background: #3B3B3E;
+    transition: 0.3s;
+    border-radius: 0px;
+}
+
+.menu-button-selected {
     background: #3B3B3E;
     transition: 0.3s;
     border-radius: 0px;
@@ -208,6 +215,40 @@ window {
 	border-radius: 8px;
 	margin: 5px;
 	padding: 8px;
+}
+
+.img-profile {
+    border-radius: 100%;
+}
+
+.status {
+    color: #5BCD91;
+    margin-bottom: 30px;
+}
+
+.img-edit {
+    margin-bottom: 10px;
+    border-radius: 100%;
+}
+
+.profile-name {
+        font-weight: bold;
+        margin-top: 5px;
+	margin-bottom: 10px;
+}
+
+.profile-link {
+    background: rgba(0,0,0,0);
+    color: #7F7F7F;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin-top: 35px;
+}
+
+.profile-link:hover {
+    color: #AFAFAF;
+    transition: 0.3s;
 }
 
 .message-entry {
