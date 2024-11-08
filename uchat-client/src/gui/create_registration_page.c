@@ -6,7 +6,7 @@ void create_registration_page(GtkWidget *pages, GtkWidget *registration,
 	gtk_stack_add_named(GTK_STACK(pages), registration, "registration");
 	gtk_style_context_add_class(gtk_widget_get_style_context(registration),
 								"log-reg");
-
+	
 	data->form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_box_pack_start(GTK_BOX(registration), data->form, TRUE, FALSE, 0);
 	gtk_widget_set_size_request(GTK_WIDGET(data->form), 450, -1);

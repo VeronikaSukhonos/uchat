@@ -86,7 +86,6 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data) {
 					   registration_link_button, FALSE, FALSE, 0);
 	gtk_style_context_add_class(
 		gtk_widget_get_style_context(registration_link_button), "form-link");
-	g_signal_connect(registration_link_button, "clicked",
-					 G_CALLBACK(show_registration), data);
+	g_signal_connect(registration_link_button, "clicked", G_CALLBACK(show_registration), data);
 }
 

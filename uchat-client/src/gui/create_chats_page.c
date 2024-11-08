@@ -273,10 +273,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     gtk_style_context_add_class(gtk_widget_get_style_context(send_button), "send-button");
     gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 5);
 
-    // Change button image on hover
+    // change button image on hover
     change_button_hover_image(send_button);
-
-    // Connect send button to send message function
     g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f), message_entry);
 
     // create chat
@@ -350,7 +348,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     gtk_widget_set_size_request(GTK_WIDGET((*main_page).create_group_data.form),
                                 450, -1);
 
-    GtkWidget *create_group_label = gtk_label_new("Create new group");
+    GtkWidget *create_group_label = gtk_label_new("New group");
     gtk_style_context_add_class(gtk_widget_get_style_context(create_group_label),
                                 "form-name-label");
     gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
@@ -405,13 +403,10 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     (*main_page).create_group_data.message = gtk_label_new("");
     gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
                        (*main_page).create_group_data.message, FALSE, FALSE, 0);
-    gtk_style_context_add_class(
-        gtk_widget_get_style_context((*main_page).create_group_data.message),
-        "form-message");
+    gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).create_group_data.message), "form-message");
 
     GtkWidget *create_group_button = gtk_button_new_with_label("Create group");
-    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
-                       create_group_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form), create_group_button, FALSE, FALSE, 0);
     gtk_style_context_add_class(gtk_widget_get_style_context(create_group_button), "form-button");
     g_signal_connect(create_group_button, "clicked", G_CALLBACK(group_creation), main_page);
 
