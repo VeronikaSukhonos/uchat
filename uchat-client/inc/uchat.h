@@ -108,8 +108,14 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data);
 void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                        t_main_page_data *main_page);
 
+//show elements gui
+void show_chat(GtkWidget *chat_button, gpointer data);
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
 void show_login(GtkWidget *login_link_button, t_form_data *data);
+void show_profile(GtkWidget *settings_button, gpointer data);
+void show_edit_page(GtkWidget *edit_button, gpointer data);
+void show_new_group(GtkWidget *new_group_button, gpointer data);
+void show_new_chat(GtkWidget *new_chat_button, gpointer data);
 void change_password_focus(GtkWidget *pw_entry, GdkEventFocus *event,
 						   GtkWidget *pw_container);
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
@@ -117,5 +123,12 @@ void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
 void login_submit(GtkWidget *login_button, t_form_data *data);
 void removing_user(GtkWidget *clicked_button, gpointer data);
-
+void set_selected_button(GtkWidget **selected_button, GtkWidget **new_selected_button);
 int check_form_data(char *username, char *password, GtkWidget *message);
+
+//input box gui
+gboolean on_button_hover(GtkWidget *send_button, GdkEvent *event, gpointer user_data);
+gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event, gpointer user_data);
+void change_button_hover_image(GtkWidget *send_button);
+void send_message_to_server(int chat_id, const gchar *message);
+void send_message_f(GtkWidget *widget, gpointer data);

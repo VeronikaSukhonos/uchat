@@ -10,44 +10,17 @@ void load_css(const gchar *file) {
 
   g_object_unref(provider);
 }
-
-void show_login(GtkWidget *login_link_button, t_form_data *data) {
-  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
-
-  gtk_stack_set_visible_child_name(GTK_STACK(pages), "login");
-  gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_parent(pages)), NULL);
-  gtk_entry_set_text(GTK_ENTRY(data->username), "");
-  gtk_entry_set_text(GTK_ENTRY(data->password), "");
-  gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
-  gtk_label_set_text(GTK_LABEL(data->message), "");
-  gtk_entry_set_visibility(GTK_ENTRY(data->password), TRUE);
-  gtk_entry_set_visibility(GTK_ENTRY(data->repassword), TRUE);
-  change_password_visibility(data->pw_button, data->password);
-  change_password_visibility(data->repw_button, data->repassword);
-}
-
-void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
-  GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
-
-  gtk_stack_set_visible_child_name(GTK_STACK(pages), "registration");
-  gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_parent(pages)), NULL);
-  gtk_entry_set_text(GTK_ENTRY(data->username), "");
-  gtk_entry_set_text(GTK_ENTRY(data->password), "");
-  gtk_label_set_text(GTK_LABEL(data->message), "");
-  gtk_entry_set_visibility(GTK_ENTRY(data->password), TRUE);
-  change_password_visibility(data->pw_button, data->password);
-}
-
 void change_password_focus(GtkWidget *pw_entry, GdkEventFocus *event,
-						   GtkWidget *pw_container) {
-	if (event->in) {
-		gtk_style_context_add_class(gtk_widget_get_style_context(
-									pw_container), "form-pw-container-focus");
-	}
-	else {
-		gtk_style_context_remove_class(gtk_widget_get_style_context(
-									   pw_container), "form-pw-container-focus");
-	}
+                           GtkWidget *pw_container) {
+    if (event->in) {
+        gtk_style_context_add_class(gtk_widget_get_style_context(
+                                        pw_container),
+                                    "form-pw-container-focus");
+    } else {
+        gtk_style_context_remove_class(gtk_widget_get_style_context(
+                                           pw_container),
+                                       "form-pw-container-focus");
+    }
 }
 
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry) {

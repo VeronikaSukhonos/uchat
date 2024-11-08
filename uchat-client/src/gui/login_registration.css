@@ -200,12 +200,6 @@ window {
 	transition: 0.3s;
 }
 
-.input-box {
-    background-color: #2C2C2E;
-    padding: 5px;
-    border-radius: 8px; 
-}
-
 .newchats-users-button {
 	background: #604BDC;
 	color: white;
@@ -232,8 +226,8 @@ window {
 }
 
 .profile-name {
-        font-weight: bold;
-        margin-top: 5px;
+    font-weight: bold;
+    margin-top: 5px;
 	margin-bottom: 10px;
 }
 
@@ -249,6 +243,13 @@ window {
 .profile-link:hover {
     color: #AFAFAF;
     transition: 0.3s;
+}
+/* input box */
+
+.input-box {
+    background-color: #2C2C2E;
+    padding: 7px;
+    margin-top: 2px;
 }
 
 .message-entry {
@@ -268,19 +269,8 @@ window {
 }
 
 .send-button {
-    background:  #1A1A1D;
-    color: white;
-    font-weight: bold;
+    background-color: none;
     border: none;
-    outline: none;
-    border-radius: 8px;
-    padding: 8px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.send-button:hover, .send-button:active {
-    background: #5BCD91;
-    color: white;
-    transition: 0.3s;
+    padding: 0;
 }
 
