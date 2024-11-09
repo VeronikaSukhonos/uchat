@@ -1,5 +1,18 @@
 #include <uchat.h>
 
+void change_mic_image(GtkWidget *mic_button, gpointer data) {
+    MicData *mic_data = (MicData *)data;
+
+    if (mic_data->is_active) {
+        GtkWidget *mic_button_img_start = gtk_image_new_from_file(mic_data->img_path_start);
+        gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
+        mic_data->is_active = FALSE;
+    } else {
+        GtkWidget *mic_button_img_stop = gtk_image_new_from_file(mic_data->img_path_stop);
+        gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
+        mic_data->is_active = TRUE;
+    }
+}
 void open_close_menu(GtkWidget *menu_button, gpointer data) {
     t_main_page_data *main_page = (t_main_page_data *)data;
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
@@ -204,20 +217,16 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     gtk_container_add(GTK_CONTAINER(new_group_button), new_group_button_label);
     gtk_widget_set_halign(new_group_button_label, GTK_ALIGN_START);
     gtk_box_pack_start(GTK_BOX(menu_box), new_group_button, FALSE, FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(new_group_button),
-                                "menu-button");
-    g_signal_connect(new_group_button, "clicked", G_CALLBACK(show_new_group),
-                     main_page);
+    gtk_style_context_add_class(gtk_widget_get_style_context(new_group_button), "menu-button");
+    g_signal_connect(new_group_button, "clicked", G_CALLBACK(show_new_group), main_page);
 
     GtkWidget *profile_button = gtk_button_new();
     GtkWidget *profile_button_label = gtk_label_new("Profile");
     gtk_container_add(GTK_CONTAINER(profile_button), profile_button_label);
     gtk_widget_set_halign(profile_button_label, GTK_ALIGN_START);
     gtk_box_pack_start(GTK_BOX(menu_box), profile_button, FALSE, FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(profile_button),
-                                "menu-button");
-    g_signal_connect(profile_button, "clicked", G_CALLBACK(show_profile),
-                     main_page);
+    gtk_style_context_add_class(gtk_widget_get_style_context(profile_button),"menu-button");
+    g_signal_connect(profile_button, "clicked", G_CALLBACK(show_profile), main_page);
 
     GtkWidget *log_out_button = gtk_button_new();
     GtkWidget *log_out_button_label = gtk_label_new("Log out");
@@ -236,44 +245,59 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     gtk_container_add(GTK_CONTAINER(chat_button), chat_button_label);
     gtk_widget_set_halign(chat_button_label, GTK_ALIGN_START);
     gtk_box_pack_start(GTK_BOX(chats_list_box), chat_button, FALSE, FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(chat_button),
-                                "menu-button");
-    g_signal_connect(chat_button, "clicked", G_CALLBACK(show_chat),
-                     main_page);
+    gtk_style_context_add_class(gtk_widget_get_style_context(chat_button),"menu-button");
+    g_signal_connect(chat_button, "clicked", G_CALLBACK(show_chat), main_page);
     // central area
     (*main_page).central_area_stack = gtk_stack_new();
-    gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, TRUE,
-                       TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, TRUE, TRUE, 0);
 
     GtkWidget *message_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), message_box,
-                        "chat");
+    gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), message_box, "chat");
 
     (*main_page).chats_stack = gtk_stack_new();
-    gtk_box_pack_start(GTK_BOX(message_box), (*main_page).chats_stack,
-                       TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(message_box), (*main_page).chats_stack, TRUE, TRUE, 0);
 
     // stack for chat messages
     GtkWidget *chat_label = gtk_label_new("Chat messages will appear here");
-    gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), chat_label,
-                        "chat");
+    gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), chat_label, "chat");
 
-    // input box for sending messages + buttons
+    // input box 
     GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
     gtk_style_context_add_class(gtk_widget_get_style_context(input_box), "input-box");
     gtk_box_pack_start(GTK_BOX(message_box), input_box, FALSE, FALSE, 5);
+    GtkWidget *message_entry_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box), "message-entry-box");
+
+    // an overlay to hold both the message entry and microphone button
+    GtkWidget *overlay = gtk_overlay_new();
+    gtk_style_context_add_class(gtk_widget_get_style_context(overlay), "message-entry-overlay");
 
     GtkWidget *message_entry = gtk_entry_new();
     gtk_style_context_add_class(gtk_widget_get_style_context(message_entry), "message-entry");
-    gtk_box_pack_start(GTK_BOX(input_box), message_entry, TRUE, TRUE, 5);
+    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), message_entry);
+
+    MicData *mic_data = g_new(MicData, 1);
+    mic_data->is_active = FALSE;
+    mic_data->img_path_start = "uchat-client/src/gui/resources/voice-start.png";
+    mic_data->img_path_stop = "uchat-client/src/gui/resources/voice-stop.png";
+
+    GtkWidget *mic_button = gtk_button_new();
+    GtkWidget *mic_button_img_start = gtk_image_new_from_file(mic_data->img_path_start);
+    gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
+    gtk_style_context_add_class(gtk_widget_get_style_context(mic_button), "mic-button");
+    gtk_widget_set_halign(mic_button, GTK_ALIGN_END);
+    gtk_widget_set_valign(mic_button, GTK_ALIGN_CENTER);
+
+    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), mic_button);
+
+    g_signal_connect(mic_button, "clicked", G_CALLBACK(change_mic_image), mic_data);
+    gtk_box_pack_start(GTK_BOX(input_box), overlay, TRUE, TRUE, 5);
 
     GtkWidget *send_button = gtk_button_new();
     GtkWidget *send_button_img = gtk_image_new_from_file("uchat-client/src/gui/resources/send-button.png");
     gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
     gtk_style_context_add_class(gtk_widget_get_style_context(send_button), "send-button");
     gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 5);
-
-    // change button image on hover
     change_button_hover_image(send_button);
     g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f), message_entry);
 
@@ -372,29 +396,21 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     GtkWidget *add_user_label = gtk_label_new("Username");
     gtk_style_context_add_class(gtk_widget_get_style_context(add_user_label),
                                 "form-label");
-    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
-                       add_user_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form), add_user_label, FALSE, FALSE, 0);
     gtk_widget_set_halign(add_user_label, GTK_ALIGN_START);
 
-    GtkWidget *group_entry_and_button =
-        gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
-                       group_entry_and_button, FALSE, FALSE, 0);
+    GtkWidget *group_entry_and_button = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form), group_entry_and_button, FALSE, FALSE, 0);
 
     (*main_page).create_group_data.username = gtk_entry_new();
     gtk_style_context_add_class(
-        gtk_widget_get_style_context((*main_page).create_group_data.username),
-        "form-entry");
-    gtk_box_pack_start(GTK_BOX(group_entry_and_button),
-                       (*main_page).create_group_data.username, TRUE, TRUE, 0);
+        gtk_widget_get_style_context((*main_page).create_group_data.username), "form-entry");
+    gtk_box_pack_start(GTK_BOX(group_entry_and_button), (*main_page).create_group_data.username, TRUE, TRUE, 0);
 
     GtkWidget *add_user_button = gtk_button_new_with_label("+");
-    gtk_box_pack_start(GTK_BOX(group_entry_and_button), add_user_button, FALSE,
-                       FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(add_user_button),
-                                "newchats-button");
-    g_signal_connect(add_user_button, "clicked", G_CALLBACK(adding_user),
-                     main_page);
+    gtk_box_pack_start(GTK_BOX(group_entry_and_button), add_user_button, FALSE, FALSE, 0);
+    gtk_style_context_add_class(gtk_widget_get_style_context(add_user_button),"newchats-button");
+    g_signal_connect(add_user_button, "clicked", G_CALLBACK(adding_user),main_page);
 
     (*main_page).group_box = gtk_flow_box_new();
     gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),

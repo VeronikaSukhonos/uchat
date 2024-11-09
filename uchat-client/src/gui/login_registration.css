@@ -257,6 +257,7 @@ window {
     color: #AFAFAF;
     transition: 0.3s;
 }
+
 /* input box */
 
 .input-box {
@@ -287,4 +288,12 @@ window {
     box-shadow: none;
     outline: none; 
     background-image: none; 
+}
+.mic-button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    background-image: none; 
+    margin-right: 10px;
 }

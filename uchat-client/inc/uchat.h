@@ -15,6 +15,12 @@
 #define BUFFER_SIZE 1024
 #define USERS_IN_GROUP_COUNT 5
 
+typedef struct {
+    gboolean is_active;
+    const char *img_path_start;
+    const char *img_path_stop;
+} MicData;
+
 typedef struct s_chat_form_data {
   GtkWidget *form;
   GtkWidget *name;

@@ -92,8 +92,7 @@ int main(int argc, char *argv[]) {
   if (load_session(username, sizeof(username), session_token,
                    sizeof(session_token)) == 0) {
     g_print("Loaded session for %s. Checking session status...\n", username);
-    logged_in =
-        check_session_on_server(sock, username, session_token, serial_number);
+    logged_in = check_session_on_server(sock, username, session_token, serial_number);
   }
 
   // Initialize GTK interface
@@ -101,8 +100,7 @@ int main(int argc, char *argv[]) {
                       &login_data, &main_page);
   gtk_widget_show_all(main_window);
   gtk_window_set_focus(GTK_WINDOW(main_window), NULL);
-  gtk_stack_set_transition_type(GTK_STACK(pages),
-                                GTK_STACK_TRANSITION_TYPE_CROSSFADE);
+  gtk_stack_set_transition_type(GTK_STACK(pages), GTK_STACK_TRANSITION_TYPE_CROSSFADE);
 
   // Set up AppData struct
   AppData app_data = {pages,     registration,       login,
@@ -111,8 +109,7 @@ int main(int argc, char *argv[]) {
 
   // Monitor the socket with GIOChannel
   GIOChannel *gio_channel = g_io_channel_unix_new(sock);
-  g_io_add_watch(gio_channel, G_IO_IN | G_IO_HUP | G_IO_ERR, on_server_data,
-                 &app_data);
+  g_io_add_watch(gio_channel, G_IO_IN | G_IO_HUP | G_IO_ERR, on_server_data, &app_data);
 
   gtk_main();
 
