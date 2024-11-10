@@ -1,11 +1,8 @@
 #include <uchat.h>
 
 void change_button_hover_image(GtkWidget *send_button) {
-    GdkPixbuf *default_pixbuf = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/send-button.png", NULL);
-    GdkPixbuf *hover_pixbuf = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/send-button-purple.png", NULL);
-
-    // Get the current image on the button
-    GtkWidget *image = gtk_button_get_image(GTK_BUTTON(send_button));
+    GdkPixbuf *default_pixbuf = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/send-button-purple.png", NULL);
+    GdkPixbuf *hover_pixbuf = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/send-button.png", NULL);
 
     // Change image when hovering
     g_signal_connect(send_button, "enter-notify-event", G_CALLBACK(on_button_hover), hover_pixbuf);
@@ -25,6 +22,7 @@ gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event, gpointer user_
     gtk_image_set_from_pixbuf(GTK_IMAGE(image), default_pixbuf);
     return FALSE;
 }
+
 void send_message_to_server(int chat_id, const gchar *message) {
     cJSON *json_message = cJSON_CreateObject();
     cJSON_AddStringToObject(json_message, "action", "SEND_MESSAGE_TO_CHAT");

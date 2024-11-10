@@ -45,9 +45,9 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data) {
   gtk_style_context_add_class(gtk_widget_get_style_context(data->password),
                               "form-pw-entry");
   g_signal_connect(data->password, "focus-in-event",
-                   G_CALLBACK(change_password_focus), pw_container);
+                   G_CALLBACK(change_entry_box_focus), pw_container);
   g_signal_connect(data->password, "focus-out-event",
-                   G_CALLBACK(change_password_focus), pw_container);
+                   G_CALLBACK(change_entry_box_focus), pw_container);
 
   data->pw_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(pw_container), data->pw_button, FALSE, FALSE, 0);

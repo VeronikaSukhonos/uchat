@@ -84,12 +84,6 @@ spinner {
 	border-radius: 8px;
 	margin: 5px 0;
 	transition: 0.2s;
-
-}
-
-.form-pw-container-focus {
-	border-color: #5BCD91;
-	transition: 0.3s;
 }
 
 .form-pw-entry, .form-pw-entry:focus {
@@ -292,25 +286,31 @@ spinner {
 
 .input-box {
     background-color: #29292C;
-    padding: 7px;
+    padding: 5px 10px;
     border-top: solid 2px #3B3B3E;
     margin-top: 2px;
-	margin-bottom: -5px;
 }
 
-.message-entry {
-    background-color: #1A1A1D; 
-    color: white;
-    border: solid 2px transparent; 
-    border-radius: 8px; 
-    caret-color: white;
-    margin: 0 5px; 
-    padding: 2.5px 8px;
+.message-entry-box {
+	background-color: #1A1A1D;
+	border: solid 2px transparent;
+	border-radius: 8px;
+	margin: 5px 0;
+	transition: 0.2s;
 }
 
-.message-entry:focus {
-    border-color: #5BCD91; 
-    transition: 0.3s;
+.focus {
+	border-color: #5BCD91;
+	transition: 0.3s;
+}
+
+.message-entry, .message-entry:focus {
+	background-color: #1A1A1D;
+	color: white;
+	border: none;
+	border-radius: 8px;
+	caret-color: white;
+	padding: 2.5px 8px;
 }
 
 .send-button {
@@ -318,7 +318,8 @@ spinner {
     border: none;
     padding: 0;
     outline: none;
-    background-image: none; 
+    background-image: none;
+    margin-left: 10px;
 }
 
 .mic-button {
@@ -327,5 +328,6 @@ spinner {
     padding: 0;
     outline: none;
     background-image: none; 
-    margin-right: 10px;
+    margin-right: 5px;
 }
+

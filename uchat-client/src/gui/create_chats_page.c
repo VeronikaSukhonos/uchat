@@ -15,6 +15,7 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
     mic_data->is_active = TRUE;
   }
 }
+
 void open_close_menu(GtkWidget *menu_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
@@ -279,51 +280,50 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), chat_label, "chat");
 
   // input box
-  GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+  GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_pack_start(GTK_BOX(message_box), input_box, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(input_box),
                               "input-box");
-  gtk_box_pack_start(GTK_BOX(message_box), input_box, FALSE, FALSE, 5);
+
+  // box to hold both the message entry and microphone button
   GtkWidget *message_entry_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_pack_start(GTK_BOX(input_box), message_entry_box, TRUE, TRUE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box),
                               "message-entry-box");
 
-  // an overlay to hold both the message entry and microphone button
-  GtkWidget *overlay = gtk_overlay_new();
-  gtk_style_context_add_class(gtk_widget_get_style_context(overlay),
-                              "message-entry-overlay");
-
   GtkWidget *message_entry = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(message_entry_box), message_entry, TRUE, TRUE, 0);
+  gtk_entry_set_placeholder_text(GTK_ENTRY(message_entry), "Type something...");
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry),
                               "message-entry");
-  gtk_overlay_add_overlay(GTK_OVERLAY(overlay), message_entry);
+  g_signal_connect(message_entry, "focus-in-event",
+                   G_CALLBACK(change_entry_box_focus), message_entry_box);
+  g_signal_connect(message_entry, "focus-out-event",
+                   G_CALLBACK(change_entry_box_focus), message_entry_box);
 
   MicData *mic_data = g_new(MicData, 1);
   mic_data->is_active = FALSE;
   mic_data->img_path_start = "uchat-client/src/gui/resources/voice-start.png";
   mic_data->img_path_stop = "uchat-client/src/gui/resources/voice-stop.png";
-
+  
   GtkWidget *mic_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(message_entry_box), mic_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
+                              "mic-button");
   GtkWidget *mic_button_img_start =
       gtk_image_new_from_file(mic_data->img_path_start);
   gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
-  gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
-                              "mic-button");
-  gtk_widget_set_halign(mic_button, GTK_ALIGN_END);
-  gtk_widget_set_valign(mic_button, GTK_ALIGN_CENTER);
-
-  gtk_overlay_add_overlay(GTK_OVERLAY(overlay), mic_button);
-
   g_signal_connect(mic_button, "clicked", G_CALLBACK(change_mic_image),
                    mic_data);
-  gtk_box_pack_start(GTK_BOX(input_box), overlay, TRUE, TRUE, 5);
 
   GtkWidget *send_button = gtk_button_new();
-  GtkWidget *send_button_img =
-      gtk_image_new_from_file("uchat-client/src/gui/resources/send-button.png");
-  gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
+  gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(send_button),
                               "send-button");
-  gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 5);
+
+  GtkWidget *send_button_img =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/send-button-purple.png");
+  gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
   change_button_hover_image(send_button);
   g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f),
                    message_entry);

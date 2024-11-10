@@ -10,14 +10,15 @@ void load_css(const gchar *file) {
 
   g_object_unref(provider);
 }
-void change_password_focus(GtkWidget *pw_entry, GdkEventFocus *event,
-                           GtkWidget *pw_container) {
+
+void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
+                           GtkWidget *entry_box) {
   if (event->in) {
-    gtk_style_context_add_class(gtk_widget_get_style_context(pw_container),
-                                "form-pw-container-focus");
+    gtk_style_context_add_class(gtk_widget_get_style_context(entry_box),
+                                "focus");
   } else {
-    gtk_style_context_remove_class(gtk_widget_get_style_context(pw_container),
-                                   "form-pw-container-focus");
+    gtk_style_context_remove_class(gtk_widget_get_style_context(entry_box),
+                                   "focus");
   }
 }
 
