@@ -5,19 +5,16 @@ void create_update_failed_window() {
     return; // Avoid duplicate windows
 
   retry_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(retry_window), "Connection Failed");
+  gtk_window_set_title(GTK_WINDOW(retry_window), "Green Chat");
   gtk_window_set_default_size(GTK_WINDOW(retry_window), 400, 300);
   gtk_window_set_position(GTK_WINDOW(retry_window), GTK_WIN_POS_CENTER);
   gtk_window_set_resizable(GTK_WINDOW(retry_window), FALSE); // Prevent resizing
   g_signal_connect(retry_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
   // Main container
-  GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 20);
-  gtk_container_set_border_width(GTK_CONTAINER(container), 20); // Add padding
+  GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_set_border_width(GTK_CONTAINER(container), 30); // Add padding
   gtk_container_add(GTK_CONTAINER(retry_window), container);
-  gtk_widget_set_halign(container, GTK_ALIGN_CENTER);
-  gtk_widget_set_valign(container,
-                        GTK_ALIGN_CENTER); // Center the container itself
   gtk_style_context_add_class(gtk_widget_get_style_context(container),
                               "uf-container");
 
@@ -30,13 +27,13 @@ void create_update_failed_window() {
   // Spinner
   GtkWidget *retry_spinner = gtk_spinner_new();
   gtk_box_pack_start(GTK_BOX(container), retry_spinner, FALSE, FALSE, 0);
-  gtk_widget_set_size_request(GTK_WIDGET(retry_spinner), 50, 50);
+  gtk_widget_set_size_request(GTK_WIDGET(retry_spinner), 100, 100);
   gtk_spinner_start(GTK_SPINNER(retry_spinner));
   gtk_style_context_add_class(gtk_widget_get_style_context(retry_spinner),
                               "uf-retry-spinner");
 
   // Countdown label
-  retry_label = gtk_label_new("Retrying in 10 sec...");
+  retry_label = gtk_label_new("Retrying in 10 seconds...");
   gtk_box_pack_start(GTK_BOX(container), retry_label, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(retry_label),
                               "uf-retry-label");

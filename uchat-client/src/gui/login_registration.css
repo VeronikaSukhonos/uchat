@@ -4,13 +4,11 @@ window {
 	color: white;
 }
 
-/*CHANGES FROM HERE*/
-
 button, button:hover, entry, entry:focus {
 	box-shadow: none;
 }
 
-.log-reg, .uf {
+.log-reg {
 	padding: 50px;
 }
 
@@ -53,8 +51,6 @@ spinner {
 	transition: 0.3s;
 }
 
-/*CHANGES TO HERE*/
-
 .form-name-label {
 	font-weight: bold;
 	color: #5BCD91;
@@ -79,7 +75,6 @@ spinner {
 
 .form-entry:focus {
 	border-color: #5BCD91;
-	box-shadow: none;
 	transition: 0.3s;
 }
 
@@ -102,7 +97,6 @@ spinner {
 	color: white;
 	border: none;
 	border-radius: 8px;
-	box-shadow: none;
 	caret-color: white;
 	padding: 2.5px 8px;
 }
@@ -111,7 +105,6 @@ spinner {
 	background: transparent;
 	border: none;
     padding: 0;
-    box-shadow: none;
     outline: none; 
     background-image: none; 
     margin-right: 2px;
@@ -153,7 +146,6 @@ spinner {
 	color: #5BCD91;
 	border: none;
     padding: 0;
-    box-shadow: none;
     outline: none; 
     background-image: none; 
 }
@@ -164,7 +156,6 @@ spinner {
     background: transparent;
 	border: none;
     padding: 0;
-    box-shadow: none;
     outline: none; 
     background-image: none; 
 }
@@ -289,7 +280,6 @@ spinner {
     outline: none;
     padding: 0;
     margin-top: 35px;
-    box-shadow: none;
     background-image: none; 
 }
 
@@ -301,8 +291,9 @@ spinner {
 /* input box */
 
 .input-box {
-    background-color: #2C2C2E;
+    background-color: #29292C;
     padding: 7px;
+    border-top: solid 2px #3B3B3E;
     margin-top: 2px;
 	margin-bottom: -5px;
 }
@@ -319,22 +310,22 @@ spinner {
 
 .message-entry:focus {
     border-color: #5BCD91; 
-    box-shadow: none; 
     transition: 0.3s;
 }
+
 .send-button {
     background-color: #2C2C2E;
     border: none;
     padding: 0;
-    box-shadow: none;
-    outline: none; 
+    outline: none;
     background-image: none; 
 }
+
 .mic-button {
     background-color: transparent;
     border: none;
     padding: 0;
-    box-shadow: none;
+    outline: none;
     background-image: none; 
     margin-right: 10px;
 }
