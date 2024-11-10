@@ -89,6 +89,7 @@ spinner {
 	border-radius: 8px;
 	margin: 5px 0;
 	transition: 0.2s;
+
 }
 
 .form-pw-container-focus {
@@ -109,9 +110,11 @@ spinner {
 .form-pw-button {
 	background: transparent;
 	border: none;
-	outline: none;
-	border-radius: 8px;
-	padding: 5px;
+    padding: 0;
+    box-shadow: none;
+    outline: none; 
+    background-image: none; 
+    margin-right: 2px;
 }
 
 .form-message {
@@ -149,13 +152,21 @@ spinner {
 	background: transparent;
 	color: #5BCD91;
 	border: none;
-	outline: none;
-	padding: 0;
+    padding: 0;
+    box-shadow: none;
+    outline: none; 
+    background-image: none; 
 }
 
 .form-link:hover, .form-link:active {
 	color: #70F7B5;
 	transition: 0.3s;
+    background: transparent;
+	border: none;
+    padding: 0;
+    box-shadow: none;
+    outline: none; 
+    background-image: none; 
 }
 
 .menu {
@@ -240,12 +251,6 @@ spinner {
 	transition: 0.3s;
 }
 
-.input-box {
-    background-color: #2C2C2E;
-    padding: 5px;
-    border-radius: 8px; 
-}
-
 .newchats-users-button {
 	background: #604BDC;
 	color: white;
@@ -272,8 +277,8 @@ spinner {
 }
 
 .profile-name {
-        font-weight: bold;
-        margin-top: 5px;
+    font-weight: bold;
+    margin-top: 5px;
 	margin-bottom: 10px;
 }
 
@@ -284,11 +289,22 @@ spinner {
     outline: none;
     padding: 0;
     margin-top: 35px;
+    box-shadow: none;
+    background-image: none; 
 }
 
 .profile-link:hover {
     color: #AFAFAF;
     transition: 0.3s;
+}
+
+/* input box */
+
+.input-box {
+    background-color: #2C2C2E;
+    padding: 7px;
+    margin-top: 2px;
+	margin-bottom: -5px;
 }
 
 .message-entry {
@@ -306,21 +322,19 @@ spinner {
     box-shadow: none; 
     transition: 0.3s;
 }
-
 .send-button {
-    background:  #1A1A1D;
-    color: white;
-    font-weight: bold;
+    background-color: #2C2C2E;
     border: none;
-    outline: none;
-    border-radius: 8px;
-    padding: 8px;
-    transition: background-color 0.3s, color 0.3s;
+    padding: 0;
+    box-shadow: none;
+    outline: none; 
+    background-image: none; 
 }
-
-.send-button:hover, .send-button:active {
-    background: #5BCD91;
-    color: white;
-    transition: 0.3s;
+.mic-button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    background-image: none; 
+    margin-right: 10px;
 }
-

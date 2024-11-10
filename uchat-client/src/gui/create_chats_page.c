@@ -1,33 +1,20 @@
 #include <uchat.h>
 
-void send_message_to_server(int chat_id, const gchar *message) {
-  cJSON *json_message = cJSON_CreateObject();
-  cJSON_AddStringToObject(json_message, "action", "SEND_MESSAGE_TO_CHAT");
-  cJSON_AddNumberToObject(json_message, "chat_id", chat_id);
-  cJSON_AddStringToObject(json_message, "message", message);
+void change_mic_image(GtkWidget *mic_button, gpointer data) {
+  MicData *mic_data = (MicData *)data;
 
-  char *json_string = cJSON_Print(json_message);
-  g_print("Sending message to server: %s\n", json_string);
-
-  cJSON_Delete(json_message);
-  free(json_string);
-}
-
-void send_message_f(GtkWidget *widget, gpointer data) {
-  GtkEntry *message_entry = GTK_ENTRY(data);
-  const gchar *message_text = gtk_entry_get_text(message_entry);
-  // after using t_chat_form_data->username appears segmentation fault
-
-  int chat_id = -1; // need to be replaced this with current username
-
-  if (g_strcmp0(message_text, "") != 0) {
-    send_message_to_server(chat_id, message_text);
-    gtk_entry_set_text(message_entry, "");
+  if (mic_data->is_active) {
+    GtkWidget *mic_button_img_start =
+        gtk_image_new_from_file(mic_data->img_path_start);
+    gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
+    mic_data->is_active = FALSE;
   } else {
-    g_print("Cannot send an empty message.\n");
+    GtkWidget *mic_button_img_stop =
+        gtk_image_new_from_file(mic_data->img_path_stop);
+    gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
+    mic_data->is_active = TRUE;
   }
 }
-
 void open_close_menu(GtkWidget *menu_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
@@ -44,58 +31,6 @@ void set_selected_button(GtkWidget **selected_button,
   *selected_button = *new_selected_button;
   gtk_style_context_add_class(gtk_widget_get_style_context(*selected_button),
                               "menu-button-selected");
-}
-
-void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &new_chat_button);
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "create_chat");
-}
-
-void show_new_group(GtkWidget *new_group_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &new_group_button);
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "create_group");
-}
-
-void show_profile(GtkWidget *settings_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &settings_button);
-  // username and description from database
-  gtk_label_set_label(
-      GTK_LABEL((*main_page).profile_data.username),
-      strcmp((char *)gtk_label_get_label(
-                 GTK_LABEL((*main_page).profile_data.username)),
-             "") == 0
-          ? "yrezchyk"
-          : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
-  gtk_label_set_label(GTK_LABEL((*main_page).profile_data.status), "online");
-  gtk_label_set_label(GTK_LABEL((*main_page).profile_data.description),
-                      strcmp((char *)gtk_label_get_label(GTK_LABEL(
-                                 (*main_page).profile_data.description)),
-                             "") == 0
-                          ? "Yevheniia Rezchyk\n@yrezchyk | KN-423k | Student"
-                          : gtk_label_get_label(GTK_LABEL(
-                                (*main_page).profile_data.description)));
-  // set visible
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "user_info");
-}
-
-// show edit page
-void show_edit_page(GtkWidget *edit_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).edit_data.username),
-      gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).edit_data.description),
-      gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)));
-  gtk_label_set_label(GTK_LABEL((*main_page).edit_data.message), "");
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "edit_profile");
 }
 
 // change profile
@@ -121,18 +56,10 @@ void log_out(GtkWidget *log_out_button, gpointer data) {
   cJSON_AddStringToObject(json, "action", "LOGOUT");
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);
-  g_print("Logout Sock: %i", main_page->sock);
   send(main_page->sock, json_str, strlen(json_str), 0);
   g_print("Sent: %s\n", json_str);
   free(json_str);
   // gtk_stack_set_visible_child_name(GTK_STACK((*GtkWidget)data), "login");
-}
-
-void show_chat(GtkWidget *chat_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &chat_button);
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "chat");
 }
 
 void chat_creation(GtkWidget *create_chat_button, gpointer data) {
@@ -351,21 +278,53 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *chat_label = gtk_label_new("Chat messages will appear here");
   gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), chat_label, "chat");
 
-  // input box for sending messages
+  // input box
   GtkWidget *input_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
   gtk_style_context_add_class(gtk_widget_get_style_context(input_box),
                               "input-box");
   gtk_box_pack_start(GTK_BOX(message_box), input_box, FALSE, FALSE, 5);
+  GtkWidget *message_entry_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box),
+                              "message-entry-box");
+
+  // an overlay to hold both the message entry and microphone button
+  GtkWidget *overlay = gtk_overlay_new();
+  gtk_style_context_add_class(gtk_widget_get_style_context(overlay),
+                              "message-entry-overlay");
 
   GtkWidget *message_entry = gtk_entry_new();
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry),
                               "message-entry");
-  gtk_box_pack_start(GTK_BOX(input_box), message_entry, TRUE, TRUE, 5);
+  gtk_overlay_add_overlay(GTK_OVERLAY(overlay), message_entry);
 
-  GtkWidget *send_button = gtk_button_new_with_label("Send");
+  MicData *mic_data = g_new(MicData, 1);
+  mic_data->is_active = FALSE;
+  mic_data->img_path_start = "uchat-client/src/gui/resources/voice-start.png";
+  mic_data->img_path_stop = "uchat-client/src/gui/resources/voice-stop.png";
+
+  GtkWidget *mic_button = gtk_button_new();
+  GtkWidget *mic_button_img_start =
+      gtk_image_new_from_file(mic_data->img_path_start);
+  gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
+  gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
+                              "mic-button");
+  gtk_widget_set_halign(mic_button, GTK_ALIGN_END);
+  gtk_widget_set_valign(mic_button, GTK_ALIGN_CENTER);
+
+  gtk_overlay_add_overlay(GTK_OVERLAY(overlay), mic_button);
+
+  g_signal_connect(mic_button, "clicked", G_CALLBACK(change_mic_image),
+                   mic_data);
+  gtk_box_pack_start(GTK_BOX(input_box), overlay, TRUE, TRUE, 5);
+
+  GtkWidget *send_button = gtk_button_new();
+  GtkWidget *send_button_img =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/send-button.png");
+  gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
   gtk_style_context_add_class(gtk_widget_get_style_context(send_button),
                               "send-button");
   gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 5);
+  change_button_hover_image(send_button);
   g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f),
                    message_entry);
 
@@ -440,7 +399,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).create_group_data.form),
                               450, -1);
 
-  GtkWidget *create_group_label = gtk_label_new("Create new group");
+  GtkWidget *create_group_label = gtk_label_new("New group");
   gtk_style_context_add_class(gtk_widget_get_style_context(create_group_label),
                               "form-name-label");
   gtk_box_pack_start(GTK_BOX((*main_page).create_group_data.form),
