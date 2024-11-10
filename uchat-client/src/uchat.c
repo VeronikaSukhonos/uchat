@@ -1,123 +1,38 @@
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <uchat.h>
-int sock;
-int logged_in = 0;
-char session_token[65];
+#include "uchat.h"
 
-// Struct to store pointers to the widgets and form data
+// Global variable definitions
+int sock = -1;                  // Initialize to an invalid socket by default
+int logged_in = 0;              // Set initial logged-in status to false (0)
+char session_token[65] = {0};   // Initialize session token to an empty string
+int main_window = -1;           // Set main window flag to an invalid state
+GtkWidget *retry_window = NULL; // Set retry window pointer to NULL initially
+GtkWidget *retry_label = NULL;  // Set retry label pointer to NULL initially
+guint retry_timeout = 10;       // Set initial retry timeout to 10 seconds
+guint retry_timeout_id = 0;
 
-// Function to handle server data
-gboolean on_server_data(GIOChannel *source, GIOCondition condition,
-                        gpointer data) {
-  AppData *app_data = (AppData *)data;
+guint main_retry_timeout = 1;   // Start with 1 second intervals for reconnect
+guint reconnect_timer_id = 0;   // Timer ID for periodic reconnection
+GIOChannel *gio_channel = NULL; // Set retry timeout ID to 0 (no timeout yet)
 
-  if (condition & G_IO_IN) {
-    if (handle_response(sock, &logged_in, app_data) == 1) {
-      gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");
-    }
-  }
-
-  if (condition & (G_IO_HUP | G_IO_ERR)) {
-    g_print("Disconnected from server. Attempting to reconnect...\n");
-    g_io_channel_unref(source);
-    close(sock);
-    // sock = attempt_reconnect();
-    // if (sock > 0) {
-    //   GIOChannel *new_channel = g_io_channel_unix_new(sock);
-    //   g_io_add_watch(new_channel, G_IO_IN | G_IO_HUP | G_IO_ERR,
-    //   on_server_data,
-    //                  app_data);
-    // } else {
-    //   gtk_main_quit();
-    //   return FALSE;
-    // }
-  }
-  return TRUE;
+// Timer function for periodic reconnection attempts
+gboolean periodic_reconnection_attempt(gpointer data) {
+  attempt_main_reconnection((AppData *)data);
+  return TRUE; // Continue the timer until manually stopped on successful
+               // reconnect
 }
 
-// Initialize GTK interface and load different views
-void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
-                         GtkWidget *login, GtkWidget *chats,
-                         t_form_data *registration_data,
-                         t_form_data *login_data, t_main_page_data *main_page) {
-
-  load_css("uchat-client/src/gui/login_registration.css");
-
-  // Use logged_in flag to set the starting page
-  if (logged_in == 1) {
-    create_chats_page(pages, chats, main_page);
-    create_login_page(pages, login, login_data);
-  } else {
-    create_login_page(pages, login, login_data);
-    create_chats_page(pages, chats, main_page);
-  }
-  create_registration_page(pages, registration, registration_data);
-}
-
-// Main function
+// Additional function definitions and main application setup code
 int main(int argc, char *argv[]) {
   gtk_init(&argc, &argv);
 
-  GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(main_window), "Green Chat");
-  gtk_window_set_default_size(GTK_WINDOW(main_window), 1280, 720);
-  gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
-  g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-
-  GtkWidget *pages = gtk_stack_new();
-  gtk_container_add(GTK_CONTAINER(main_window), pages);
-
-  // Declare the pages and form data structures here
-  GtkWidget *registration, *login, *chats;
-  t_form_data registration_data, login_data;
-  t_main_page_data main_page;
-
-  // Connect to the server
+  // Attempt initial connection to the server
   sock = connect_to_server("127.0.0.1", PORT);
   if (sock < 0) {
-    g_print("Failed to connect to the server.\n");
-    return -1;
+    g_print("Initial connection failed. Showing retry window.\n");
+    create_update_failed_window(); // Show retry window if connection fails
+  } else {
+    g_print("Connected to the server successfully.\n");
+    setup_main_application(); // Open main app if connected
   }
-  login_data.sock = sock;
-  registration_data.sock = sock;
-  main_page.sock = sock;
-  g_print("Connected to the server successfully.%i\n", login_data.sock);
-
-  // Load session data and check status
-  char username[64] = {0};
-  char serial_number[64] = {0};
-  get_serial_number(serial_number, sizeof(serial_number));
-
-  if (load_session(username, sizeof(username), session_token,
-                   sizeof(session_token)) == 0) {
-    g_print("Loaded session for %s. Checking session status...\n", username);
-    logged_in =
-        check_session_on_server(sock, username, session_token, serial_number);
-  }
-
-  // Initialize GTK interface
-  setup_gtk_interface(pages, registration, login, chats, &registration_data,
-                      &login_data, &main_page);
-  gtk_widget_show_all(main_window);
-  gtk_window_set_focus(GTK_WINDOW(main_window), NULL);
-  gtk_stack_set_transition_type(GTK_STACK(pages),
-                                GTK_STACK_TRANSITION_TYPE_CROSSFADE);
-
-  // Set up AppData struct
-  AppData app_data = {pages,     registration,       login,
-                      chats,     &registration_data, &login_data,
-                      &main_page};
-
-  // Monitor the socket with GIOChannel
-  GIOChannel *gio_channel = g_io_channel_unix_new(sock);
-  g_io_add_watch(gio_channel, G_IO_IN | G_IO_HUP | G_IO_ERR, on_server_data,
-                 &app_data);
-
-  gtk_main();
-
-  // Clean up
-  g_io_channel_unref(gio_channel);
-  close(sock);
   return 0;
 }

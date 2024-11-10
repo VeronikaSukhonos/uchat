@@ -4,9 +4,10 @@
 int handle_response(int sock, int *logged_in, AppData *app_data) {
   char buffer[BUFFER_SIZE];
   int valread = read(sock, buffer, sizeof(buffer) - 1);
+  g_print("Buffer: %s\n", buffer);
 
   if (valread <= 0) {
-    printf("Server disconnected or no data received.\n");
+    g_print("Server disconnected or no data received.\n");
     *logged_in = 0;
     return -1;
   }
@@ -14,11 +15,17 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
   buffer[valread] = '\0';
   cJSON *response = cJSON_Parse(buffer);
   if (response == NULL) {
-    printf("Failed to parse server response.\n");
+    g_print("Failed to parse server response.\n");
     return -1;
   }
 
   cJSON *action = cJSON_GetObjectItem(response, "action");
+  if (!cJSON_IsString(action)) {
+    g_print("Error: 'action' field is missing or not a string.\n");
+    cJSON_Delete(response);
+    return -1;
+  }
+
   if (strcmp(action->valuestring, "LOGIN") == 0) {
     if (handle_login_response(response) == 0) {
       g_print("Login successful.\n");

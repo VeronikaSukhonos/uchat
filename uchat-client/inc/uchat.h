@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <glib.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,18 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define USERS_IN_GROUP_COUNT 5
+
+extern int sock;
+extern int logged_in;
+extern char session_token[65];
+extern int main_window;
+extern GtkWidget *retry_window;
+extern GtkWidget *retry_label;
+extern guint retry_timeout;
+extern guint retry_timeout_id;
+extern guint main_retry_timeout;
+extern guint reconnect_timer_id;
+extern GIOChannel *gio_channel;
 
 typedef struct s_chat_form_data {
   GtkWidget *form;
@@ -29,12 +42,12 @@ typedef struct s_group_users_data {
 
 // profile_data
 typedef struct s_profile_data {
-    GtkWidget *username;
-    GtkWidget *description;
-    GtkWidget *status;
-    GtkWidget *form;
-    GtkWidget *message;
-}              t_profile_data;
+  GtkWidget *username;
+  GtkWidget *description;
+  GtkWidget *status;
+  GtkWidget *form;
+  GtkWidget *message;
+} t_profile_data;
 
 typedef struct s_main_page_data {
   int sock;
@@ -111,7 +124,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
 void show_login(GtkWidget *login_link_button, t_form_data *data);
 void change_password_focus(GtkWidget *pw_entry, GdkEventFocus *event,
-						   GtkWidget *pw_container);
+                           GtkWidget *pw_container);
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
@@ -119,3 +132,17 @@ void login_submit(GtkWidget *login_button, t_form_data *data);
 void removing_user(GtkWidget *clicked_button, gpointer data);
 
 int check_form_data(char *username, char *password, GtkWidget *message);
+
+int attempt_reconnection();
+gboolean retry_connection(gpointer data);
+void setup_main_application();
+void create_update_failed_window();
+gboolean on_server_data(GIOChannel *source, GIOCondition condition,
+                        gpointer data);
+void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
+                         GtkWidget *login, GtkWidget *chats,
+                         t_form_data *registration_data,
+                         t_form_data *login_data, t_main_page_data *main_page);
+int attempt_main_reconnection(AppData *app_data);
+gboolean periodic_reconnection_attempt(gpointer data);
+void on_retry_clicked(GtkButton *button, gpointer data);

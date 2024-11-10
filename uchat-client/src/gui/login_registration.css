@@ -4,16 +4,56 @@ window {
 	color: white;
 }
 
-.log-reg {
+/*CHANGES FROM HERE*/
+
+button, button:hover, entry, entry:focus {
+	box-shadow: none;
+}
+
+.log-reg, .uf {
 	padding: 50px;
 }
 
-.form {
+.form, .uf-container {
 	background-color: #29292C;
 	padding: 40px;
 	border: solid 2px #3B3B3E;
 	border-radius: 8px;
 }
+
+.uf-container-label {
+	font-weight: bold;
+	color: #D13325;
+	font-size: 26px;
+	margin-bottom: 20px;
+}
+
+spinner {
+	color: #5BCD91;
+	animation: spin 1.5s ease infinite;
+}
+
+.uf-retry-label {
+	font-weight: bold;
+	color: #5BCD91;
+	margin: 15px;
+}
+
+.uf-retry-button {
+	background: transparent;
+	color: #7F7F7F;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	padding: 5px;
+}
+
+.uf-retry-button:hover {
+	color: #AFAFAF;
+	transition: 0.3s;
+}
+
+/*CHANGES TO HERE*/
 
 .form-name-label {
 	font-weight: bold;
