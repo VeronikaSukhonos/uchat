@@ -140,9 +140,13 @@ void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
 void login_submit(GtkWidget *login_button, t_form_data *data);
+void chat_creation(GtkWidget *create_chat_button, gpointer data);
+void group_creation(GtkWidget *create_group_button, gpointer data);
+void adding_user(GtkWidget *add_user_button, gpointer data);
 void removing_user(GtkWidget *clicked_button, gpointer data);
 void set_selected_button(GtkWidget **selected_button,
                          GtkWidget **new_selected_button);
+void change_profile(GtkWidget *change_button, gpointer data);
 
 int check_form_data(char *username, char *password, GtkWidget *message);
 

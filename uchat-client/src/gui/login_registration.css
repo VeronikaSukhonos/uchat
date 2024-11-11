@@ -167,7 +167,8 @@ spinner {
     font-weight: bold;
     border: none;
     outline: none;
-    padding: 5px;
+    padding: 7px;
+    padding-left: 20px;
 }
 
 .menu-button:hover, .menu-button:active {
@@ -201,11 +202,16 @@ spinner {
     font-weight: bold;
     border: none;
     outline: none;
+    margin-left: 15px;
 }
 
 .dots:hover {
     color: #6F54F8;
     transition: 0.3s
+}
+
+.main_page_form {
+	padding: 70px;
 }
 
 .newchats {
@@ -237,18 +243,14 @@ spinner {
 }
 
 .newchats-users-button {
-	background: #604BDC;
-	color: white;
+	background: #5BCD91;
+	color: #1A1A1D;
 	font-weight: bold;
 	border: none;
 	outline: none;
 	border-radius: 8px;
 	margin: 5px;
 	padding: 8px;
-}
-
-.img-profile {
-    border-radius: 100%;
 }
 
 .status {
