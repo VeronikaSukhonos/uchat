@@ -220,3 +220,9 @@ int save_encrypted_message_to_cache(const char *chat_id,
 MessageNode *append_message_node(MessageNode *head, MessageCache message);
 void print_messages(MessageNode *head);
 void free_message_list(MessageNode *head);
+
+void stop_recording();
+void start_recording(const char *output_path);
+
+char *base64_encode(const unsigned char *data, size_t input_length);
+char *read_and_encode_file(const char *filepath);

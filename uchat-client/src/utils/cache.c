@@ -92,8 +92,10 @@ int save_encrypted_message_to_cache(const char *chat_id,
     return -1;
   }
 
-  fwrite(iv, 1, IV_SIZE, file);                // Write IV for decryption
-  fwrite(ciphertext, 1, ciphertext_len, file); // Write encrypted message
+  // Write the IV, length of the ciphertext, and ciphertext
+  fwrite(iv, 1, IV_SIZE, file);                  // Write IV for decryption
+  fwrite(&ciphertext_len, sizeof(int), 1, file); // Write ciphertext length
+  fwrite(ciphertext, 1, ciphertext_len, file);   // Write encrypted message
   fclose(file);
 
   return 0;
@@ -121,13 +123,39 @@ MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
   }
 
   MessageNode *head = NULL;
-  while (fread(iv, 1, IV_SIZE, file) == IV_SIZE) {
-    unsigned char ciphertext[2048];
-    int ciphertext_len = fread(ciphertext, 1, sizeof(ciphertext), file);
-    if (ciphertext_len <= 0) {
+
+  while (1) {
+    // Read the IV
+    if (fread(iv, 1, IV_SIZE, file) != IV_SIZE) {
+      if (feof(file)) {
+        printf("End of file reached.\n");
+      } else {
+        fprintf(stderr, "Failed to read IV.\n");
+      }
       break;
     }
 
+    // Read the length of the encrypted message
+    int ciphertext_len;
+    if (fread(&ciphertext_len, sizeof(int), 1, file) != 1) {
+      fprintf(stderr, "Failed to read message length.\n");
+      break;
+    }
+    unsigned char ciphertext[2048];
+    // Check if message length is reasonable
+    if (ciphertext_len <= 0 || ciphertext_len > sizeof(ciphertext)) {
+      fprintf(stderr, "Invalid message length: %d\n", ciphertext_len);
+      break;
+    }
+
+    // Read the encrypted message content
+
+    if (fread(ciphertext, 1, ciphertext_len, file) != ciphertext_len) {
+      fprintf(stderr, "Failed to read encrypted message.\n");
+      break;
+    }
+
+    // Decrypt the message
     unsigned char plaintext[2048];
     int plaintext_len =
         decrypt_session(ciphertext, ciphertext_len, key, iv, plaintext);
@@ -139,13 +167,21 @@ MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
 
     // Parse decrypted data into a MessageCache struct
     MessageCache message;
-    sscanf((char *)plaintext,
-           "MessageID: %63s\nSender: %63s\nDate: %ld\nStatus: %d\nContentType: "
-           "%d\nContent: %1023[^\n]\nVoicePath: %255[^\n]",
-           message.message_id, message.sender, &message.date,
-           (int *)&message.status, (int *)&message.content_type,
-           message.content, message.voice_path);
+    int parsed_count =
+        sscanf((char *)plaintext,
+               "MessageID: %63s\nSender: %63s\nDate: %ld\nStatus: "
+               "%d\nContentType: %d\nContent: %1023[^\n]\nVoicePath: %255[^\n]",
+               message.message_id, message.sender, &message.date,
+               (int *)&message.status, (int *)&message.content_type,
+               message.content, message.voice_path);
 
+    // Ensure parsing was successful (expecting 7 fields)
+    // if (parsed_count != 7) {
+    //   fprintf(stderr, "Failed to parse decrypted message.\n");
+    //   break;
+    // }
+
+    // Append the parsed message to the linked list
     head = append_message_node(head, message);
   }
 

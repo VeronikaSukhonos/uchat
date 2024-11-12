@@ -59,3 +59,7 @@ void hash_password(const char *password, char *outputBuffer);
 cJSON *build_json_login(const char *username, const char *token);
 int handle_check_session(sqlite3 *db, cJSON *json, char *session_token,
                          Client *client);
+
+void save_decoded_file(const char *encoded_data, const char *output_file);
+unsigned char *base64_decode(const char *data, size_t input_length,
+                             size_t *output_length);

@@ -4,15 +4,29 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
   MicData *mic_data = (MicData *)data;
 
   if (mic_data->is_active) {
+    // Set button image to 'start' and stop recording
     GtkWidget *mic_button_img_start =
         gtk_image_new_from_file(mic_data->img_path_start);
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
     mic_data->is_active = FALSE;
+
+    // Stop recording
+    stop_recording();
   } else {
+    // Set button image to 'stop' and start recording
     GtkWidget *mic_button_img_stop =
         gtk_image_new_from_file(mic_data->img_path_stop);
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
     mic_data->is_active = TRUE;
+
+    char output_path[100];
+    // shoud be in a struct
+    int chat_id = 0; // real chat_id from db
+    int vmsg_id = 0; // real msg_if from db
+    snprintf(output_path, sizeof(output_path), "cache/%d_%d_vmsg.wav", chat_id,
+             vmsg_id);
+    // Start recording to the specified output path
+    start_recording(output_path);
   }
 }
 
@@ -71,7 +85,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(menu_button),
                               "dots");
   GtkWidget *menu_button_image =
-		gtk_image_new_from_file("uchat-client/src/gui/resources/dots.png");
+      gtk_image_new_from_file("uchat-client/src/gui/resources/dots.png");
   gtk_button_set_image(GTK_BUTTON(menu_button), menu_button_image);
   g_signal_connect(menu_button, "clicked", G_CALLBACK(open_close_menu),
                    main_page);
@@ -190,7 +204,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   mic_data->is_active = FALSE;
   mic_data->img_path_start = "uchat-client/src/gui/resources/voice-start.png";
   mic_data->img_path_stop = "uchat-client/src/gui/resources/voice-stop.png";
-  
+
   GtkWidget *mic_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(message_entry_box), mic_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
@@ -206,8 +220,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(send_button),
                               "send-button");
 
-  GtkWidget *send_button_img =
-      gtk_image_new_from_file("uchat-client/src/gui/resources/send-button-purple.png");
+  GtkWidget *send_button_img = gtk_image_new_from_file(
+      "uchat-client/src/gui/resources/send-button-purple.png");
   gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
   change_button_hover_image(send_button);
   g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f),
@@ -218,7 +232,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_chat,
                       "create_chat");
   gtk_style_context_add_class(gtk_widget_get_style_context(create_chat),
-							   "main_page_form");
+                              "main_page_form");
 
   (*main_page).create_chat_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(create_chat), (*main_page).create_chat_data.form,
@@ -275,7 +289,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_group,
                       "create_group");
   gtk_style_context_add_class(gtk_widget_get_style_context(create_group),
-							   "main_page_form");
+                              "main_page_form");
 
   (*main_page).create_group_data.form =
       gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -360,7 +374,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), user_info,
                       "user_info");
   gtk_style_context_add_class(gtk_widget_get_style_context(user_info),
-							   "main_page_form");
+                              "main_page_form");
   (*main_page).profile_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(user_info), (*main_page).profile_data.form, TRUE,
                      FALSE, 0);
@@ -370,8 +384,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).profile_data.form), 450,
                               -1);
   // avatar
-  img_profile =
-      gtk_image_new_from_file("uchat-client/src/gui/resources/rabbit_profile.png");
+  img_profile = gtk_image_new_from_file(
+      "uchat-client/src/gui/resources/rabbit_profile.png");
   gtk_style_context_add_class(gtk_widget_get_style_context(img_profile),
                               "img-profile");
   gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form), img_profile,
@@ -413,7 +427,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), edit_profile,
                       "edit_profile");
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_profile),
-							   "main_page_form");
+                              "main_page_form");
   (*main_page).edit_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(edit_profile), (*main_page).edit_data.form, TRUE,
                      FALSE, 0);
@@ -429,8 +443,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                      FALSE, 0);
   gtk_widget_set_halign(edit_label, GTK_ALIGN_CENTER);
   // avatar
-  img_profile =
-      gtk_image_new_from_file("uchat-client/src/gui/resources/rabbit_profile.png");
+  img_profile = gtk_image_new_from_file(
+      "uchat-client/src/gui/resources/rabbit_profile.png");
   gtk_style_context_add_class(gtk_widget_get_style_context(img_profile),
                               "img-edit");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), img_profile, FALSE,
