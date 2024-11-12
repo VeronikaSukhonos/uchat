@@ -115,11 +115,18 @@ int check_form_data(char *username, char *password, GtkWidget *message) {
   }
   if (password != NULL) {
     for (int i = 0; i < username_len; i++) {
-      if (!islower(username[i])) {
-        gtk_label_set_text(GTK_LABEL(message),
-                           "Username must be all lowercase");
-        return 0;
-      }
+        if (isdigit(username[i])) {
+            gtk_label_set_text(GTK_LABEL(message), "Username must not contain numbers");
+            return 0;
+        }
+        if (!isalnum(username[i])) {
+            gtk_label_set_text(GTK_LABEL(message), "Username must not contain special characters");
+            return 0;
+        }
+        if (!islower(username[i])) {
+            gtk_label_set_text(GTK_LABEL(message), "Username must be all lowercase");
+            return 0;
+        }
     }
     if (password_len == 0) {
       gtk_label_set_text(GTK_LABEL(message), "Password is required");
