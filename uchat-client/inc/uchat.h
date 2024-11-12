@@ -15,6 +15,17 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define USERS_IN_GROUP_COUNT 5
+#define KEY_SIZE 32  // 256-bit key for AES-256
+#define IV_SIZE 16   // 128-bit IV for AES
+#define SALT_SIZE 16 // 128-bit salt for PBKDF2
+#define CACHE_DIR "cache"
+#define MESSAGE_FILE_FORMAT "%s_messages.enc" // Encrypted message file format
+#define VOICE_FILE_FORMAT "%s_voice.enc"
+
+// Fixed salt for all clients
+static unsigned char salt[SALT_SIZE] = {0x3f, 0x6a, 0x99, 0x41, 0xc7, 0xa9,
+                                        0x87, 0x6e, 0x32, 0xd5, 0x87, 0xa1,
+                                        0xb2, 0x77, 0x3d, 0x4e};
 
 extern int sock;
 extern int logged_in;
@@ -27,6 +38,26 @@ extern guint retry_timeout_id;
 extern guint main_retry_timeout;
 extern guint reconnect_timer_id;
 extern GIOChannel *gio_channel;
+
+typedef enum { TEXT, VOICE } ContentType;
+
+typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
+
+typedef struct {
+  char message_id[64];
+  char sender[64];
+  time_t date;
+  ContentType content_type;
+  MessageStatus status;
+  char content[1024];
+  char voice_path[256];
+} MessageCache;
+
+// Linked list node for MessageCache
+typedef struct MessageNode {
+  MessageCache message;
+  struct MessageNode *next;
+} MessageNode;
 
 typedef struct {
   gboolean is_active;
@@ -94,6 +125,15 @@ typedef struct {
   t_main_page_data *main_page;
 } AppData;
 
+// encrypt
+int derive_key_from_serial(const char *serial, unsigned char *key);
+int encrypt_session(const unsigned char *plaintext, int plaintext_len,
+                    unsigned char *key, unsigned char *ciphertext,
+                    unsigned char *iv);
+int decrypt_session(const unsigned char *ciphertext, int ciphertext_len,
+                    unsigned char *key, unsigned char *iv,
+                    unsigned char *plaintext);
+
 int save_session(const char *username, const char *session_token);
 int load_session(char *username, size_t username_size, char *session_token,
                  size_t token_size);
@@ -135,7 +175,7 @@ void show_edit_page(GtkWidget *edit_button, gpointer data);
 void show_new_group(GtkWidget *new_group_button, gpointer data);
 void show_new_chat(GtkWidget *new_chat_button, gpointer data);
 void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
-                           GtkWidget *entry_box);
+                            GtkWidget *entry_box);
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
@@ -172,3 +212,11 @@ gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event,
 void change_button_hover_image(GtkWidget *send_button);
 void send_message_to_server(int chat_id, const gchar *message);
 void send_message_f(GtkWidget *widget, gpointer data);
+
+// cache
+MessageNode *load_encrypted_messages_from_cache(const char *chat_id);
+int save_encrypted_message_to_cache(const char *chat_id,
+                                    const MessageCache *message);
+MessageNode *append_message_node(MessageNode *head, MessageCache message);
+void print_messages(MessageNode *head);
+void free_message_list(MessageNode *head);

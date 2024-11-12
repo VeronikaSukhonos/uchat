@@ -1,39 +1,6 @@
+#include <openssl/evp.h>
+#include <openssl/rand.h>
 #include <uchat.h>
-
-int save_session(const char *username, const char *session_token) {
-  FILE *file = fopen("session.txt", "w");
-  if (file == NULL) {
-    fprintf(stderr, "Failed to open session file for writing.\n");
-    return -1;
-  }
-
-  fprintf(file, "%s\n%s\n", username, session_token);
-  fclose(file);
-  return 0;
-}
-
-int load_session(char *username, size_t username_size, char *session_token,
-                 size_t token_size) {
-  FILE *file = fopen("session.txt", "r");
-  if (file == NULL) {
-    fprintf(stderr, "No session file found. Please log in.\n");
-    return -1;
-  }
-
-  if (fgets(username, username_size, file) == NULL ||
-      fgets(session_token, token_size, file) == NULL) {
-    fprintf(stderr, "Failed to read session data.\n");
-    fclose(file);
-    return -1;
-  }
-
-  // Remove newline characters
-  username[strcspn(username, "\n")] = '\0';
-  session_token[strcspn(session_token, "\n")] = '\0';
-
-  fclose(file);
-  return 0;
-}
 
 int check_session_on_server(int sock, const char *username,
                             const char *session_token,
@@ -70,6 +37,93 @@ int check_session_on_server(int sock, const char *username,
   return 0;
 }
 
+// Save encrypted session to a file
+int save_session(const char *username, const char *session_token) {
+  unsigned char key[KEY_SIZE];
+  char serial[128];
+  get_serial_number(serial, sizeof(serial));
+
+  if (derive_key_from_serial(serial, key) != 0)
+    return -1;
+
+  unsigned char iv[IV_SIZE];
+  if (RAND_bytes(iv, IV_SIZE) != 1) {
+    fprintf(stderr, "Failed to generate IV.\n");
+    return -1;
+  }
+
+  // Prepare plaintext with username and session token
+  unsigned char plaintext[512];
+  snprintf((char *)plaintext, sizeof(plaintext), "%s\n%s\n", username,
+           session_token);
+
+  // Encrypt the plaintext
+  unsigned char ciphertext[512];
+  int ciphertext_len = encrypt_session(plaintext, strlen((char *)plaintext),
+                                       key, ciphertext, iv);
+  if (ciphertext_len < 0) {
+    fprintf(stderr, "Encryption failed.\n");
+    return -1;
+  }
+
+  // Write IV and ciphertext to file
+  FILE *file = fopen("session.txt", "wb");
+  if (file == NULL) {
+    fprintf(stderr, "Failed to open session file for writing.\n");
+    return -1;
+  }
+  fwrite(iv, 1, IV_SIZE, file);                // Write IV
+  fwrite(ciphertext, 1, ciphertext_len, file); // Write encrypted session data
+  fclose(file);
+
+  return 0;
+}
+
+// Load and decrypt session from a file
+int load_session(char *username, size_t username_size, char *session_token,
+                 size_t token_size) {
+  unsigned char key[KEY_SIZE];
+  char serial[128];
+  get_serial_number(serial, sizeof(serial));
+
+  if (derive_key_from_serial(serial, key) != 0)
+    return -1;
+
+  unsigned char iv[IV_SIZE];
+
+  FILE *file = fopen("session.txt", "rb");
+  if (file == NULL) {
+    fprintf(stderr, "No session file found. Please log in.\n");
+    return -1;
+  }
+
+  // Read IV and ciphertext from the file
+  fread(iv, 1, IV_SIZE, file);
+  unsigned char ciphertext[512];
+  int ciphertext_len = fread(ciphertext, 1, sizeof(ciphertext), file);
+  fclose(file);
+
+  if (ciphertext_len <= 0) {
+    fprintf(stderr, "Failed to read session data.\n");
+    return -1;
+  }
+
+  // Decrypt the ciphertext
+  unsigned char decryptedtext[512];
+  int decryptedtext_len =
+      decrypt_session(ciphertext, ciphertext_len, key, iv, decryptedtext);
+  if (decryptedtext_len < 0) {
+    fprintf(stderr, "Decryption failed.\n");
+    return -1;
+  }
+  decryptedtext[decryptedtext_len] = '\0';
+
+  // Parse decrypted data
+  sscanf((char *)decryptedtext, "%s\n%s\n", username, session_token);
+  return 0;
+}
+
+// Delete session file securely
 int delete_session() {
   if (remove("session.txt") == 0) {
     printf("Session deleted successfully.\n");

@@ -24,6 +24,28 @@ gboolean periodic_reconnection_attempt(gpointer data) {
 // Additional function definitions and main application setup code
 int main(int argc, char *argv[]) {
   gtk_init(&argc, &argv);
+  const char *chat_id = "12345";
+
+  MessageCache message = {.message_id = "msg_001",
+                          .sender = "user_123",
+                          .date = time(NULL),
+                          .content_type = TEXT,
+                          .status = NEW,
+                          .content = "Hello, this is a text message.",
+                          .voice_path = ""};
+
+  if (save_encrypted_message_to_cache(chat_id, &message) == 0) {
+    printf("Message cached securely.\n");
+  }
+
+  MessageNode *messages = load_encrypted_messages_from_cache(chat_id);
+  if (messages) {
+    printf("Loaded messages:\n");
+    print_messages(messages);
+    free_message_list(messages);
+  } else {
+    printf("No messages found for chat ID %s.\n", chat_id);
+  }
 
   // Attempt initial connection to the server
   sock = connect_to_server("127.0.0.1", PORT);

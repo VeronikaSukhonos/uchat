@@ -2,10 +2,10 @@
 CC = clang
 
 # Compiler flags
-CFLAGS =  -g -Ilib/cjson  # Use the local cJSON include directory
+CFLAGS = -g -Ilib/cjson $(shell pkg-config --cflags openssl)  # Use pkg-config for OpenSSL
 
-# Linker flags for pthread library (no need for system-wide cJSON lib)
-LDFLAGS = -lpthread
+# Linker flags for pthread library and OpenSSL
+LDFLAGS = -lpthread $(shell pkg-config --libs openssl)  # Use pkg-config for OpenSSL
 
 # Source files
 SRV_SRC = $(wildcard uchat-server/src/network/*.c) $(wildcard uchat-server/src/requests/*.c) $(wildcard uchat-server/src/utils/*.c) $(wildcard uchat-server/src/*.c) $(wildcard uchat-database/src/*.c)
@@ -35,4 +35,4 @@ clean:
 	rm -f $(SRV_BIN) $(CLI_BIN)
 	rm -rf uchat_server.dSYM
 	rm -rf uchat.dSYM
-	rm session.txt
+	rm -f session.txt
