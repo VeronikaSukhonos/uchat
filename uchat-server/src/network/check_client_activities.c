@@ -7,6 +7,12 @@ void check_client_activities(int server_fd, Client clients[], fd_set *readfds) {
   int addrlen = sizeof(address);
   char buffer[BUFFER_SIZE];
 
+  if (open_database(&db) != 0) {
+    fprintf(stderr, "Failed to open database.\n");
+  }
+  delete_all_expired_sessions(db);
+  sqlite3_close(db);
+
   // Handle new connection
   if (FD_ISSET(server_fd, readfds)) {
     int new_socket;

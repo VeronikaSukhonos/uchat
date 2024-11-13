@@ -172,9 +172,41 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     } else {
       printf("Error: Missing fields in MESSAGE_FROM_CHAT response.\n");
     }
-  }
-  else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
+  } else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
     handle_get_profile_response(response, app_data);
+  } else if (strcmp(action->valuestring, "UPDATE_PROFILE_DATA") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      char username[64] = {0};
+      char serial_number[64] = {0};
+      get_serial_number(serial_number, sizeof(serial_number));
+      cJSON *pass_change = cJSON_GetObjectItem(response, "username_change");
+      if (strcmp(pass_change->valuestring, "TRUE") == 0) {
+        gtk_style_context_add_class(
+            gtk_widget_get_style_context(app_data->login_data->message),
+            "form-message-success");
+        gtk_label_set_label(
+            GTK_LABEL(app_data->main_page->profile_data.username), "");
+        gtk_label_set_text(GTK_LABEL(app_data->login_data->message),
+                           "Username changed. Please log in!");
+        cJSON *logout = cJSON_CreateObject();
+        cJSON_AddStringToObject(logout, "action", "LOGOUT");
+        char *logout_str = cJSON_Print(logout);
+        cJSON_Delete(logout);
+        send(app_data->main_page->sock, logout_str, strlen(logout_str), 0);
+        g_print("Sent: %s\n", logout_str);
+        free(logout_str);
+        cJSON_Delete(response);
+        return 0;
+      }
+      cJSON *json = cJSON_CreateObject();
+      cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
+      char *json_str = cJSON_Print(json);
+      cJSON_Delete(json);
+      send(app_data->main_page->sock, json_str, strlen(json_str), 0);
+      g_print("Sent: %s\n", json_str);
+      free(json_str);
+    }
   }
   // Clean up JSON object
   cJSON_Delete(response);

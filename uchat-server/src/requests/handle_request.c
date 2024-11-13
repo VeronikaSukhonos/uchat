@@ -66,8 +66,13 @@ void handle_request(Client *client, char *buffer, Client clients[],
       send_status_responce_to_client(client, "FIND_USER", "FAILURE");
     }
     sqlite3_close(db);
-  } else if (strcmp(action->valuestring, "UPDATE_PROFILE") == 0) {
+  } else if (strcmp(action->valuestring, "UPDATE_PROFILE_DATA") == 0) {
     // Handle profile update
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_update_profile(db, client, json);
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "DELETE_ACCOUNT") == 0) {
     // Handle account deletion
   } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_CHAT") == 0) {
@@ -158,8 +163,7 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     handle_get_profile(db, client);
     sqlite3_close(db);
-  } 
-  else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
+  } else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
     // Handle updating the user's password
   } else if (strcmp(action->valuestring, "RESET_PASSWORD") == 0) {
     // Handle password reset

@@ -54,6 +54,7 @@ int handle_get_chat_list(sqlite3 *db, Client *client);
 int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
                                 Client clients[], int max_clients);
 int handle_find_user(sqlite3 *db, cJSON *req, Client *client);
+int handle_update_profile(sqlite3 *db, Client *client, cJSON *json);
 
 // utils
 void hash_password(const char *password, char *outputBuffer);
