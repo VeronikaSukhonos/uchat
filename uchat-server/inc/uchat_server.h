@@ -41,6 +41,7 @@ void push_message_to_all_clients(Client clients[], const char *message,
                                  int max_clients);
 
 // requests
+int handle_get_profile(sqlite3 *db, Client *client);
 void handle_request(Client *client, char *buffer, Client clients[],
                     int max_clients, sqlite3 *db);
 int handle_register(sqlite3 *db, cJSON *json);

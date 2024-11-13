@@ -153,6 +153,8 @@ char *build_json_group_chat(const char *chat_name, char usernames[][50],
                             int num_users);
 
 // response
+int handle_get_profile_response(cJSON *response, AppData *app_data);
+
 int handle_response(int sock, int *logged_in, AppData *app_data);
 int handle_login_response(cJSON *response);
 

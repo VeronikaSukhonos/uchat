@@ -1,2 +1,6 @@
 .vscode
 .DS_Store
+session.txt
+uchat.c
+uchat_server.c
+cache

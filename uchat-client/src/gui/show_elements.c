@@ -18,9 +18,17 @@ void show_profile(GtkWidget *settings_button, gpointer data) {
     set_selected_button(&(*main_page).menu_button_selected, &settings_button);
 
     // Set default or current username and description
-    gtk_label_set_label(GTK_LABEL((*main_page).profile_data.username), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)), "") == 0 ? "yrezchyk" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
+    gtk_label_set_label(GTK_LABEL((*main_page).profile_data.username), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)), "") == 0 ? "" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
     gtk_label_set_label(GTK_LABEL((*main_page).profile_data.status), "online");
-
+    
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
+    char *json_str = cJSON_Print(json);
+    cJSON_Delete(json);
+    send(main_page->sock, json_str, strlen(json_str), 0);
+    g_print("Sent: %s\n", json_str);
+    
+    free(json_str);
     // Set the full description with default name and group
     gtk_label_set_label(GTK_LABEL((*main_page).profile_data.description), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)), "") == 0 ? "Yevheniia Rezchyk\n@yrezchyk | KN-423k | Student" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)));
 

@@ -152,7 +152,14 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     sqlite3_close(db);
     // Handle checking session status
-  } else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
+  } else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_get_profile(db, client);
+    sqlite3_close(db);
+  } 
+  else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
     // Handle updating the user's password
   } else if (strcmp(action->valuestring, "RESET_PASSWORD") == 0) {
     // Handle password reset

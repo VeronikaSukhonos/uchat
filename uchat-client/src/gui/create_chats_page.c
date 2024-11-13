@@ -90,7 +90,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(menu_button, "clicked", G_CALLBACK(open_close_menu),
                    main_page);
 
-  GtkWidget *menu_label = gtk_label_new("gChats");
+  GtkWidget *menu_label = gtk_label_new("Green ❀ Chat");
   gtk_box_pack_start(GTK_BOX(sidebar_top), menu_label, TRUE, TRUE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(menu_label),
                               "gchats");

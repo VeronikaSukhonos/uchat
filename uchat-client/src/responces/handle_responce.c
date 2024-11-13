@@ -173,7 +173,9 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       printf("Error: Missing fields in MESSAGE_FROM_CHAT response.\n");
     }
   }
-
+  else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
+    handle_get_profile_response(response, app_data);
+  }
   // Clean up JSON object
   cJSON_Delete(response);
   return 0;
