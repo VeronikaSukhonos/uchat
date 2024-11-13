@@ -80,10 +80,13 @@ typedef struct s_group_users_data {
 // profile_data
 typedef struct s_profile_data {
   GtkWidget *username;
+  GtkWidget *name_surname;
+  GtkWidget *student_group;
   GtkWidget *description;
   GtkWidget *status;
   GtkWidget *form;
   GtkWidget *message;
+  GtkWidget *role_combo;
 } t_profile_data;
 
 typedef struct s_main_page_data {

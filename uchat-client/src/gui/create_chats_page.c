@@ -405,6 +405,21 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
                      (*main_page).profile_data.status, FALSE, FALSE, 0);
   gtk_widget_set_halign((*main_page).profile_data.status, GTK_ALIGN_CENTER);
+  // Name Surname
+  (*main_page).profile_data.name_surname = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).profile_data.name_surname),
+      "profile-name");
+  gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
+                     (*main_page).profile_data.name_surname, FALSE, FALSE, 0);
+
+  // Student Group
+  (*main_page).profile_data.student_group = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).profile_data.student_group),
+      "profile-name");
+  gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
+                     (*main_page).profile_data.student_group, FALSE, FALSE, 0);
   // description
   (*main_page).profile_data.description = gtk_label_new("");
   gtk_style_context_add_class(
@@ -457,13 +472,30 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.username, FALSE, FALSE, 0);
-  // description
-  (*main_page).edit_data.description = gtk_entry_new();
+  // Name Surname Entry
+  (*main_page).edit_data.name_surname = gtk_entry_new();
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).edit_data.description),
+      gtk_widget_get_style_context((*main_page).edit_data.name_surname),
       "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
-                     (*main_page).edit_data.description, FALSE, FALSE, 0);
+                     (*main_page).edit_data.name_surname, FALSE, FALSE, 0);
+
+  (*main_page).edit_data.student_group = gtk_entry_new();
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).edit_data.student_group),
+      "form-entry");
+  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
+                     (*main_page).edit_data.student_group, FALSE, FALSE, 0);
+
+  // Student or Teacher
+  (*main_page).edit_data.role_combo = gtk_combo_box_text_new();
+  gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).edit_data.role_combo), "form-role");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Student");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Teacher");
+
+  gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
+
+  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), (*main_page).edit_data.role_combo, FALSE, FALSE, 0);
   // message
   (*main_page).edit_data.message = gtk_label_new("");
   gtk_style_context_add_class(

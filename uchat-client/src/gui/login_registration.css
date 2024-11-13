@@ -332,4 +332,46 @@ spinner {
     background-image: none; 
     margin-right: 5px;
 }
+/* Style for the combo box itself (entry part) */
+.form-role {
+    background-color: #1A1A1D;
+    color: white;
+    border: solid 2px transparent;
+    border-radius: 8px;
+    padding: 5px 8px;
+    margin: 5px 0;
+}
 
+/* Focus state for combo box */
+.form-role:focus {
+    border-color: #5BCD91;
+    transition: 0.3s;
+}
+
+/* Style for the dropdown popup (menu) */
+.form-role .popup {
+    background-color: #29292C;
+    color: white;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+/* Style for the items inside the dropdown list */
+.form-role .popup .menu-item {
+    background-color: #29292C;
+    color: white;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+/* Style for selected item */
+.form-role .popup .menu-item:selected {
+    background-color: #5BCD91;
+    color: #1A1A1D;
+}
+
+/* Hover state for items */
+.form-role .popup .menu-item:hover {
+    background-color: #5BCD91;
+    color: #1A1A1D;
+}

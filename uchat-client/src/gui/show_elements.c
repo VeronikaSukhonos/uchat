@@ -14,22 +14,38 @@ void show_new_group(GtkWidget *new_group_button, gpointer data) {
                                    "create_group");
 }
 void show_profile(GtkWidget *settings_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &settings_button);
-  // username and description from database
-  gtk_label_set_label(GTK_LABEL((*main_page).profile_data.username), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)), "") == 0 ? "yrezchyk": gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
-  gtk_label_set_label(GTK_LABEL((*main_page).profile_data.status), "online");
-  gtk_label_set_label(GTK_LABEL((*main_page).profile_data.description), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)), "") == 0 ? "Yevheniia Rezchyk\n@yrezchyk | KN-423k | Student" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)));
-  // set visible
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "user_info");
+    t_main_page_data *main_page = (t_main_page_data *)data;
+    set_selected_button(&(*main_page).menu_button_selected, &settings_button);
+
+    // Set default or current username and description
+    gtk_label_set_label(GTK_LABEL((*main_page).profile_data.username), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)), "") == 0 ? "yrezchyk" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
+    gtk_label_set_label(GTK_LABEL((*main_page).profile_data.status), "online");
+
+    // Set the full description with default name and group
+    gtk_label_set_label(GTK_LABEL((*main_page).profile_data.description), strcmp((char *)gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)), "") == 0 ? "Yevheniia Rezchyk\n@yrezchyk | KN-423k | Student" : gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)));
+
+    // Set visible
+    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack), "user_info");
 }
-// show edit page
 void show_edit_page(GtkWidget *edit_button, gpointer data) {
     t_main_page_data *main_page = (t_main_page_data *)data;
+
+    // Set existing values in the edit fields
     gtk_entry_set_text(GTK_ENTRY((*main_page).edit_data.username), gtk_label_get_label(GTK_LABEL((*main_page).profile_data.username)));
-    gtk_entry_set_text(GTK_ENTRY((*main_page).edit_data.description), gtk_label_get_label(GTK_LABEL((*main_page).profile_data.description)));
+    gtk_entry_set_text(GTK_ENTRY((*main_page).edit_data.name_surname), gtk_label_get_label(GTK_LABEL((*main_page).profile_data.name_surname)));
+    gtk_entry_set_text(GTK_ENTRY((*main_page).edit_data.student_group), gtk_label_get_label(GTK_LABEL((*main_page).profile_data.student_group)));
+
+    // Set placeholder text
+    gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.username), "Username");
+    gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.name_surname), "Name Surname");
+    gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.student_group), "Student Group");
+
     gtk_label_set_label(GTK_LABEL((*main_page).edit_data.message), "");
+    // Set role based on current selection (for example, check description for "Student" or "Teacher")
+    const char *current_role = "Student"; // Replace with logic to fetch current role
+    int index = (strcmp(current_role, "Teacher") == 0) ? 1 : 0;
+    gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), index);
+
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack), "edit_profile");
 }
 void show_chat(GtkWidget *chat_button, gpointer data) {

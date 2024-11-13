@@ -2,7 +2,11 @@
 
 void load_css(const gchar *file) {
   GtkCssProvider *provider = gtk_css_provider_new();
+  gboolean loaded = gtk_css_provider_load_from_path(provider, file, NULL);
 
+  if (!loaded) {
+      g_warning("Failed to load CSS file: %s", file);
+  }
   gtk_style_context_add_provider_for_screen(
       gdk_screen_get_default(), GTK_STYLE_PROVIDER(provider),
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
