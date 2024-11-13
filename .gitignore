@@ -1,6 +1,6 @@
 .vscode
 .DS_Store
 session.txt
-uchat.c
-uchat_server.c
+uchat
+uchat_server
 cache
