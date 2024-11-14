@@ -75,7 +75,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(chats), sidebar, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(sidebar), "menu");
-  gtk_widget_set_size_request(GTK_WIDGET(sidebar), 270, -1);
+  gtk_widget_set_size_request(GTK_WIDGET(sidebar), 280, -1);
 
   GtkWidget *sidebar_top = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_box_pack_start(GTK_BOX(sidebar), sidebar_top, FALSE, FALSE, 0);
@@ -98,10 +98,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // stack
   (*main_page).menu_stack = gtk_stack_new();
-  gtk_box_pack_start(GTK_BOX(sidebar), (*main_page).menu_stack, FALSE, FALSE,
+  gtk_box_pack_start(GTK_BOX(sidebar), (*main_page).menu_stack, TRUE, TRUE,
                      0);
   (*main_page).menu_opened = 1;
   (*main_page).menu_button_selected = NULL;
+  (*main_page).chats = NULL;
+  (*main_page).chats_count = 0;
 
   menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), menu_box, "menu");
@@ -145,18 +147,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                               "menu-button");
   g_signal_connect(log_out_button, "clicked", G_CALLBACK(log_out), main_page);
 
-  GtkWidget *chats_list_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), chats_list_box,
+  GtkWidget *chats_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), chats_scroll,
                       "chats_list");
+  (*main_page).chats_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(chats_scroll), (*main_page).chats_box);
 
-  GtkWidget *chat_button = gtk_button_new();
-  GtkWidget *chat_button_label = gtk_label_new("Chat");
-  gtk_container_add(GTK_CONTAINER(chat_button), chat_button_label);
-  gtk_widget_set_halign(chat_button_label, GTK_ALIGN_START);
-  gtk_box_pack_start(GTK_BOX(chats_list_box), chat_button, FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(chat_button),
-                              "menu-button");
-  g_signal_connect(chat_button, "clicked", G_CALLBACK(show_chat), main_page);
   // central area
   (*main_page).central_area_stack = gtk_stack_new();
   gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, TRUE,
@@ -240,11 +236,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    message_buffer);
 
   // create chat
-  create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_chat,
+  GtkWidget *create_chat_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_chat_scroll,
                       "create_chat");
+  create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(create_chat_scroll), create_chat);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_chat),
-                              "main_page_form");
+							   "main_page_form");
 
   (*main_page).create_chat_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(create_chat), (*main_page).create_chat_data.form,
@@ -297,11 +295,14 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // create group
   (*main_page).group_users_count = 0;
-  create_group = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_group,
+  
+  GtkWidget *create_group_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_group_scroll,
                       "create_group");
+  create_group = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(create_group_scroll), create_group);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_group),
-                              "main_page_form");
+							   "main_page_form");
 
   (*main_page).create_group_data.form =
       gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -382,11 +383,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    main_page);
 
   // profile
-  user_info = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), user_info,
+  GtkWidget *user_info_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), user_info_scroll,
                       "user_info");
+  user_info = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(user_info_scroll), user_info);
   gtk_style_context_add_class(gtk_widget_get_style_context(user_info),
-                              "main_page_form");
+							   "main_page_form");
   (*main_page).profile_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(user_info), (*main_page).profile_data.form, TRUE,
                      FALSE, 0);
@@ -450,11 +453,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(link, "clicked", G_CALLBACK(show_edit_page), main_page);
 
   // edit profile
-  edit_profile = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), edit_profile,
+  GtkWidget *edit_profile_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), edit_profile_scroll,
                       "edit_profile");
+  edit_profile = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(edit_profile_scroll), edit_profile);
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_profile),
-                              "main_page_form");
+							   "main_page_form");
   (*main_page).edit_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(edit_profile), (*main_page).edit_data.form, TRUE,
                      FALSE, 0);
@@ -522,4 +527,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(button),
                               "form-button");
   g_signal_connect(button, "clicked", G_CALLBACK(change_profile), main_page);
+
+  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
+                                   "clear_area");
+  open_close_menu(NULL, main_page);
 }

@@ -89,13 +89,32 @@ typedef struct s_profile_data {
   GtkWidget *role_combo;
 } t_profile_data;
 
+typedef struct s_chat_data {
+  GtkWidget *button;
+  GtkWidget *name;
+  GtkWidget *last_time;
+  GtkWidget *last_sender;
+  GtkWidget *last_message;
+  GtkWidget *unread;
+  GtkWidget *box;
+  char id[64];
+} t_chat_data;
+
+typedef struct s_chat_node {
+  t_chat_data chat;
+  struct s_chat_node *next;
+} t_chat_node;
+
 typedef struct s_main_page_data {
   int sock;
   GtkWidget *menu_stack;
   int menu_opened;
   GtkWidget *menu_button_selected;
+  GtkWidget *chats_box;
+  t_chat_node *chats;
+  int chats_count;
+  t_chat_data *opened_chat;
   GtkWidget *central_area_stack;
-  GtkWidget *chats_stack;
   t_chat_form_data create_chat_data;
   t_chat_form_data create_group_data;
   // profile_data
@@ -105,6 +124,7 @@ typedef struct s_main_page_data {
   GtkWidget *group_box;
   int group_users_count;
   t_group_users_data group_users[USERS_IN_GROUP_COUNT];
+  GtkWidget *chats_stack;
 } t_main_page_data;
 
 typedef struct s_form_data {

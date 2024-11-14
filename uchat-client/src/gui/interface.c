@@ -82,6 +82,13 @@ void setup_main_application() {
   if (gio_channel) {
     g_io_channel_unref(gio_channel);
   }
+  if (main_page.chats != NULL) {
+    for (t_chat_node *i = main_page.chats; i != NULL; ) {
+      t_chat_node *temp = i->next;
+      free(i);
+      i = temp;
+    }
+  }
   close(sock);
 }
 

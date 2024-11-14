@@ -169,7 +169,7 @@ spinner {
     border: none;
     outline: none;
     padding: 7px;
-    padding-left: 20px;
+    padding-left: 12px;
 }
 
 .menu-button:hover, .menu-button:active {
@@ -183,6 +183,40 @@ spinner {
     transition: 0.3s;
     border-radius: 0px;
     border-right: solid 5px #5BCD91;
+}
+
+.chat-button-unread-border {
+    border-right: solid 5px #D13325;
+}
+
+.chat-button-label {
+	font-weight: bold;
+	color: white;
+	font-size: 15px;
+	margin: 3px 5px 3px 12px;
+}
+
+.chat-button-bottom-box {
+	margin-left: 12px;
+}
+
+.chat-button-sender {
+	color: white;
+	font-size: 13px;
+	margin: 3px 0;
+}
+
+.chat-button-light {
+	color: #7F7F7F;
+	font-size: 13px;
+	margin: 3px 0;
+}
+
+.chat-button-unread {
+	font-weight: bold;
+	color: #D13325;
+	font-size: 14px;
+	margin: 3px 0;
 }
 
 .box {
