@@ -120,11 +120,11 @@ int check_form_data(char *username, char *password, GtkWidget *message) {
   if (password != NULL) {
     for (int i = 0; i < username_len; i++) {
         if (isdigit(username[i])) {
-            gtk_label_set_text(GTK_LABEL(message), "Username must not contain numbers");
+            gtk_label_set_text(GTK_LABEL(message), "Username cannot contain digits");
             return 0;
         }
         if (!isalnum(username[i])) {
-            gtk_label_set_text(GTK_LABEL(message), "Username must not contain special characters");
+            gtk_label_set_text(GTK_LABEL(message), "Username cannot contain special characters");
             return 0;
         }
         if (!islower(username[i])) {

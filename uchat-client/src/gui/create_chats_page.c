@@ -190,15 +190,27 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box),
                               "message-entry-box");
 
-  GtkWidget *message_entry = gtk_entry_new();
-  gtk_box_pack_start(GTK_BOX(message_entry_box), message_entry, TRUE, TRUE, 0);
-  gtk_entry_set_placeholder_text(GTK_ENTRY(message_entry), "Type something...");
+  GtkWidget *message_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll,
+  					 TRUE, TRUE, 0);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(message_scroll),
+  								 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+
+  GtkWidget *message_entry = gtk_text_view_new();
+  GtkTextBuffer *message_buffer =
+    gtk_text_view_get_buffer(GTK_TEXT_VIEW(message_entry));
+  gtk_container_add(GTK_CONTAINER(message_scroll), message_entry);
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(message_entry), GTK_WRAP_WORD_CHAR);
+  gtk_widget_set_size_request(message_scroll, -1, 30);
+  // HERE MUST BE A PLACEHOLDER
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry),
                               "message-entry");
   g_signal_connect(message_entry, "focus-in-event",
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
   g_signal_connect(message_entry, "focus-out-event",
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
+  g_signal_connect(message_buffer, "changed",
+  				   G_CALLBACK(check_message_entry_height), message_entry);
 
   MicData *mic_data = g_new(MicData, 1);
   mic_data->is_active = FALSE;
@@ -225,7 +237,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
   change_button_hover_image(send_button);
   g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f),
-                   message_entry);
+                   message_buffer);
 
   // create chat
   create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);

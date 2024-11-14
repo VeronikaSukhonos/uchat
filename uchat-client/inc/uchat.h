@@ -210,11 +210,14 @@ gboolean periodic_reconnection_attempt(gpointer data);
 void on_retry_clicked(GtkButton *button, gpointer data);
 
 // input box gui
+void check_message_entry_height(GtkTextBuffer *message_buffer,
+								GtkWidget *message_entry);
 gboolean on_button_hover(GtkWidget *send_button, GdkEvent *event,
                          gpointer user_data);
 gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event,
                          gpointer user_data);
 void change_button_hover_image(GtkWidget *send_button);
+const gchar *message_trim(const gchar *message);
 void send_message_to_server(int chat_id, const gchar *message);
 void send_message_f(GtkWidget *widget, gpointer data);
 

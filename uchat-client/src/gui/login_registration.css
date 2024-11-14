@@ -1,5 +1,6 @@
 window {
 	background-color: #1A1A1D;
+	/*font-family: sans-serif;*/
 	font-size: 20px;
 	color: white;
 }
@@ -318,13 +319,30 @@ spinner {
 	transition: 0.3s;
 }
 
-.message-entry, .message-entry:focus {
+.message-entry, .message-entry text {
 	background-color: #1A1A1D;
 	color: white;
 	border: none;
 	border-radius: 8px;
 	caret-color: white;
 	padding: 2.5px 8px;
+}
+
+scrolledwindow box {
+	background-color: transparent;
+}
+
+scrollbar, scrollbar contents trough {
+	background-color: #3B3B3E;
+	border: none;
+}
+
+scrollbar contents trough slider {
+	background-color: #5BCD91;
+}
+
+textview text selection, entry selection {
+	background-color: #3B3B3E;
 }
 
 .send-button {
@@ -342,8 +360,9 @@ spinner {
     padding: 0;
     outline: none;
     background-image: none; 
-    margin-right: 5px;
+    margin: 5px;
 }
+
  /* Style for the combo box itself (entry part) */
 combobox.form-role, combobox.form-role * {
     background-color: transparent;

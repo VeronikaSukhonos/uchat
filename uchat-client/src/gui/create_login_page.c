@@ -40,6 +40,7 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data) {
 
   data->password = gtk_entry_new();
   gtk_box_pack_start(GTK_BOX(pw_container), data->password, TRUE, TRUE, 0);
+  gtk_entry_set_invisible_char(GTK_ENTRY(data->password), 0x2022);
   gtk_entry_set_visibility(GTK_ENTRY(data->password), FALSE);
   g_object_set(data->password, "caps-lock-warning", FALSE, NULL);
   gtk_style_context_add_class(gtk_widget_get_style_context(data->password),

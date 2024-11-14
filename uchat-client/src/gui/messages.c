@@ -29,6 +29,47 @@ gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event,
   return FALSE;
 }
 
+void check_message_entry_height(GtkTextBuffer *message_buffer,
+								GtkWidget *message_entry) {
+	GtkWidget *message_scroll = gtk_widget_get_parent(message_entry);
+	GtkTextIter start, end;
+    int height;
+
+	gtk_text_buffer_get_bounds(message_buffer, &start, &end);
+	if (gtk_text_iter_equal(&start, &end) == TRUE)
+		height = 30;
+	else
+		gtk_widget_get_preferred_height(message_entry, &height, NULL);
+	if (height > 143) {
+		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(message_scroll),
+  									   GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  		gtk_widget_set_size_request(message_scroll, -1, 144);
+  	}
+  	else {
+  		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(message_scroll),
+  									   GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+		gtk_widget_set_size_request(message_scroll, -1, height);
+  	}
+}
+
+const gchar *message_trim(const gchar *message) {
+	int start = -1;
+	int finish = 0;
+
+	if (message == NULL)
+		return NULL;
+	for (int i = 0; message[i] != '\0'; i++) {
+		if (!isspace(message[i])) {
+			finish = i;
+			if (start == -1)
+				start = i;
+		}
+	}
+	if (start == -1)
+		return "";
+	return g_strndup(message + start, finish - start + 1);
+}
+
 void send_message_to_server(int chat_id, const gchar *message) {
   cJSON *json_message = cJSON_CreateObject();
   cJSON_AddStringToObject(json_message, "action", "SEND_MESSAGE_TO_CHAT");
@@ -40,19 +81,25 @@ void send_message_to_server(int chat_id, const gchar *message) {
 
   cJSON_Delete(json_message);
   free(json_string);
+  g_free((gpointer)message);
 }
 
 void send_message_f(GtkWidget *widget, gpointer data) {
-  GtkEntry *message_entry = GTK_ENTRY(data);
-  const gchar *message_text = gtk_entry_get_text(message_entry);
+  GtkTextBuffer *message_buffer = GTK_TEXT_BUFFER(data);
+  GtkTextIter start, end;
+
+  gtk_text_buffer_get_bounds(message_buffer, &start, &end);
+  const gchar *message_text = message_trim(
+    gtk_text_buffer_get_text(message_buffer, &start, &end, FALSE));
   // after using t_chat_form_data->username appears segmentation fault
 
   int chat_id = -1;
 
-  if (g_strcmp0(message_text, "") != 0) {
+  if (message_text != NULL && g_strcmp0(message_text, "") != 0) {
     send_message_to_server(chat_id, message_text);
-    gtk_entry_set_text(message_entry, "");
   } else {
     g_print("Cannot send an empty message.\n");
   }
+  gtk_text_buffer_set_text(message_buffer, "", 0);
 }
+

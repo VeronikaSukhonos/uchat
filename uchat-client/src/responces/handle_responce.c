@@ -90,7 +90,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     } else {
       gtk_label_set_text(
           GTK_LABEL(app_data->main_page->create_group_data.message),
-          "User does not found");
+          "User is not found");
     }
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
@@ -105,7 +105,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       g_print("Error: No such user.\n");
       gtk_label_set_text(
           GTK_LABEL(app_data->main_page->create_chat_data.message),
-          "User not found");
+          "User is not found");
     }
   } else if (strcmp(action->valuestring, "LOGOUT") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
