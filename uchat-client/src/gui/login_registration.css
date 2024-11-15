@@ -11,6 +11,9 @@ button, button:hover, entry, entry:focus {
 
 .log-reg {
 	padding: 50px;
+	background: 
+		url("resources/background.png"),
+		linear-gradient(90deg, #604BDC, #5BCD91);
 }
 
 .form, .uf-container {
@@ -219,10 +222,6 @@ spinner {
 	margin: 3px 0;
 }
 
-.box {
-    background-color: #1A1A1D;
-}
-
 .gchats {
     font-weight: bold;
     font-size: 26px;
@@ -241,7 +240,6 @@ spinner {
     }
 }
 
-
 .dots {
     background: rgba(0,0,0,0);
     color: #604BDC;
@@ -255,6 +253,20 @@ spinner {
 .dots:hover {
     color: #6F54F8;
     transition: 0.3s
+}
+
+.central-area {
+	background: 
+		url("resources/background.png"),
+		linear-gradient(90deg, #604BDC, #5BCD91);
+}
+
+.clear-area-container {
+	background-color: #29292C;
+	border: solid 2px #3B3B3E;
+	border-radius: 8px;
+	padding: 10px 20px;
+	margin: 70px;
 }
 
 .main_page_form {

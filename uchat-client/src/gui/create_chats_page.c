@@ -69,7 +69,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   chats = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_stack_add_named(GTK_STACK(pages), chats, "chats");
-  gtk_style_context_add_class(gtk_widget_get_style_context(chats), "box");
 
   // sidebar
   sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -156,11 +155,24 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   (*main_page).central_area_stack = gtk_stack_new();
   gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, TRUE,
                      TRUE, 0);
+  gtk_style_context_add_class(
+  	gtk_widget_get_style_context((*main_page).central_area_stack), "central-area");
 
+  // clear area
   GtkWidget *clear_area = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), clear_area,
                       "clear_area");
+   
+  GtkWidget *start_label_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(clear_area), start_label_container, TRUE, FALSE, 0);
+  gtk_widget_set_halign(start_label_container, GTK_ALIGN_CENTER);
+  gtk_style_context_add_class(gtk_widget_get_style_context(start_label_container),
+							   "clear-area-container");
 
+  GtkWidget *start_label = gtk_label_new("Select a chat to start messaging");
+  gtk_box_pack_start(GTK_BOX(start_label_container), start_label, FALSE, FALSE, 0);
+                      
+  // messages area
   GtkWidget *message_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), message_box,
                       "chat");
