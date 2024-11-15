@@ -18,6 +18,7 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
 
 void setup_main_application() {
   main_window = 0;
+  setlocale(LC_ALL, "en_US.UTF-8"); //set locale for mac users(idk is it really work) =)
   GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   GdkPixbuf *icon = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/program.png", NULL);
   GdkPixbuf *scaled_icon = gdk_pixbuf_scale_simple(icon, 500, 500, GDK_INTERP_BILINEAR);
