@@ -155,15 +155,19 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
         cJSON_IsString(message_timestamp)) {
       strncpy(last_message, message_content->valuestring, 1023);
       strncpy(last_sender, message_sender->valuestring, 63);
+
+      // Parse timestamp using sscanf and convert to local time
       struct tm tm_utc = {0};
-      if (strptime(message_timestamp->valuestring, "%Y-%m-%d %H:%M:%S",
-                   &tm_utc)) {
-        // Convert to time_t
+      if (sscanf(message_timestamp->valuestring, "%d-%d-%d %d:%d:%d",
+                 &tm_utc.tm_year, &tm_utc.tm_mon, &tm_utc.tm_mday,
+                 &tm_utc.tm_hour, &tm_utc.tm_min, &tm_utc.tm_sec) == 6) {
+        tm_utc.tm_year -= 1900; // Adjust year
+        tm_utc.tm_mon -= 1;     // Adjust month (1-12 to 0-11)
+
+        // Convert to time_t and then to local time
         time_t time_utc = timegm(&tm_utc); // timegm for UTC to time_t
-        // Convert to local time
         struct tm *tm_local = localtime(&time_utc);
         if (tm_local) {
-          // Format the local time into a string
           strftime(last_time, 31, "%Y-%m-%d %H:%M:%S", tm_local);
         } else {
           strncpy(last_time, "Invalid local time", 31);
