@@ -98,8 +98,10 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
   for (t_chat_node *i = (*main_page).chats; i != NULL; i = i->next) {
     if ((*i).chat.button == chat_button) {
       (*main_page).opened_chat = &(*i).chat;
+      char id_str[10];
+      snprintf(id_str, sizeof(id_str), "%d", (*i).chat.id);
       gtk_stack_set_visible_child_name(GTK_STACK((*main_page).chats_stack),
-                                       (*i).chat.id);
+                                       id_str);
       break;
     }
   }

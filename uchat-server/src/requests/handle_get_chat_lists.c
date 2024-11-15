@@ -6,7 +6,8 @@ int is_user_logged_in(sqlite3 *db, int user_id) {
                    user_id); // Assuming logged_in() checks user's login status
 }
 
-// Function to handle retrieving the chat list for a user
+// Function to handle retrieving the chat list for a use
+
 int handle_get_chat_list(sqlite3 *db, Client *client) {
   int user_id = get_user_id(db, client->username);
   if (user_id == -1) {
@@ -34,6 +35,7 @@ int handle_get_chat_list(sqlite3 *db, Client *client) {
 
   // Send response to client
   char *response_str = cJSON_Print(response);
+  printf("Sent: %s", response_str);
   send(client->socket, response_str, strlen(response_str), 0);
   free(response_str);
   cJSON_Delete(response);

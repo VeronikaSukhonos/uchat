@@ -1,19 +1,92 @@
 #include <uchat.h>
 
+#define INITIAL_BUFFER_SIZE                                                    \
+  4096 // Adjust as necessary for expected response size
+
+char *receive_large_json(int socket_fd) {
+  size_t buffer_size = INITIAL_BUFFER_SIZE;
+  char *buffer = malloc(buffer_size);
+  if (!buffer) {
+    perror("malloc failed");
+    return NULL;
+  }
+
+  size_t received = 0;
+  ssize_t bytes;
+  int end_detected = 0;
+
+  while (!end_detected) {
+    // Set up a timeout using select
+    struct timeval timeout;
+    timeout.tv_sec = 5; // 5 seconds timeout
+    timeout.tv_usec = 0;
+
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(socket_fd, &read_fds);
+
+    int activity = select(socket_fd + 1, &read_fds, NULL, NULL, &timeout);
+
+    if (activity < 0) {
+      perror("select failed");
+      free(buffer);
+      return NULL;
+    } else if (activity == 0) {
+      // Timeout occurred
+      fprintf(stderr, "recv timed out.\n");
+      free(buffer);
+      return NULL;
+    }
+
+    // If data is ready to be read
+    bytes = recv(socket_fd, buffer + received, buffer_size - received, 0);
+    if (bytes < 0) {
+      perror("recv failed");
+      free(buffer);
+      return NULL;
+    } else if (bytes == 0) {
+      // Connection closed by the server
+      break;
+    }
+
+    received += bytes;
+
+    // If buffer is full, resize it
+    if (received >= buffer_size) {
+      buffer_size *= 2; // Double the buffer size
+      char *temp = realloc(buffer, buffer_size);
+      if (!temp) {
+        perror("realloc failed");
+        free(buffer);
+        return NULL;
+      }
+      buffer = temp;
+    }
+
+    // Check if we've reached the end of a JSON object
+    if (received >= 2 && buffer[received - 1] == '}' &&
+        buffer[received - 2] != '\\') {
+      end_detected = 1;
+    }
+  }
+
+  buffer[received] = '\0'; // Null-terminate the JSON data
+  return buffer;
+}
 // Function to read and handle server responses
 int handle_response(int sock, int *logged_in, AppData *app_data) {
-  char buffer[BUFFER_SIZE];
-  int valread = read(sock, buffer, sizeof(buffer) - 1);
-  g_print("Buffer: %s\n", buffer);
-
-  if (valread <= 0) {
-    g_print("Server disconnected or no data received.\n");
+  char *buffer = receive_large_json(sock);
+  if (!buffer) {
+    g_print("Failed to receive server response.\n");
     *logged_in = 0;
     return -1;
   }
 
-  buffer[valread] = '\0';
+  g_print("Buffer: %s\n", buffer);
+
   cJSON *response = cJSON_Parse(buffer);
+  free(buffer); // Free buffer after parsing
+
   if (response == NULL) {
     g_print("Failed to parse server response.\n");
     return -1;
@@ -31,12 +104,20 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       g_print("Login successful.\n");
       *logged_in = 1;
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");
+
+      // Send CHAT_LIST request to server
+      cJSON *chat_list_request = cJSON_CreateObject();
+      cJSON_AddStringToObject(chat_list_request, "action", "GET_CHAT_LIST");
+      char *chat_list_request_str = cJSON_Print(chat_list_request);
+      send(sock, chat_list_request_str, strlen(chat_list_request_str), 0);
+      g_print("Sent: %s\n", chat_list_request_str);
+      free(chat_list_request_str);
+      cJSON_Delete(chat_list_request);
     } else {
       g_print("Error: Login Error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->login_data->message),
                          "Wrong password or login");
     }
-
   } else if (strcmp(action->valuestring, "REGISTER") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
@@ -96,6 +177,9 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("Created_chat successful\n");
+      ensure_cache_directory();
+      save_single_chat_to_encrypted_cache(cJSON_GetObjectItem(response, "chat"),
+                                          "cache", app_data);
       gtk_stack_set_visible_child_name(
           GTK_STACK(app_data->main_page->menu_stack), "chats_list");
       app_data->main_page->menu_opened = -1;
@@ -111,54 +195,17 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("LOGOUT successful\n");
+      delete_cache_directory();
+      remove_all_chat_buttons(app_data->main_page);
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "login");
       delete_session();
     } else {
       g_print("Error: LOGOUT error.\n");
     }
   } else if (strcmp(action->valuestring, "CHAT_LIST") == 0) {
-    cJSON *chats = cJSON_GetObjectItem(response, "chats");
-    if (cJSON_IsArray(chats)) {
-      printf("Your Chats:\n");
-      int chat_count = cJSON_GetArraySize(chats);
-      for (int i = 0; i < chat_count; i++) {
-        cJSON *chat = cJSON_GetArrayItem(chats, i);
-        cJSON *chat_id = cJSON_GetObjectItem(chat, "chat_id");
-        cJSON *chat_name = cJSON_GetObjectItem(chat, "name");
-        cJSON *chat_type = cJSON_GetObjectItem(chat, "type");
-
-        if (chat_id && chat_name && chat_type) {
-          printf("Chat ID: %d, Name: %s, Type: %s\n", chat_id->valueint,
-                 chat_name->valuestring, chat_type->valuestring);
-        }
-      }
-
-      // Ask user if they want to message or close a chat
-      printf("Enter Chat ID to message, or 0 to go back: ");
-      int selected_chat_id;
-      scanf("%d", &selected_chat_id);
-      getchar(); // Consume newline
-
-      if (selected_chat_id > 0) {
-        printf("Enter message: ");
-        char message[256];
-        fgets(message, sizeof(message), stdin);
-        message[strcspn(message, "\n")] = 0;
-
-        cJSON *msg_json = cJSON_CreateObject();
-        cJSON_AddStringToObject(msg_json, "action", "SEND_MESSAGE_TO_CHAT");
-        cJSON_AddNumberToObject(msg_json, "chat_id", selected_chat_id);
-        cJSON_AddStringToObject(msg_json, "message", message);
-        char *msg_str = cJSON_Print(msg_json);
-        cJSON_Delete(msg_json);
-
-        send(sock, msg_str, strlen(msg_str), 0);
-        printf("Sent message to Chat ID %d: %s\n", selected_chat_id, msg_str);
-        free(msg_str);
-      }
-    } else {
-      printf("Unknown action: %s\n", action->valuestring);
-    }
+    ensure_cache_directory();
+    handle_chat_list_response(response, "cache");
+    create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
 
   } else if (strcmp(action->valuestring, "MESSAGE_FROM_CHAT") == 0) {
     // Handle receiving a message from a chat

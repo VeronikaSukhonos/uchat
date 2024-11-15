@@ -1,12 +1,46 @@
 #include <uchat.h>
 
-void new_chat_button(t_main_page_data *main_page, char *name, char chat_type) {
+void create_chat_buttons_from_encrypted_cache(t_main_page_data *main_page,
+                                              const char *cache_dir) {
+  DIR *dir = opendir(cache_dir);
+  if (!dir) {
+    perror("Failed to open cache directory");
+    return;
+  }
+
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_REG && strstr(entry->d_name, ".json")) {
+      char file_path[256];
+      snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
+
+      char name[64] = {0}, chat_type[20] = {0}, last_message[1024] = {0};
+      char last_sender[64] = {0}, last_time[32] = {0}, unread[16] = {0};
+      int chat_id;
+
+      if (read_chat_data_from_encrypted_json(
+              file_path, &chat_id, name, chat_type, last_message, last_sender,
+              last_time, unread) == 0) {
+
+        // Pass all data to the button creation function
+        new_chat_button_from_json(main_page, chat_id, name, chat_type,
+                                  last_message, last_sender, last_time, unread);
+      }
+    }
+  }
+  closedir(dir);
+}
+
+void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
+                               const char *name, char *chat_type,
+                               const char *last_message,
+                               const char *last_sender, const char *last_time,
+                               const char *unread) {
   t_chat_node *temp_node;
   if ((*main_page).chats == NULL) {
     (*main_page).chats = malloc(sizeof(t_chat_node));
     temp_node = (*main_page).chats;
-  }
-  else {
+  } else {
     temp_node = (*main_page).chats;
     while (temp_node->next != NULL)
       temp_node = temp_node->next;
@@ -15,119 +49,99 @@ void new_chat_button(t_main_page_data *main_page, char *name, char chat_type) {
   }
   temp_node->next = NULL;
 
-  int n = (*main_page).chats_count;
-  int k = 0;
-  (*temp_node).chat.id[k++] = n % 10 + '0';
-  n /= 10;
-  while  (n > 0) {
-    (*temp_node).chat.id[k++] = n % 10 + '0';
-    n /= 10;
-  }
-  (*temp_node).chat.id[k] = '\0';
-  int j;
-  for (k = 0, j = strlen((*temp_node).chat.id) - 1; k < j; ++k, --j) {
-    char temp_char = (*temp_node).chat.id[k];
-    (*temp_node).chat.id[k] = (*temp_node).chat.id[j];
-    (*temp_node).chat.id[j] = temp_char;
-  }
+  (*temp_node).chat.id = chat_id; // Assign the chat_id
 
+  // Create chat button
   (*temp_node).chat.button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX((*main_page).chats_box), (*temp_node).chat.button,
                      FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.button),
-                            "menu-button");
-  g_signal_connect((*temp_node).chat.button,
-                   "clicked", G_CALLBACK(show_chat), main_page);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*temp_node).chat.button), "menu-button");
+  g_signal_connect((*temp_node).chat.button, "clicked", G_CALLBACK(show_chat),
+                   main_page);
 
   GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_container_add(GTK_CONTAINER((*temp_node).chat.button), main_box);
 
-  GtkWidget *image = gtk_image_new_from_file(chat_type == 'c'
-                                             ? "uchat-client/src/gui/resources/rabbit_chats.png"
-                                             : "uchat-client/src/gui/resources/rabbits_chats.png");
+  // Set chat icon based on type
+  g_print("Type:%s\n", chat_type);
+  GtkWidget *image = gtk_image_new_from_file(
+      strcmp(chat_type, "private") == 0
+          ? "uchat-client/src/gui/resources/rabbit_chats.png"
+          : "uchat-client/src/gui/resources/rabbits_chats.png");
   gtk_box_pack_start(GTK_BOX(main_box), image, FALSE, FALSE, 0);
 
   GtkWidget *text_boxes = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(main_box), text_boxes, TRUE, TRUE, 0);
+
+  // Top box for chat name and last message time
   GtkWidget *top_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_box_pack_start(GTK_BOX(text_boxes), top_box, TRUE, TRUE, 0);
+
+  (*temp_node).chat.name = gtk_label_new(name);
+  gtk_box_pack_start(GTK_BOX(top_box), (*temp_node).chat.name, TRUE, TRUE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*temp_node).chat.name),
+      "chat-button-label");
+  gtk_widget_set_halign((*temp_node).chat.name, GTK_ALIGN_START);
+
+  (*temp_node).chat.last_time = gtk_label_new(last_time);
+  gtk_box_pack_start(GTK_BOX(top_box), (*temp_node).chat.last_time, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*temp_node).chat.last_time),
+      "chat-button-light");
+  gtk_widget_set_halign((*temp_node).chat.last_time, GTK_ALIGN_END);
+
+  // Bottom box for last sender, message, and unread count
   GtkWidget *bottom_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
   gtk_box_pack_start(GTK_BOX(text_boxes), bottom_box, TRUE, TRUE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(bottom_box),
                               "chat-button-bottom-box");
 
-  (*temp_node).chat.name = gtk_label_new(name);
-  gtk_box_pack_start(GTK_BOX(top_box), (*temp_node).chat.name,
-                     TRUE, TRUE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.name),
-                              "chat-button-label");
-  gtk_widget_set_halign((*temp_node).chat.name, GTK_ALIGN_START);
-
-  (*temp_node).chat.last_time = gtk_label_new("00:00");
-  gtk_box_pack_start(GTK_BOX(top_box), (*temp_node).chat.last_time,
-                     FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.last_time),
-                              "chat-button-light");
-  gtk_widget_set_halign((*temp_node).chat.last_time, GTK_ALIGN_END);
-
-  int string_length = 30;
-  char *last_sender = chat_type == 'c'
-                      ? ""
-                      : atoi((*temp_node).chat.id) % 2 == 0
-                      ? "ifranko"
-                      : "tshevchenko";
-  char *last_message = atoi((*temp_node).chat.id) % 3 == 0
-                       ? "Hello!"
-                       : "Heeeyy!!! Can't wait!!!!!";
-  char *unread = atoi((*temp_node).chat.id) % 3 != 0
-                 ? atoi((*temp_node).chat.id) % 2 == 0
-                 ? "10"
-                 : "3"
-                 : "";
-  string_length -= strlen(last_sender) + strlen(unread);
-  int last_message_length = strlen(last_message);
-  char last_message_res[string_length + 1];
-  for (int i = 0; i < string_length; ++i)
-    last_message_res[i] = i >= last_message_length
-                          ? '\0'
-                          : last_message_length > string_length && i >= string_length - 3
-                          ? '.'
-                          : last_message[i];
-  last_message_res[string_length] = '\0';
-
-  if (strcmp(last_sender, "") != 0) {
+  if (strlen(last_sender) > 0) {
     (*temp_node).chat.last_sender = gtk_label_new(last_sender);
     gtk_box_pack_start(GTK_BOX(bottom_box), (*temp_node).chat.last_sender,
                        FALSE, FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.last_sender),
-                                "chat-button-sender");
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).chat.last_sender),
+        "chat-button-sender");
     gtk_widget_set_halign((*temp_node).chat.last_sender, GTK_ALIGN_START);
-  }
-  else
+  } else {
     (*temp_node).chat.last_sender = NULL;
+  }
 
-  (*temp_node).chat.last_message = gtk_label_new(last_message_res);
-  gtk_box_pack_start(GTK_BOX(bottom_box), (*temp_node).chat.last_message,
-                     TRUE, TRUE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.last_message),
-                              "chat-button-light");
+  (*temp_node).chat.last_message = gtk_label_new(last_message);
+  gtk_box_pack_start(GTK_BOX(bottom_box), (*temp_node).chat.last_message, TRUE,
+                     TRUE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*temp_node).chat.last_message),
+      "chat-button-light");
   gtk_widget_set_halign((*temp_node).chat.last_message, GTK_ALIGN_START);
 
   (*temp_node).chat.unread = gtk_label_new(unread);
-  gtk_box_pack_start(GTK_BOX(bottom_box), (*temp_node).chat.unread,
-                     FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.unread),
-                              "chat-button-unread");
+  gtk_box_pack_start(GTK_BOX(bottom_box), (*temp_node).chat.unread, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*temp_node).chat.unread),
+      "chat-button-unread");
   gtk_widget_set_halign((*temp_node).chat.unread, GTK_ALIGN_END);
 
   (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), (*temp_node).chat.box,
-                      (*temp_node).chat.id);
 
-  if (strcmp(unread, "") != 0)
-    gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).chat.button),
-                            "chat-button-unread-border");
+  // Convert chat_id to string and set it as the child name
+  char id_str[32];
+  snprintf(id_str, sizeof(id_str), "%d", chat_id);
+  gtk_stack_add_named(GTK_STACK((*main_page).chats_stack),
+                      (*temp_node).chat.box, id_str);
 
+  // Highlight unread chats
+  if (strlen(unread) > 0)
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).chat.button),
+        "chat-button-unread-border");
+
+  // Make all widgets visible
   gtk_widget_set_visible((*temp_node).chat.button, 1);
   gtk_widget_set_visible(image, 1);
   gtk_widget_set_visible(main_box, 1);
@@ -141,8 +155,56 @@ void new_chat_button(t_main_page_data *main_page, char *name, char chat_type) {
   gtk_widget_set_visible((*temp_node).chat.last_message, 1);
   gtk_widget_set_visible((*temp_node).chat.unread, 1);
   gtk_widget_set_visible((*temp_node).chat.box, 1);
+
   (*main_page).chats_count += 1;
-  show_chat((*temp_node).chat.button, main_page);
+}
+
+void remove_all_chat_buttons(t_main_page_data *main_page) {
+  t_chat_node *current = main_page->chats;
+  t_chat_node *next_node;
+
+  while (current != NULL) {
+    next_node = current->next;
+
+    // Destroy GTK widgets
+    if (current->chat.button) {
+      gtk_widget_destroy(current->chat.button);
+    }
+    if (current->chat.name) {
+      gtk_widget_destroy(current->chat.name);
+    }
+    if (current->chat.last_time) {
+      gtk_widget_destroy(current->chat.last_time);
+    }
+    if (current->chat.last_sender) {
+      gtk_widget_destroy(current->chat.last_sender);
+    }
+    if (current->chat.last_message) {
+      gtk_widget_destroy(current->chat.last_message);
+    }
+    if (current->chat.unread) {
+      gtk_widget_destroy(current->chat.unread);
+    }
+    if (current->chat.box) {
+      gtk_widget_destroy(current->chat.box);
+    }
+
+    // Free the current node
+    free(current);
+    current = next_node;
+  }
+
+  // Reset the chats linked list
+  main_page->chats = NULL;
+  main_page->chats_count = 0;
+
+  // Clear the GTK stack (if necessary)
+  GList *children =
+      gtk_container_get_children(GTK_CONTAINER(main_page->chats_stack));
+  for (GList *child = children; child != NULL; child = child->next) {
+    gtk_widget_destroy(GTK_WIDGET(child->data));
+  }
+  g_list_free(children);
 }
 
 void chat_creation(GtkWidget *create_chat_button, gpointer data) {
@@ -159,7 +221,7 @@ void chat_creation(GtkWidget *create_chat_button, gpointer data) {
   g_print("Sent: %s\n", json_str);
   free(json_str);
   // if (получилось) {
-  new_chat_button(main_page, username, 'c');
+  // new_chat_button(main_page, username, 'c');
   gtk_entry_set_text(GTK_ENTRY((*main_page).create_chat_data.username), "");
   gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message), "");
   // }
@@ -247,10 +309,9 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
     //(*main_page).menu_opened = -1;
     // gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
     //                               "chat");
-    new_chat_button(main_page, name, 'g');
+    // new_chat_button(main_page, name, 'g');
     gtk_entry_set_text(GTK_ENTRY((*main_page).create_group_data.name), "");
     gtk_entry_set_text(GTK_ENTRY((*main_page).create_group_data.username), "");
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message), "");
   }
 }
-

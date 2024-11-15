@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <dirent.h>
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
@@ -44,13 +45,14 @@ typedef enum { TEXT, VOICE } ContentType;
 typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
 
 typedef struct {
-  char message_id[64];
+  int message_id;
   char sender[64];
   time_t date;
   ContentType content_type;
   MessageStatus status;
   char content[1024];
   char voice_path[256];
+  int read; // New field to indicate read (1) or unread (0)
 } MessageCache;
 
 // Linked list node for MessageCache
@@ -97,7 +99,7 @@ typedef struct s_chat_data {
   GtkWidget *last_message;
   GtkWidget *unread;
   GtkWidget *box;
-  char id[64];
+  int id;
 } t_chat_data;
 
 typedef struct s_chat_node {
@@ -186,6 +188,12 @@ void handle_logged_in_choice(int sock, const char *username);
 
 // gui
 void load_css(const gchar *file);
+
+void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
+                               const char *name, char *chat_type,
+                               const char *last_message,
+                               const char *last_sender, const char *last_time,
+                               const char *unread);
 void create_registration_page(GtkWidget *pages, GtkWidget *registration,
                               t_form_data *data);
 void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data);
@@ -231,7 +239,7 @@ void on_retry_clicked(GtkButton *button, gpointer data);
 
 // input box gui
 void check_message_entry_height(GtkTextBuffer *message_buffer,
-								GtkWidget *message_entry);
+                                GtkWidget *message_entry);
 gboolean on_button_hover(GtkWidget *send_button, GdkEvent *event,
                          gpointer user_data);
 gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event,
@@ -243,14 +251,31 @@ void send_message_f(GtkWidget *widget, gpointer data);
 
 // cache
 MessageNode *load_encrypted_messages_from_cache(const char *chat_id);
-int save_encrypted_message_to_cache(const char *chat_id,
-                                    const MessageCache *message);
+int save_encrypted_messages_to_cache(const char *chat_id,
+                                     MessageNode *messages);
+void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data);
 MessageNode *append_message_node(MessageNode *head, MessageCache message);
 void print_messages(MessageNode *head);
 void free_message_list(MessageNode *head);
+void ensure_cache_directory();
 
 void stop_recording();
 void start_recording(const char *output_path);
 
 char *base64_encode(const unsigned char *data, size_t input_length);
 char *read_and_encode_file(const char *filepath);
+
+void get_last_message_info(MessageNode *messages, char *sender, char *content,
+                           time_t *date);
+void handle_chat_list_response(cJSON *response, const char *cache_dir);
+char *decrypt_json_from_file(const char *file_path);
+int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
+                                       char *name, char *chat_type,
+                                       char *last_message, char *last_sender,
+                                       char *last_time, char *unread);
+void create_chat_buttons_from_encrypted_cache(t_main_page_data *main_page,
+                                              const char *cache_dir);
+void save_single_chat_to_encrypted_cache(cJSON *chat, const char *cache_dir,
+                                         AppData *app_data);
+void delete_cache_directory();
+void remove_all_chat_buttons(t_main_page_data *main_page);

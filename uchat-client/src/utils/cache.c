@@ -1,3 +1,4 @@
+#include <cJSON.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <stdio.h>
@@ -8,6 +9,95 @@
 #include <uchat.h>
 
 // Ensure the cache directory exists
+
+char *decrypt_json_from_file(const char *file_path) {
+  unsigned char key[KEY_SIZE];
+  unsigned char iv[IV_SIZE];
+  char serial[128];
+  get_serial_number(serial, sizeof(serial));
+
+  if (derive_key_from_serial(serial, key) != 0) {
+    fprintf(stderr, "Failed to derive encryption key.\n");
+    return NULL;
+  }
+
+  FILE *file = fopen(file_path, "rb");
+  if (!file) {
+    perror("Failed to open encrypted JSON file");
+    return NULL;
+  }
+
+  fread(iv, 1, IV_SIZE, file); // Read IV from the file
+
+  fseek(file, 0, SEEK_END);
+  long file_size = ftell(file) - IV_SIZE;
+  fseek(file, IV_SIZE, SEEK_SET); // Start reading after IV
+  unsigned char *ciphertext = malloc(file_size);
+  fread(ciphertext, 1, file_size, file);
+  fclose(file);
+
+  unsigned char plaintext[8192]; // Ensure buffer is large enough
+  int plaintext_len =
+      decrypt_session(ciphertext, file_size, key, iv, plaintext);
+  free(ciphertext);
+
+  if (plaintext_len < 0) {
+    fprintf(stderr, "Decryption failed for file: %s\n", file_path);
+    return NULL;
+  }
+  plaintext[plaintext_len] = '\0'; // Null-terminate the plaintext
+  return strdup((char *)plaintext);
+}
+int remove_directory(const char *path) {
+  struct dirent *entry;
+  DIR *dir = opendir(path);
+
+  if (!dir) {
+    perror("Failed to open directory");
+    return -1;
+  }
+
+  while ((entry = readdir(dir)) != NULL) {
+    // Skip "." and ".."
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+      continue;
+    }
+
+    char full_path[1024];
+    snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+
+    struct stat path_stat;
+    if (stat(full_path, &path_stat) == 0) {
+      if (S_ISDIR(path_stat.st_mode)) {
+        // Recursively remove subdirectory
+        remove_directory(full_path);
+      } else {
+        // Remove file
+        if (remove(full_path) != 0) {
+          perror("Failed to remove file");
+        }
+      }
+    }
+  }
+
+  closedir(dir);
+
+  // Remove the directory itself
+  if (rmdir(path) != 0) {
+    perror("Failed to remove directory");
+    return -1;
+  }
+
+  return 0;
+}
+
+void delete_cache_directory() {
+  if (remove_directory(CACHE_DIR) == 0) {
+    printf("Cache directory and its contents removed successfully.\n");
+  } else {
+    printf("Failed to remove cache directory.\n");
+  }
+}
 void ensure_cache_directory() {
   struct stat st = {0};
   if (stat(CACHE_DIR, &st) == -1) {
@@ -15,93 +105,173 @@ void ensure_cache_directory() {
   }
 }
 
+int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
+                                       char *name, char *chat_type,
+                                       char *last_message, char *last_sender,
+                                       char *last_time, char *unread) {
+  // Decrypt JSON data from the file
+  char *decrypted_json = decrypt_json_from_file(file_path);
+  if (!decrypted_json) {
+    fprintf(stderr, "Failed to decrypt JSON from file: %s\n", file_path);
+    return -1;
+  }
+
+  // Parse decrypted JSON
+  cJSON *json = cJSON_Parse(decrypted_json);
+  free(decrypted_json);
+  if (!json) {
+    fprintf(stderr, "Failed to parse JSON file: %s\n", file_path);
+    return -1;
+  }
+
+  // Extract chat ID, name, and type
+  cJSON *id_json = cJSON_GetObjectItem(json, "chat_id");
+  cJSON *name_json = cJSON_GetObjectItem(json, "name");
+  cJSON *type_json = cJSON_GetObjectItem(json, "type");
+  cJSON *messages = cJSON_GetObjectItem(json, "messages");
+
+  if (!cJSON_IsNumber(id_json) || !cJSON_IsString(name_json) ||
+      !cJSON_IsString(type_json)) {
+    fprintf(stderr, "Invalid JSON format in file: %s\n", file_path);
+    cJSON_Delete(json);
+    return -1;
+  }
+
+  *chat_id = id_json->valueint;
+  strcpy(name, name_json->valuestring);
+  strcpy(chat_type, type_json->valuestring);
+
+  // Check if there are any messages
+  if (cJSON_IsArray(messages) && cJSON_GetArraySize(messages) > 0) {
+    // Get the last message details
+    cJSON *last_message_json = cJSON_GetArrayItem(messages, 0);
+    cJSON *message_content = cJSON_GetObjectItem(last_message_json, "content");
+    cJSON *message_sender = cJSON_GetObjectItem(last_message_json, "sender");
+    cJSON *message_timestamp =
+        cJSON_GetObjectItem(last_message_json, "timestamp");
+    cJSON *message_unread = cJSON_GetObjectItem(last_message_json, "read");
+
+    if (cJSON_IsString(message_content) && cJSON_IsString(message_sender) &&
+        cJSON_IsString(message_timestamp)) {
+      strncpy(last_message, message_content->valuestring, 1023);
+      strncpy(last_sender, message_sender->valuestring, 63);
+      struct tm tm_utc = {0};
+      if (strptime(message_timestamp->valuestring, "%Y-%m-%d %H:%M:%S",
+                   &tm_utc)) {
+        // Convert to time_t
+        time_t time_utc = timegm(&tm_utc); // timegm for UTC to time_t
+        // Convert to local time
+        struct tm *tm_local = localtime(&time_utc);
+        if (tm_local) {
+          // Format the local time into a string
+          strftime(last_time, 31, "%Y-%m-%d %H:%M:%S", tm_local);
+        } else {
+          strncpy(last_time, "Invalid local time", 31);
+          last_time[30] = '\0'; // Ensure null-termination
+        }
+      } else {
+        strncpy(last_time, "Invalid timestamp", 31);
+        last_time[30] = '\0'; // Ensure null-termination
+      }
+    }
+
+    // Set unread status
+    if (cJSON_IsNumber(message_unread) && message_unread->valueint == 0) {
+      strcpy(unread, "Unread");
+    } else {
+      strcpy(unread, "");
+    }
+  } else {
+    // No messages available
+    strcpy(last_message, "No messages yet");
+    strcpy(last_sender, "");
+    strcpy(last_time, "");
+    strcpy(unread, "");
+  }
+
+  // Clean up and return
+  cJSON_Delete(json);
+  return 0;
+}
+
 // Get the full path for a message file
 void get_message_file_path(char *path, size_t size, const char *chat_id) {
   snprintf(path, size, CACHE_DIR "/" MESSAGE_FILE_FORMAT, chat_id);
 }
-// Get the full path for a voice message file
-void get_voice_file_path(char *path, size_t size, const char *chat_id) {
-  snprintf(path, size, CACHE_DIR "/" VOICE_FILE_FORMAT, chat_id);
-}
 
-// Append a MessageCache to the linked list
-MessageNode *append_message_node(MessageNode *head, MessageCache message) {
-  MessageNode *new_node = (MessageNode *)malloc(sizeof(MessageNode));
-  if (!new_node) {
-    perror("Failed to allocate memory for new node");
-    return head;
-  }
-  new_node->message = message;
-  new_node->next = NULL;
-
-  if (!head) {
-    return new_node;
-  }
-
-  MessageNode *current = head;
-  while (current->next) {
-    current = current->next;
-  }
-  current->next = new_node;
-  return head;
-}
-
-// Save an encrypted message to the cache file
-int save_encrypted_message_to_cache(const char *chat_id,
-                                    const MessageCache *message) {
+// Encrypt and save messages as JSON
+int save_encrypted_messages_to_cache(const char *chat_id,
+                                     MessageNode *messages) {
   ensure_cache_directory();
   unsigned char key[KEY_SIZE];
   unsigned char iv[IV_SIZE];
 
   char serial[128];
-  get_serial_number(
-      serial, sizeof(serial)); // Get the unique serial number for the device
+  get_serial_number(serial, sizeof(serial));
 
   if (derive_key_from_serial(serial, key) != 0) {
     fprintf(stderr, "Failed to derive encryption key.\n");
     return -1;
   }
 
-  char message_file_path[256];
-  get_message_file_path(message_file_path, sizeof(message_file_path), chat_id);
-
-  unsigned char plaintext[2048];
-  snprintf((char *)plaintext, sizeof(plaintext),
-           "MessageID: %s\nSender: %s\nDate: %ld\nStatus: %d\nContentType: "
-           "%d\nContent: %s\nVoicePath: %s\n",
-           message->message_id, message->sender, message->date, message->status,
-           message->content_type, message->content, message->voice_path);
-
-  unsigned char ciphertext[2048];
   if (RAND_bytes(iv, IV_SIZE) != 1) {
     fprintf(stderr, "Failed to generate IV.\n");
     return -1;
   }
 
-  int ciphertext_len = encrypt_session(plaintext, strlen((char *)plaintext),
-                                       key, ciphertext, iv);
+  char message_file_path[256];
+  get_message_file_path(message_file_path, sizeof(message_file_path), chat_id);
+
+  // Convert messages to JSON
+  cJSON *json_array = cJSON_CreateArray();
+  MessageNode *current = messages;
+  while (current) {
+    cJSON *json_message = cJSON_CreateObject();
+    cJSON_AddNumberToObject(json_message, "message_id",
+                            current->message.message_id);
+    cJSON_AddStringToObject(json_message, "sender", current->message.sender);
+    cJSON_AddNumberToObject(json_message, "date", current->message.date);
+    cJSON_AddNumberToObject(json_message, "status", current->message.status);
+    cJSON_AddNumberToObject(json_message, "content_type",
+                            current->message.content_type);
+    cJSON_AddStringToObject(json_message, "content", current->message.content);
+    cJSON_AddStringToObject(json_message, "voice_path",
+                            current->message.voice_path);
+    cJSON_AddNumberToObject(json_message, "read", current->message.read);
+    cJSON_AddItemToArray(json_array, json_message);
+
+    current = current->next;
+  }
+
+  char *json_data = cJSON_Print(json_array);
+  cJSON_Delete(json_array);
+
+  // Encrypt JSON data
+  unsigned char ciphertext[4096];
+  int ciphertext_len = encrypt_session((unsigned char *)json_data,
+                                       strlen(json_data), key, ciphertext, iv);
+  free(json_data);
+
   if (ciphertext_len < 0) {
     fprintf(stderr, "Encryption failed.\n");
     return -1;
   }
 
-  FILE *file =
-      fopen(message_file_path, "ab"); // Append to file for multiple messages
+  // Save IV and ciphertext to file
+  FILE *file = fopen(message_file_path, "wb");
   if (!file) {
     perror("Failed to open message cache file");
     return -1;
   }
 
-  // Write the IV, length of the ciphertext, and ciphertext
-  fwrite(iv, 1, IV_SIZE, file);                  // Write IV for decryption
-  fwrite(&ciphertext_len, sizeof(int), 1, file); // Write ciphertext length
-  fwrite(ciphertext, 1, ciphertext_len, file);   // Write encrypted message
+  fwrite(iv, 1, IV_SIZE, file);
+  fwrite(ciphertext, 1, ciphertext_len, file);
   fclose(file);
 
   return 0;
 }
 
-// Load all encrypted messages from cache into a linked list
+// Load and decrypt messages from JSON file
 MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
   unsigned char key[KEY_SIZE];
   unsigned char iv[IV_SIZE];
@@ -122,71 +292,107 @@ MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
     return NULL;
   }
 
+  // Read IV
+  if (fread(iv, 1, IV_SIZE, file) != IV_SIZE) {
+    fprintf(stderr, "Failed to read IV.\n");
+    fclose(file);
+    return NULL;
+  }
+
+  // Read ciphertext
+  unsigned char ciphertext[4096];
+  int ciphertext_len = fread(ciphertext, 1, sizeof(ciphertext), file);
+  fclose(file);
+
+  if (ciphertext_len <= 0) {
+    fprintf(stderr, "Failed to read ciphertext.\n");
+    return NULL;
+  }
+
+  // Decrypt JSON data
+  unsigned char plaintext[4096];
+  int plaintext_len =
+      decrypt_session(ciphertext, ciphertext_len, key, iv, plaintext);
+  if (plaintext_len < 0) {
+    fprintf(stderr, "Decryption failed.\n");
+    return NULL;
+  }
+  plaintext[plaintext_len] = '\0';
+
+  // Parse JSON and populate linked list
+  cJSON *json_array = cJSON_Parse((char *)plaintext);
+  if (!cJSON_IsArray(json_array)) {
+    fprintf(stderr, "Failed to parse JSON array.\n");
+    cJSON_Delete(json_array);
+    return NULL;
+  }
+
   MessageNode *head = NULL;
-
-  while (1) {
-    // Read the IV
-    if (fread(iv, 1, IV_SIZE, file) != IV_SIZE) {
-      if (feof(file)) {
-        printf("End of file reached.\n");
-      } else {
-        fprintf(stderr, "Failed to read IV.\n");
-      }
-      break;
-    }
-
-    // Read the length of the encrypted message
-    int ciphertext_len;
-    if (fread(&ciphertext_len, sizeof(int), 1, file) != 1) {
-      fprintf(stderr, "Failed to read message length.\n");
-      break;
-    }
-    unsigned char ciphertext[2048];
-    // Check if message length is reasonable
-    if (ciphertext_len <= 0 || ciphertext_len > sizeof(ciphertext)) {
-      fprintf(stderr, "Invalid message length: %d\n", ciphertext_len);
-      break;
-    }
-
-    // Read the encrypted message content
-
-    if (fread(ciphertext, 1, ciphertext_len, file) != ciphertext_len) {
-      fprintf(stderr, "Failed to read encrypted message.\n");
-      break;
-    }
-
-    // Decrypt the message
-    unsigned char plaintext[2048];
-    int plaintext_len =
-        decrypt_session(ciphertext, ciphertext_len, key, iv, plaintext);
-    if (plaintext_len < 0) {
-      fprintf(stderr, "Decryption failed.\n");
-      break;
-    }
-    plaintext[plaintext_len] = '\0';
-
-    // Parse decrypted data into a MessageCache struct
+  cJSON *json_message;
+  cJSON_ArrayForEach(json_message, json_array) {
     MessageCache message;
-    int parsed_count =
-        sscanf((char *)plaintext,
-               "MessageID: %63s\nSender: %63s\nDate: %ld\nStatus: "
-               "%d\nContentType: %d\nContent: %1023[^\n]\nVoicePath: %255[^\n]",
-               message.message_id, message.sender, &message.date,
-               (int *)&message.status, (int *)&message.content_type,
-               message.content, message.voice_path);
+    message.message_id =
+        cJSON_GetObjectItem(json_message, "message_id")->valueint;
+    strcpy(message.sender,
+           cJSON_GetObjectItem(json_message, "sender")->valuestring);
+    message.date =
+        (time_t)cJSON_GetObjectItem(json_message, "date")->valuedouble;
+    message.status =
+        (MessageStatus)cJSON_GetObjectItem(json_message, "status")->valueint;
+    message.content_type =
+        (ContentType)cJSON_GetObjectItem(json_message, "content_type")
+            ->valueint;
+    strcpy(message.content,
+           cJSON_GetObjectItem(json_message, "content")->valuestring);
+    strcpy(message.voice_path,
+           cJSON_GetObjectItem(json_message, "voice_path")->valuestring);
+    message.read = cJSON_GetObjectItem(json_message, "read")->valueint;
 
-    // Ensure parsing was successful (expecting 7 fields)
-    // if (parsed_count != 7) {
-    //   fprintf(stderr, "Failed to parse decrypted message.\n");
-    //   break;
-    // }
-
-    // Append the parsed message to the linked list
     head = append_message_node(head, message);
   }
 
-  fclose(file);
+  cJSON_Delete(json_array);
   return head;
+}
+
+MessageNode *append_message_node(MessageNode *head, MessageCache message) {
+  MessageNode *new_node = (MessageNode *)malloc(sizeof(MessageNode));
+  if (!new_node) {
+    perror("Failed to allocate memory for new node");
+    return head;
+  }
+  new_node->message = message;
+  new_node->next = NULL;
+
+  if (!head) {
+    return new_node;
+  }
+
+  MessageNode *current = head;
+  while (current->next) {
+    current = current->next;
+  }
+  current->next = new_node;
+  return head;
+}
+// Example function to get the last message's information
+void get_last_message_info(MessageNode *messages, char *sender, char *content,
+                           time_t *date) {
+  if (!messages) {
+    strcpy(sender, "");
+    strcpy(content, "");
+    *date = 0;
+    return;
+  }
+
+  MessageNode *current = messages;
+  while (current->next) {
+    current = current->next;
+  }
+
+  strcpy(sender, current->message.sender);
+  strcpy(content, current->message.content);
+  *date = current->message.date;
 }
 
 // Free the linked list
@@ -203,7 +409,7 @@ void print_messages(MessageNode *head) {
   MessageNode *current = head;
   while (current) {
     MessageCache *msg = &current->message;
-    printf("MessageID: %s, Sender: %s, Date: %s, Status: %d, ContentType: %d, "
+    printf("MessageID: %d, Sender: %s, Date: %s, Status: %d, ContentType: %d, "
            "Content: %s\n",
            msg->message_id, msg->sender, ctime(&msg->date), msg->status,
            msg->content_type, msg->content);
@@ -211,30 +417,50 @@ void print_messages(MessageNode *head) {
   }
 }
 
-// // Example usage
-// int main() {
-//   const char *chat_id = "12345";
+void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
+  unsigned char key[KEY_SIZE];
+  unsigned char iv[IV_SIZE];
+  char serial[128];
+  get_serial_number(serial, sizeof(serial));
 
-//   MessageCache message = {.message_id = "msg_001",
-//                           .sender = "user_123",
-//                           .date = time(NULL),
-//                           .content_type = TEXT,
-//                           .status = NEW,
-//                           .content = "Hello, this is a text message.",
-//                           .voice_path = ""};
+  // Derive encryption key from the device's serial number
+  if (derive_key_from_serial(serial, key) != 0) {
+    fprintf(stderr, "Failed to derive encryption key.\n");
+    return;
+  }
 
-//   if (save_encrypted_message_to_cache(chat_id, &message) == 0) {
-//     printf("Message cached securely.\n");
-//   }
+  // Generate an IV for encryption
+  if (RAND_bytes(iv, IV_SIZE) != 1) {
+    fprintf(stderr, "Failed to generate IV.\n");
+    return;
+  }
 
-//   MessageNode *messages = load_encrypted_messages_from_cache(chat_id);
-//   if (messages) {
-//     printf("Loaded messages:\n");
-//     print_messages(messages);
-//     free_message_list(messages);
-//   } else {
-//     printf("No messages found for chat ID %s.\n", chat_id);
-//   }
+  // Convert chat_data to JSON string
+  char *json_data = cJSON_Print(chat_data);
+  if (!json_data) {
+    fprintf(stderr, "Failed to convert chat data to JSON.\n");
+    return;
+  }
 
-//   return 0;
-// }
+  // Encrypt JSON data
+  unsigned char ciphertext[4096];
+  int ciphertext_len = encrypt_session((unsigned char *)json_data,
+                                       strlen(json_data), key, ciphertext, iv);
+  free(json_data);
+
+  if (ciphertext_len < 0) {
+    fprintf(stderr, "Encryption failed.\n");
+    return;
+  }
+
+  // Save IV and encrypted data to file
+  FILE *file = fopen(file_path, "wb");
+  if (!file) {
+    perror("Failed to open chat file for writing");
+    return;
+  }
+
+  fwrite(iv, 1, IV_SIZE, file);
+  fwrite(ciphertext, 1, ciphertext_len, file);
+  fclose(file);
+}

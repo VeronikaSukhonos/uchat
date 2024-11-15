@@ -37,3 +37,4 @@ int store_notification(sqlite3 *db, int user_id, int message_id);
 int create_private_group_chat(sqlite3 *db, const char *chat_name);
 cJSON *get_chat_members(sqlite3 *db, int chat_id);
 int delete_all_expired_sessions(sqlite3 *db);
+cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id);

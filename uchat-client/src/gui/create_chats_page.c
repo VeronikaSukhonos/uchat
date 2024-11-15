@@ -98,8 +98,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // stack
   (*main_page).menu_stack = gtk_stack_new();
-  gtk_box_pack_start(GTK_BOX(sidebar), (*main_page).menu_stack, TRUE, TRUE,
-                     0);
+  gtk_box_pack_start(GTK_BOX(sidebar), (*main_page).menu_stack, TRUE, TRUE, 0);
   (*main_page).menu_opened = 1;
   (*main_page).menu_button_selected = NULL;
   (*main_page).chats = NULL;
@@ -187,14 +186,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                               "message-entry-box");
 
   GtkWidget *message_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll,
-  					 TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll, TRUE, TRUE, 0);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(message_scroll),
-  								 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
 
   GtkWidget *message_entry = gtk_text_view_new();
   GtkTextBuffer *message_buffer =
-    gtk_text_view_get_buffer(GTK_TEXT_VIEW(message_entry));
+      gtk_text_view_get_buffer(GTK_TEXT_VIEW(message_entry));
   gtk_container_add(GTK_CONTAINER(message_scroll), message_entry);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(message_entry), GTK_WRAP_WORD_CHAR);
   gtk_widget_set_size_request(message_scroll, -1, 30);
@@ -206,7 +204,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(message_entry, "focus-out-event",
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
   g_signal_connect(message_buffer, "changed",
-  				   G_CALLBACK(check_message_entry_height), message_entry);
+                   G_CALLBACK(check_message_entry_height), message_entry);
 
   MicData *mic_data = g_new(MicData, 1);
   mic_data->is_active = FALSE;
@@ -237,12 +235,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // create chat
   GtkWidget *create_chat_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_chat_scroll,
-                      "create_chat");
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      create_chat_scroll, "create_chat");
   create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(create_chat_scroll), create_chat);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_chat),
-							   "main_page_form");
+                              "main_page_form");
 
   (*main_page).create_chat_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(create_chat), (*main_page).create_chat_data.form,
@@ -295,14 +293,14 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // create group
   (*main_page).group_users_count = 0;
-  
+
   GtkWidget *create_group_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), create_group_scroll,
-                      "create_group");
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      create_group_scroll, "create_group");
   create_group = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(create_group_scroll), create_group);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_group),
-							   "main_page_form");
+                              "main_page_form");
 
   (*main_page).create_group_data.form =
       gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -384,12 +382,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // profile
   GtkWidget *user_info_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), user_info_scroll,
-                      "user_info");
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      user_info_scroll, "user_info");
   user_info = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(user_info_scroll), user_info);
   gtk_style_context_add_class(gtk_widget_get_style_context(user_info),
-							   "main_page_form");
+                              "main_page_form");
   (*main_page).profile_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(user_info), (*main_page).profile_data.form, TRUE,
                      FALSE, 0);
@@ -425,16 +423,18 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).profile_data.name_surname),
       "profile-name");
-  gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
-                     (*main_page).profile_data.name_surname, FALSE, FALSE, 0);
+  //   gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
+  //                      (*main_page).profile_data.name_surname, FALSE, FALSE,
+  //                      0);
 
   // Student Group
   (*main_page).profile_data.student_group = gtk_label_new("");
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).profile_data.student_group),
       "profile-name");
-  gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
-                     (*main_page).profile_data.student_group, FALSE, FALSE, 0);
+  //   gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form),
+  //                      (*main_page).profile_data.student_group, FALSE, FALSE,
+  //                      0);
   // description
   (*main_page).profile_data.description = gtk_label_new("");
   gtk_style_context_add_class(
@@ -454,12 +454,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // edit profile
   GtkWidget *edit_profile_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), edit_profile_scroll,
-                      "edit_profile");
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      edit_profile_scroll, "edit_profile");
   edit_profile = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(edit_profile_scroll), edit_profile);
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_profile),
-							   "main_page_form");
+                              "main_page_form");
   (*main_page).edit_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(edit_profile), (*main_page).edit_data.form, TRUE,
                      FALSE, 0);
@@ -506,13 +506,18 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // Student or Teacher
   (*main_page).edit_data.role_combo = gtk_combo_box_text_new();
-  gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).edit_data.role_combo), "form-role");
-  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Student");
-  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Teacher");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).edit_data.role_combo),
+      "form-role");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Student");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Teacher");
 
   gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
 
-  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), (*main_page).edit_data.role_combo, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
+                     (*main_page).edit_data.role_combo, FALSE, FALSE, 0);
   // message
   (*main_page).edit_data.message = gtk_label_new("");
   gtk_style_context_add_class(

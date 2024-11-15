@@ -99,7 +99,6 @@ void handle_request(Client *client, char *buffer, Client clients[],
       fprintf(stderr, "Failed to open database.\n");
     }
     if (handle_create_chat(db, json, client) == 0) {
-      send_status_responce_to_client(client, "CREATE_CHAT", "SUCCESS");
     } else {
       send_status_responce_to_client(client, "CREATE_CHAT", "FAILURE");
     }
@@ -110,7 +109,6 @@ void handle_request(Client *client, char *buffer, Client clients[],
       fprintf(stderr, "Failed to open database.\n");
     }
     if (handle_create_group_chat(db, json, client) == 0) {
-      send_status_responce_to_client(client, "CREATE_CHAT", "SUCCESS");
     } else {
       send_status_responce_to_client(client, "CREATE_CHAT", "FAILURE");
     }

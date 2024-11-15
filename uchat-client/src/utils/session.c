@@ -29,6 +29,13 @@ int check_session_on_server(int sock, const char *username,
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("Session valid.\n");
+      cJSON *chat_list_request = cJSON_CreateObject();
+      cJSON_AddStringToObject(chat_list_request, "action", "GET_CHAT_LIST");
+      char *chat_list_request_str = cJSON_Print(chat_list_request);
+      send(sock, chat_list_request_str, strlen(chat_list_request_str), 0);
+      g_print("Sent: %s\n", chat_list_request_str);
+      free(chat_list_request_str);
+      cJSON_Delete(chat_list_request);
       return 1;
     }
   } else if (valread == 0) {

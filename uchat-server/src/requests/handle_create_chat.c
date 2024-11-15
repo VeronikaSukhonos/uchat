@@ -56,5 +56,34 @@ int handle_create_chat(sqlite3 *db, cJSON *json, Client *client) {
   printf("Chat created successfully between %s and %s with chat_id %d.\n",
          client->username, other_username, chat_id);
 
+  // Build JSON response for the created chat
+  cJSON *response = cJSON_CreateObject();
+  cJSON_AddStringToObject(response, "action", "CREATE_CHAT");
+  cJSON_AddStringToObject(response, "status", "SUCCESS");
+
+  cJSON *chat_details = cJSON_CreateObject();
+  cJSON_AddNumberToObject(chat_details, "chat_id", chat_id);
+  cJSON_AddStringToObject(chat_details, "name", chat_name);
+  cJSON_AddStringToObject(chat_details, "type", "private");
+
+  // Include members in the response
+  cJSON *members_array = cJSON_CreateArray();
+  cJSON_AddItemToArray(members_array, cJSON_CreateString(client->username));
+  cJSON_AddItemToArray(members_array, cJSON_CreateString(other_username));
+  cJSON_AddItemToObject(chat_details, "members", members_array);
+
+  // Include messages (empty for new private chat)
+  cJSON_AddArrayToObject(chat_details, "messages");
+
+  cJSON_AddItemToObject(response, "chat", chat_details);
+
+  // Send the chat data back to the client
+  char *response_str = cJSON_Print(response);
+  printf("Sent: %s\n", response_str);
+  send(client->socket, response_str, strlen(response_str), 0);
+
+  free(response_str);
+  cJSON_Delete(response);
+
   return 0;
 }

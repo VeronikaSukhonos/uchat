@@ -29,8 +29,7 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
   }
 
   // Create the group chat
-  int chat_id = create_private_group_chat(
-      db, chat_name); // Create chat with `create_private_chat` helper function
+  int chat_id = create_private_group_chat(db, chat_name); // Create chat
   if (chat_id == -1) {
     return 1; // Failed to create chat
   }
@@ -66,5 +65,40 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
 
   printf("Group chat '%s' created successfully with chat_id %d.\n", chat_name,
          chat_id);
+
+  // Build JSON response for the created group chat
+  cJSON *response = cJSON_CreateObject();
+  cJSON_AddStringToObject(response, "action", "CREATE_CHAT");
+  cJSON_AddStringToObject(response, "status", "SUCCESS");
+
+  cJSON *chat_details = cJSON_CreateObject();
+  cJSON_AddNumberToObject(chat_details, "chat_id", chat_id);
+  cJSON_AddStringToObject(chat_details, "name", chat_name);
+  cJSON_AddStringToObject(chat_details, "type", "private_group");
+
+  // Include members in the response
+  cJSON *members_array = cJSON_CreateArray();
+  cJSON_AddItemToArray(members_array, cJSON_CreateString(client->username));
+  cJSON_ArrayForEach(username_json, usernames_json) {
+    if (cJSON_IsString(username_json) && username_json->valuestring != NULL) {
+      cJSON_AddItemToArray(members_array,
+                           cJSON_CreateString(username_json->valuestring));
+    }
+  }
+  cJSON_AddItemToObject(chat_details, "members", members_array);
+
+  // Include messages (empty for new group chat)
+  cJSON_AddArrayToObject(chat_details, "messages");
+
+  cJSON_AddItemToObject(response, "chat", chat_details);
+
+  // Send the chat data back to the client
+  char *response_str = cJSON_Print(response);
+  printf("Sent: %s\n", response_str);
+  send(client->socket, response_str, strlen(response_str), 0);
+
+  free(response_str);
+  cJSON_Delete(response);
+
   return 0;
 }
