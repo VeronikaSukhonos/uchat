@@ -67,15 +67,19 @@ int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
         fprintf(stderr, "Failed to store notification for user ID %d\n",
                 recipient_id);
       }
-
+    if (strcmp(username, client->username) == 0) {
+      continue;
+    }
     // Send to online clients only and update is_delivered status
     for (int j = 0; j < max_clients; j++) {
       if (clients[j].socket > 0 &&
-          strcmp(clients[j].username, client->username) != 0) {
+          strcmp(clients[j].username, client->username) != 0 &&
+          strcmp(clients[j].username, username) == 0) {
         if (send(clients[j].socket, response_str, strlen(response_str), 0) ==
             -1) {
           perror("Failed to send message to client");
         } else {
+          printf("sended to %s\n", username);
           // Update the notification as delivered
           const char *update_sql = "UPDATE notifications SET is_delivered = 1 "
                                    "WHERE user_id = ? AND message_id = ?;";

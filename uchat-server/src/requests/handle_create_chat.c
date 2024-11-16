@@ -1,9 +1,9 @@
 #include <uchat_server.h>
 
 // Function to handle creating a private chat between two users
-int handle_create_chat(sqlite3 *db, cJSON *json, Client *client) {
-  int user_id =
-      get_user_id(db, client->username); // Assuming client struct has username
+int handle_create_chat(sqlite3 *db, cJSON *json, Client *client,
+                       Client clients[], int max_clients) {
+  int user_id = get_user_id(db, client->username);
   if (user_id == -1) {
     fprintf(stderr, "User not found: %s\n", client->username);
     return 1;
@@ -33,10 +33,10 @@ int handle_create_chat(sqlite3 *db, cJSON *json, Client *client) {
   if (check_existing_chat(db, user_id, other_user_id) > 0) {
     printf("Chat already exists between users %d and %d.\n", user_id,
            other_user_id);
-    return 0; // Chat already exists
+    return 0;
   }
 
-  // Use a unique name for the private chat, like "user1-user2"
+  // Create a unique name for the private chat
   char chat_name[100];
   snprintf(chat_name, sizeof(chat_name), "%s-%s", client->username,
            other_username);
@@ -44,19 +44,19 @@ int handle_create_chat(sqlite3 *db, cJSON *json, Client *client) {
   // Create a new private chat and get its ID
   int chat_id = create_private_chat(db, chat_name);
   if (chat_id == -1) {
-    return 1; // Failed to create chat
+    return 1;
   }
 
   // Add both users as members of the chat
   if (add_chat_member(db, chat_id, user_id) != 0 ||
       add_chat_member(db, chat_id, other_user_id) != 0) {
-    return 1; // Failed to add members
+    return 1;
   }
 
   printf("Chat created successfully between %s and %s with chat_id %d.\n",
          client->username, other_username, chat_id);
 
-  // Build JSON response for the created chat
+  // Build JSON response
   cJSON *response = cJSON_CreateObject();
   cJSON_AddStringToObject(response, "action", "CREATE_CHAT");
   cJSON_AddStringToObject(response, "status", "SUCCESS");
@@ -66,24 +66,27 @@ int handle_create_chat(sqlite3 *db, cJSON *json, Client *client) {
   cJSON_AddStringToObject(chat_details, "name", chat_name);
   cJSON_AddStringToObject(chat_details, "type", "private");
 
-  // Include members in the response
+  // Include members
   cJSON *members_array = cJSON_CreateArray();
   cJSON_AddItemToArray(members_array, cJSON_CreateString(client->username));
   cJSON_AddItemToArray(members_array, cJSON_CreateString(other_username));
   cJSON_AddItemToObject(chat_details, "members", members_array);
 
-  // Include messages (empty for new private chat)
+  // Include messages
   cJSON_AddArrayToObject(chat_details, "messages");
-
   cJSON_AddItemToObject(response, "chat", chat_details);
 
-  // Send the chat data back to the client
+  // Broadcast response to both users
   char *response_str = cJSON_Print(response);
-  printf("Sent: %s\n", response_str);
-  send(client->socket, response_str, strlen(response_str), 0);
+  for (int i = 0; i < max_clients; i++) {
+    if (clients[i].socket > 0 &&
+        (strcmp(clients[i].username, client->username) == 0 ||
+         strcmp(clients[i].username, other_username) == 0)) {
+      send(clients[i].socket, response_str, strlen(response_str), 0);
+    }
+  }
 
   free(response_str);
   cJSON_Delete(response);
-
   return 0;
 }

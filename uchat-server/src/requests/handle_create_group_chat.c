@@ -1,14 +1,14 @@
 #include <uchat_server.h>
 
 // Function to handle creating a group chat with multiple users
-int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
+int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client,
+                             Client clients[], int max_clients) {
   int user_id = get_user_id(db, client->username);
   if (user_id == -1) {
     fprintf(stderr, "User not found: %s\n", client->username);
     return 1;
   }
 
-  // Check if user is logged in
   if (logged_in(db, user_id) != 1) {
     return 1;
   }
@@ -29,9 +29,9 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
   }
 
   // Create the group chat
-  int chat_id = create_private_group_chat(db, chat_name); // Create chat
+  int chat_id = create_private_group_chat(db, chat_name);
   if (chat_id == -1) {
-    return 1; // Failed to create chat
+    return 1;
   }
 
   // Add the creator as a member of the chat
@@ -41,32 +41,30 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
     return 1;
   }
 
-  // Loop through the JSON array and add each user to the group chat
+  // Add members to the group chat
   cJSON *username_json;
+  cJSON *members_array = cJSON_CreateArray();
+  cJSON_AddItemToArray(members_array, cJSON_CreateString(client->username));
+
   cJSON_ArrayForEach(username_json, usernames_json) {
-    if (!cJSON_IsString(username_json) || username_json->valuestring == NULL) {
-      fprintf(stderr, "Invalid username in array.\n");
-      continue; // Skip invalid entries
-    }
-    const char *username = username_json->valuestring;
+    if (cJSON_IsString(username_json) && username_json->valuestring != NULL) {
+      const char *username = username_json->valuestring;
+      int member_user_id = get_user_id(db, username);
 
-    int member_user_id = get_user_id(db, username);
-    if (member_user_id == -1) {
-      fprintf(stderr, "User not found: %s\n", username);
-      continue; // Skip users not found
-    }
-
-    // Add each valid user as a member to the chat
-    if (add_chat_member(db, chat_id, member_user_id) != 0) {
-      fprintf(stderr, "Failed to add user %s to chat %d.\n", username, chat_id);
-      continue; // Skip on failure to add
+      if (member_user_id != -1 &&
+          add_chat_member(db, chat_id, member_user_id) == 0) {
+        cJSON_AddItemToArray(members_array, cJSON_CreateString(username));
+      } else {
+        fprintf(stderr, "Failed to add user %s to chat %d.\n", username,
+                chat_id);
+      }
     }
   }
 
   printf("Group chat '%s' created successfully with chat_id %d.\n", chat_name,
          chat_id);
 
-  // Build JSON response for the created group chat
+  // Build JSON response
   cJSON *response = cJSON_CreateObject();
   cJSON_AddStringToObject(response, "action", "CREATE_CHAT");
   cJSON_AddStringToObject(response, "status", "SUCCESS");
@@ -75,30 +73,26 @@ int handle_create_group_chat(sqlite3 *db, cJSON *json, Client *client) {
   cJSON_AddNumberToObject(chat_details, "chat_id", chat_id);
   cJSON_AddStringToObject(chat_details, "name", chat_name);
   cJSON_AddStringToObject(chat_details, "type", "private_group");
-
-  // Include members in the response
-  cJSON *members_array = cJSON_CreateArray();
-  cJSON_AddItemToArray(members_array, cJSON_CreateString(client->username));
-  cJSON_ArrayForEach(username_json, usernames_json) {
-    if (cJSON_IsString(username_json) && username_json->valuestring != NULL) {
-      cJSON_AddItemToArray(members_array,
-                           cJSON_CreateString(username_json->valuestring));
-    }
-  }
   cJSON_AddItemToObject(chat_details, "members", members_array);
-
-  // Include messages (empty for new group chat)
   cJSON_AddArrayToObject(chat_details, "messages");
 
   cJSON_AddItemToObject(response, "chat", chat_details);
 
-  // Send the chat data back to the client
+  // Broadcast response to all group members
   char *response_str = cJSON_Print(response);
-  printf("Sent: %s\n", response_str);
-  send(client->socket, response_str, strlen(response_str), 0);
+  cJSON_ArrayForEach(username_json, members_array) {
+    const char *username = cJSON_GetStringValue(username_json);
+    if (username) {
+      for (int i = 0; i < max_clients; i++) {
+        if (clients[i].socket > 0 &&
+            strcmp(clients[i].username, username) == 0) {
+          send(clients[i].socket, response_str, strlen(response_str), 0);
+        }
+      }
+    }
+  }
 
   free(response_str);
   cJSON_Delete(response);
-
   return 0;
 }
