@@ -2,8 +2,7 @@
 
 void create_update_failed_window() {
   if (retry_window)
-    return; // Avoid duplicate windows
-
+    return;
   retry_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(retry_window), "Green Chat");
   gtk_window_set_default_size(GTK_WINDOW(retry_window), 400, 300);

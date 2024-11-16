@@ -317,9 +317,13 @@ spinner {
     margin-bottom: 30px;
 }
 
+/* PROFILE */
+
 .img-edit {
     margin-bottom: 10px;
     border-radius: 100%;
+    min-width: 300px;
+    min-height: 150px;
 }
 
 .profile-name {
@@ -343,7 +347,7 @@ spinner {
     transition: 0.3s;
 }
 
-/* input box */
+/* INPUT BOX */
 
 .input-box {
     background-color: #29292C;
@@ -431,59 +435,61 @@ textview text selection, entry selection {
 		background-image: none;
 		margin-left: 10px;
 	}
-
- /* Style for the combo box itself (entry part) */
+/* Style for the combo box itself (entry part) */
 combobox.form-role, combobox.form-role * {
     background-color: transparent;
     background-image: none;
     color: white;
     border: none;
-    padding: 2px 0;  /* Reduced padding for a smaller appearance */
-    margin: 0;       /* Remove any extra spacing around the combo box */
+    padding: 2px 0;
+    margin: 0;
     box-shadow: none;
 }
 
-combobox.form-role .entry,
-combobox.form-role button {
+/* Style for the combo box's entry widget */
+combobox.form-role .combo-box-entry, 
+combobox.form-role .entry {
     background-color: #1A1A1D;
     border: none;
     box-shadow: none;
     color: white;
-    padding: 2px 10px;  /* Adjust padding for consistent appearance */
-    margin: 0;         /* Remove extra spacing around inner elements */
-    border-radius: 8px;  /* Keep rounded corners consistent with other fields */
+    padding: 2px 10px;
+    margin: 0;
+    border-radius: 8px;
 }
 
-/* Focus state for combo box */
-combobox.form-role:focus,
-combobox.form-role:focus .entry,
-combobox.form-role:focus button {
-    border: 2px solid #5BCD91;
+/* Focus state for the entry widget */
+combobox.form-role .combo-box-entry:focus, 
+combobox.form-role .entry:focus {
+    border: 2px solid #5BCD91;  /* Green border on focus */
     transition: border-color 0.3s;
 }
 
-/* Style for the dropdown popup (menu) */
+/* Style for the combo box's button (arrow) */
+combobox.form-role button {
+    background-color: transparent; /* Transparent background for the button */
+    border: none;
+    box-shadow: none;
+    color: white;
+    padding: 2px 5px;
+}
+
+/* Hover state for the button (dropdown arrow) */
+combobox.form-role button:hover {
+    background-color: #29292C;
+}
+
+/* Style for the dropdown popup */
 combobox.form-role .popup {
     background-color: #1A1A1D;
     color: white;
-    border-radius: 8px; /* Padding around the popup for spacing */
+    border-radius: 8px;
 }
 
 /* Style for the items inside the dropdown list */
 combobox.form-role .popup .menu-item {
-    background-color: #29292C;
-    color: white;
-    border-radius: 4px;  /* Rounded corners for dropdown items */
+    background-color: #5BCD91;
+    color: #604BDC;
+    border-radius: 4px;
 }
 
-/* Style for selected item */
-combobox.form-role .popup .menu-item:selected {
-    background-color: #5BCD91;
-    color: #1A1A1D;
-}
-
-/* Hover state for items */
-combobox.form-role .popup .menu-item:hover {
-    background-color: #5BCD91;
-    color: #1A1A1D;
-}

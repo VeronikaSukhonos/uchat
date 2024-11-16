@@ -100,24 +100,19 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
     change_password_visibility(data->pw_button, data->password);
   }
 }
+int check_username(char *username, GtkWidget *message) {
+    int username_len = strlen(username);
 
-int check_form_data(char *username, char *password, GtkWidget *message) {
-  int username_len = strlen(username);
-  int password_len = password != NULL
-                         ? strlen(password)
-                         : -1; /* this function is used to check
-                               user's nick when creating a chat/group
-                               and in this case password == NULL*/
+    // Check if username is provided
+    if (username_len == 0) {
+        gtk_label_set_text(GTK_LABEL(message), "Username is required");
+        return 0;
+    } else if (username_len < 2 || username_len > 20) {
+        gtk_label_set_text(GTK_LABEL(message), "Username must contain 2-20 symbols");
+        return 0;
+    }
 
-  if (username_len == 0) {
-    gtk_label_set_text(GTK_LABEL(message), "Username is required");
-    return 0;
-  } else if (username_len < 2 || username_len > 20) {
-    gtk_label_set_text(GTK_LABEL(message),
-                       "Username must contain 2-20 symbols");
-    return 0;
-  }
-  if (password != NULL) {
+    // Check if username contains digits or special characters
     for (int i = 0; i < username_len; i++) {
         if (isdigit(username[i])) {
             gtk_label_set_text(GTK_LABEL(message), "Username cannot contain digits");
@@ -132,16 +127,33 @@ int check_form_data(char *username, char *password, GtkWidget *message) {
             return 0;
         }
     }
+
+    return 1;
+}
+
+int check_password(char *password, GtkWidget *message) {
+    int password_len = password != NULL ? strlen(password) : -1;
     if (password_len == 0) {
-      gtk_label_set_text(GTK_LABEL(message), "Password is required");
-      return 0;
-      // do not forget to change to 8
-    } else if (password_len < 0 || password_len > 20) {
-      gtk_label_set_text(GTK_LABEL(message),
-                         "Password must contain 8-20 symbols");
-      return 0;
+        gtk_label_set_text(GTK_LABEL(message), "Password is required");
+        return 0;
+    } else if (password_len < 8 || password_len > 20) {
+        gtk_label_set_text(GTK_LABEL(message), "Password must contain 8-20 symbols");
+        return 0;
     }
-    // check for password reliability
-  }
-  return 1;
+    return 1;
+}
+
+int check_form_data(char *username, char *password, GtkWidget *message) {
+    // Check if the username is valid
+    if (check_username(username, message) == 0) {
+        return 0; // Username validation failed, no need to check password
+    }
+    // If password is provided, check if it is valid
+    if (password != NULL) {
+        if (check_password(password, message) == 0) {
+            return 0; 
+        }
+    }
+
+    return 1;
 }

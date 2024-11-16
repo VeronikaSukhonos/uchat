@@ -37,5 +37,7 @@ void change_profile(GtkWidget *change_button, gpointer data) {
     free(json_str);
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                      "user_info");
+  } else {
+      
   }
 }

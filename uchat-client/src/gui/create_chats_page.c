@@ -526,6 +526,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       gtk_widget_get_style_context((*main_page).edit_data.form), "form");
   gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
+
   // label
   GtkWidget *edit_label = gtk_label_new("Change profile details");
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_label),
@@ -563,15 +564,21 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.student_group, FALSE, FALSE, 0);
 
-  // Student or Teacher
+  // choose description
   (*main_page).edit_data.role_combo = gtk_combo_box_text_new();
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).edit_data.role_combo),
       "form-role");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Student");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Reading PDF");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Teacher");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Devastated");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Busy");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "In progress");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Competed all tasks");
 
   gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
 
@@ -584,6 +591,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       "form-message");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.message, FALSE, FALSE, 0);
+
   // change profile details
   GtkWidget *button = gtk_button_new_with_label("Change profile details");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), button, FALSE, FALSE,
