@@ -189,7 +189,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
   } else {
     // No messages available
     strcpy(last_message, "No messages yet");
-    strcpy(last_sender, "");
+    strcpy(last_sender, " ");
     strcpy(last_time, "");
     strcpy(unread, "");
   }

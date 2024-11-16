@@ -43,6 +43,7 @@ void process_message_and_store(const char *json_response, AppData *app_data) {
     if (read_chat_data_from_encrypted_json(file_path, &chatId, name, chat_type,
                                            last_message, last_sender, last_time,
                                            unread) == 0) {
+      g_print("last sender: %s\n", last_sender);
       // Create or update the chat button
       create_or_update_chat_button(app_data->main_page, chat_id, name,
                                    chat_type, last_message, last_sender,

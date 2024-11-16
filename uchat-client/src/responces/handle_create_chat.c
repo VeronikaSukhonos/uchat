@@ -24,6 +24,20 @@ void read_and_create_chat_button(const char *file_path,
   // Create a chat button using the extracted data
   new_chat_button_from_json(main_page, chat_id, name, chat_type, last_message,
                             last_sender, last_time, unread);
+
+  t_chat_node *current_chat = main_page->chats;
+  while (current_chat != NULL) {
+    if (current_chat->chat.id == chat_id) {
+      // Set this chat as the currently opened chat
+      main_page->opened_chat = &current_chat->chat;
+      g_print("Chat ID %d is now set as opened_chat.\n", chat_id);
+      return;
+    }
+    current_chat = current_chat->next;
+  }
+
+  // If the chat_id is not found in the list, log a warning
+  g_print("Warning: Chat ID %d not found in main_page->chats.\n", chat_id);
 }
 
 void save_single_chat_to_encrypted_cache(cJSON *chat, const char *cache_dir,

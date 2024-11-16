@@ -183,7 +183,7 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
         "chat-button-sender");
     gtk_widget_set_halign((*temp_node).chat.last_sender, GTK_ALIGN_START);
   } else {
-    (*temp_node).chat.last_sender = NULL;
+    (*temp_node).chat.last_sender = gtk_label_new("");
   }
 
   (*temp_node).chat.last_message = gtk_label_new(last_message);
