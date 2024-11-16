@@ -228,6 +228,9 @@ void set_selected_button(GtkWidget **selected_button,
                          GtkWidget **new_selected_button);
 void change_profile(GtkWidget *change_button, gpointer data);
 
+// Check data
+int check_username(char *username, GtkWidget *message);
+int check_password(char *password, GtkWidget *message);
 int check_form_data(char *username, char *password, GtkWidget *message);
 
 int attempt_reconnection();
