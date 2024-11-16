@@ -27,24 +27,47 @@ char *base64_encode(const unsigned char *data, size_t input_length) {
 
 // Function to read file and encode it in Base64
 char *read_and_encode_file(const char *filepath) {
+  printf("Opening file: %s\n", filepath);
   FILE *file = fopen(filepath, "rb");
-  if (!file)
+  if (!file) {
+    perror("File open failed");
     return NULL;
+  }
 
   fseek(file, 0, SEEK_END);
   long file_size = ftell(file);
+  if (file_size == 0) {
+    fprintf(stderr, "File is empty\n");
+    fclose(file);
+    return NULL;
+  }
   rewind(file);
 
   unsigned char *file_content = malloc(file_size);
   if (!file_content) {
+    fprintf(stderr, "Memory allocation failed for file content\n");
     fclose(file);
     return NULL;
   }
 
-  fread(file_content, 1, file_size, file);
+  size_t read_size = fread(file_content, 1, file_size, file);
+  if (read_size != file_size) {
+    fprintf(stderr, "Failed to read the file completely\n");
+    free(file_content);
+    fclose(file);
+    return NULL;
+  }
   fclose(file);
+
+  printf("File read successfully, size: %ld bytes\n", file_size);
 
   char *encoded_content = base64_encode(file_content, file_size);
   free(file_content);
+
+  if (!encoded_content || strlen(encoded_content) == 0) {
+    fprintf(stderr, "Base64 encoding failed or returned empty string\n");
+    return NULL;
+  }
+
   return encoded_content;
 }

@@ -1,6 +1,5 @@
 #include <uchat_server.h>
 
-// Function to handle sending a message to a chat
 int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
                                 Client clients[], int max_clients) {
   cJSON *chat_id_json = cJSON_GetObjectItem(json, "chat_id");
@@ -30,17 +29,24 @@ int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
   // Retrieve online members of the chat
   cJSON *members = get_chat_members(db, chat_id);
   if (!members) {
-    fprintf(stderr, "Failed to retrieve online members for chat ID %d\n",
-            chat_id);
+    fprintf(stderr, "Failed to retrieve members for chat ID %d\n", chat_id);
     return 1;
   }
 
-  // Prepare JSON response
+  // Retrieve the stored message details
+  cJSON *message_details = get_message_details(db, message_id);
+  if (!message_details) {
+    fprintf(stderr, "Failed to retrieve message details for message ID %d\n",
+            message_id);
+    cJSON_Delete(members);
+    return 1;
+  }
+
+  // Prepare JSON response for "MESSAGE_FROM_CHAT"
   cJSON *response = cJSON_CreateObject();
   cJSON_AddStringToObject(response, "action", "MESSAGE_FROM_CHAT");
   cJSON_AddNumberToObject(response, "chat_id", chat_id);
-  cJSON_AddStringToObject(response, "sender", client->username);
-  cJSON_AddStringToObject(response, "message", content);
+  cJSON_AddItemToObject(response, "message", message_details);
 
   char *response_str = cJSON_Print(response);
 
@@ -64,15 +70,12 @@ int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
 
     // Send to online clients only and update is_delivered status
     for (int j = 0; j < max_clients; j++) {
-      if (clients[j].socket > 0 && strcmp(clients[j].username, username) == 0 &&
-          strcmp(username, client->username) != 0) {
+      if (clients[j].socket > 0 &&
+          strcmp(clients[j].username, client->username) != 0) {
         if (send(clients[j].socket, response_str, strlen(response_str), 0) ==
             -1) {
           perror("Failed to send message to client");
-          // Optionally handle error if the send fails, such as marking the
-          // message undelivered
         } else {
-
           // Update the notification as delivered
           const char *update_sql = "UPDATE notifications SET is_delivered = 1 "
                                    "WHERE user_id = ? AND message_id = ?;";
@@ -89,7 +92,24 @@ int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
     }
   }
 
+  // Notify the sender with a "SEND_MESSAGE_TO_SERVER_STATUS" action
+  cJSON *sender_response = cJSON_CreateObject();
+  cJSON_AddStringToObject(sender_response, "action",
+                          "SEND_MESSAGE_TO_SERVER_STATUS");
+  cJSON_AddStringToObject(sender_response, "status", "SUCCESS");
+  cJSON_AddNumberToObject(sender_response, "chat_id", chat_id);
+  cJSON_AddItemToObject(sender_response, "message",
+                        cJSON_Duplicate(message_details, 1));
+
+  char *sender_response_str = cJSON_Print(sender_response);
+  if (send(client->socket, sender_response_str, strlen(sender_response_str),
+           0) == -1) {
+    perror("Failed to send status to sender");
+  }
+
   free(response_str);
+  free(sender_response_str);
+  cJSON_Delete(sender_response);
   cJSON_Delete(response);
   cJSON_Delete(members);
 

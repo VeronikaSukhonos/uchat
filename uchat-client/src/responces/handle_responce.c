@@ -208,17 +208,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
 
   } else if (strcmp(action->valuestring, "MESSAGE_FROM_CHAT") == 0) {
-    // Handle receiving a message from a chat
-    cJSON *chat_id = cJSON_GetObjectItem(response, "chat_id");
-    cJSON *sender = cJSON_GetObjectItem(response, "sender");
-    cJSON *message = cJSON_GetObjectItem(response, "message");
-
-    if (chat_id && sender && message) {
-      printf("New message in Chat ID %d from %s: %s\n", chat_id->valueint,
-             sender->valuestring, message->valuestring);
-    } else {
-      printf("Error: Missing fields in MESSAGE_FROM_CHAT response.\n");
-    }
+    process_message_and_store(cJSON_Print(response), app_data);
   } else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
     handle_get_profile_response(response, app_data);
   } else if (strcmp(action->valuestring, "UPDATE_PROFILE_DATA") == 0) {
@@ -253,6 +243,15 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       send(app_data->main_page->sock, json_str, strlen(json_str), 0);
       g_print("Sent: %s\n", json_str);
       free(json_str);
+    }
+  } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_SERVER_STATUS") ==
+             0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Sending  successful\n");
+      process_message_and_store(cJSON_Print(response), app_data);
+    } else {
+      g_print("Error: Sending error.\n");
     }
   }
   // Clean up JSON object

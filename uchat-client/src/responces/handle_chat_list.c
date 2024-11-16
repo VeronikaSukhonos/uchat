@@ -13,9 +13,20 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
   // Process each chat
   cJSON *chat;
   cJSON_ArrayForEach(chat, chats) {
-    int chat_id = cJSON_GetObjectItem(chat, "chat_id")->valueint;
-    const char *chat_name = cJSON_GetObjectItem(chat, "name")->valuestring;
-    const char *chat_type = cJSON_GetObjectItem(chat, "type")->valuestring;
+    // Validate essential fields
+    cJSON *chat_id_json = cJSON_GetObjectItem(chat, "chat_id");
+    cJSON *chat_name_json = cJSON_GetObjectItem(chat, "name");
+    cJSON *chat_type_json = cJSON_GetObjectItem(chat, "type");
+
+    if (!cJSON_IsNumber(chat_id_json) || !cJSON_IsString(chat_name_json) ||
+        !cJSON_IsString(chat_type_json)) {
+      fprintf(stderr, "Invalid or missing essential fields in chat data.\n");
+      continue;
+    }
+
+    int chat_id = chat_id_json->valueint;
+    const char *chat_name = chat_name_json->valuestring;
+    const char *chat_type = chat_type_json->valuestring;
 
     // Create a JSON object to store chat metadata, members, and messages
     cJSON *chat_data = cJSON_CreateObject();
@@ -25,45 +36,61 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
 
     // Process members
     cJSON *members = cJSON_GetObjectItem(chat, "members");
+    cJSON *members_array = cJSON_CreateArray();
     if (cJSON_IsArray(members)) {
-      cJSON *members_array = cJSON_CreateArray();
       cJSON *member;
       cJSON_ArrayForEach(member, members) {
-        if (cJSON_IsString(member)) {
-          cJSON_AddItemToArray(members_array,
-                               cJSON_CreateString(member->valuestring));
+        if (cJSON_IsObject(member)) {
+          cJSON_AddItemToArray(members_array, cJSON_Duplicate(member, 1));
         }
       }
-      cJSON_AddItemToObject(chat_data, "members", members_array);
     }
+    cJSON_AddItemToObject(chat_data, "members", members_array);
 
     // Process messages
     cJSON *messages = cJSON_GetObjectItem(chat, "messages");
+    cJSON *messages_array = cJSON_CreateArray();
     if (cJSON_IsArray(messages)) {
-      cJSON *messages_array = cJSON_CreateArray();
       cJSON *message;
       cJSON_ArrayForEach(message, messages) {
+        // Validate required fields in the message
+        cJSON *message_id_json = cJSON_GetObjectItem(message, "message_id");
+        cJSON *username_json = cJSON_GetObjectItem(message, "username");
+        cJSON *content_json = cJSON_GetObjectItem(message, "content");
+        cJSON *timestamp_json = cJSON_GetObjectItem(message, "timestamp");
+        cJSON *content_type_json = cJSON_GetObjectItem(message, "content_type");
+        cJSON *read_json = cJSON_GetObjectItem(message, "read");
+        cJSON *sender_id_json = cJSON_GetObjectItem(message, "sender_id");
+
+        if (!cJSON_IsNumber(message_id_json) ||
+            !cJSON_IsString(username_json) || !cJSON_IsString(content_json) ||
+            !cJSON_IsString(timestamp_json) ||
+            !cJSON_IsString(content_type_json) ||
+            !cJSON_IsNumber(sender_id_json)) {
+          fprintf(stderr, "Invalid or missing fields in message data.\n");
+          continue;
+        }
+
+        // Create a message object
         cJSON *json_message = cJSON_CreateObject();
-
-        int message_id = cJSON_GetObjectItem(message, "message_id")->valueint;
-        const char *sender =
-            cJSON_GetObjectItem(message, "username")->valuestring;
-        const char *content =
-            cJSON_GetObjectItem(message, "content")->valuestring;
-        const char *timestamp =
-            cJSON_GetObjectItem(message, "timestamp")->valuestring;
-        int read = cJSON_GetObjectItem(message, "read")->valueint;
-
-        cJSON_AddNumberToObject(json_message, "message_id", message_id);
-        cJSON_AddStringToObject(json_message, "sender", sender);
-        cJSON_AddStringToObject(json_message, "content", content);
-        cJSON_AddStringToObject(json_message, "timestamp", timestamp);
-        cJSON_AddBoolToObject(json_message, "read", read);
+        cJSON_AddNumberToObject(json_message, "message_id",
+                                message_id_json->valueint);
+        cJSON_AddNumberToObject(json_message, "sender_id",
+                                sender_id_json->valueint);
+        cJSON_AddStringToObject(json_message, "username",
+                                username_json->valuestring);
+        cJSON_AddStringToObject(json_message, "content",
+                                content_json->valuestring);
+        cJSON_AddStringToObject(json_message, "content_type",
+                                content_type_json->valuestring);
+        cJSON_AddStringToObject(json_message, "timestamp",
+                                timestamp_json->valuestring);
+        cJSON_AddBoolToObject(json_message, "read", cJSON_IsTrue(read_json));
 
         cJSON_AddItemToArray(messages_array, json_message);
       }
-      cJSON_AddItemToObject(chat_data, "messages", messages_array);
     }
+    cJSON_AddItemToObject(chat_data, "messages", messages_array);
 
     // Create the file path for storing encrypted chat data
     char chat_file_path[256];

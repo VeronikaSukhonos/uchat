@@ -5,12 +5,12 @@
 #include <dirent.h>
 #include <glib.h>
 #include <gtk/gtk.h>
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/select.h>
 #include <unistd.h>
-#include <locale.h>
 
 #include <cJSON.h>
 
@@ -100,6 +100,7 @@ typedef struct s_chat_data {
   GtkWidget *last_message;
   GtkWidget *unread;
   GtkWidget *box;
+  MicData *mic_data;
   int id;
 } t_chat_data;
 
@@ -120,14 +121,14 @@ typedef struct s_main_page_data {
   GtkWidget *central_area_stack;
   t_chat_form_data create_chat_data;
   t_chat_form_data create_group_data;
-  // profile_data
   t_profile_data profile_data;
-  // edit_data
   t_profile_data edit_data;
   GtkWidget *group_box;
   int group_users_count;
   t_group_users_data group_users[USERS_IN_GROUP_COUNT];
   GtkWidget *chats_stack;
+  GtkTextBuffer *message_buffer; // Add message_buffer here
+  GtkWidget *smile_window;
 } t_main_page_data;
 
 typedef struct s_form_data {
@@ -200,6 +201,11 @@ void create_registration_page(GtkWidget *pages, GtkWidget *registration,
 void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data);
 void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                        t_main_page_data *main_page);
+void close_main_window(GtkWidget *main_window, t_main_page_data *main_page);
+void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window);
+void hide_smile_menu(GtkWidget *smile_window, GtkWidget *smile_button);
+void insert_emoji_into_text(GtkWidget *emoji_button,
+                            t_main_page_data *main_page);
 
 void show_chat(GtkWidget *chat_button, gpointer data);
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
@@ -262,6 +268,7 @@ void ensure_cache_directory();
 
 void stop_recording();
 void start_recording(const char *output_path);
+void send_voice_message(int sock, const char *file_path, int chat_id);
 
 char *base64_encode(const unsigned char *data, size_t input_length);
 char *read_and_encode_file(const char *filepath);
@@ -280,3 +287,10 @@ void save_single_chat_to_encrypted_cache(cJSON *chat, const char *cache_dir,
                                          AppData *app_data);
 void delete_cache_directory();
 void remove_all_chat_buttons(t_main_page_data *main_page);
+int insert_message_into_chat(const char *file_path, cJSON *new_message);
+void process_message_and_store(const char *json_response, AppData *app_data);
+void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
+                                  const char *name, const char *chat_type,
+                                  const char *last_message,
+                                  const char *last_sender,
+                                  const char *last_time, const char *unread);

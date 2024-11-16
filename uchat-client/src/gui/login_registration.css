@@ -391,16 +391,7 @@ textview text selection, entry selection {
 	background-color: #3B3B3E;
 }
 
-.send-button {
-    background-color: #2C2C2E;
-    border: none;
-    padding: 0;
-    outline: none;
-    background-image: none;
-    margin-left: 10px;
-}
-
-.mic-button {
+.input-button {
     background-color: transparent;
     border: none;
     padding: 0;
@@ -408,6 +399,38 @@ textview text selection, entry selection {
     background-image: none; 
     margin: 5px;
 }
+
+.smile-window {
+	background-color: #29292C;
+	border: solid 2px #3B3B3E;
+	border-radius: 8px;
+	padding: 5px;
+}
+
+.smile-window grid {
+	margin: 10px;
+}
+
+.smile-window grid button {
+	background-color: transparent;
+    border: none;
+	border-radius: 8px;
+    padding: 5px;
+	outline: none;
+    background-image: none; }
+
+	.smile-window grid button:hover {
+		background-color: #3B3B3E;
+		transition: 0.3s;
+	}
+	.send-button {
+		background-color: #2C2C2E;
+		border: none;
+		padding: 0;
+		outline: none;
+		background-image: none;
+		margin-left: 10px;
+	}
 
  /* Style for the combo box itself (entry part) */
 combobox.form-role, combobox.form-role * {

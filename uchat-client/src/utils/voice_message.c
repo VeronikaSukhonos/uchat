@@ -48,3 +48,35 @@ void stop_recording() {
     pipeline = NULL;
   }
 }
+
+void send_voice_message(int sock, const char *file_path, int chat_id) {
+  // Read and encode the file into base64
+  char *encoded_file = read_and_encode_file(file_path);
+  if (!encoded_file) {
+    g_printerr("Failed to encode file: %s\n", file_path);
+    return;
+  }
+
+  // Create JSON object for the message
+  cJSON *json = cJSON_CreateObject();
+  cJSON_AddStringToObject(json, "action", "SEND_VOICE_MESSAGE_TO_CHAT");
+  cJSON_AddNumberToObject(json, "chat_id", chat_id);
+  cJSON_AddStringToObject(json, "file",
+                          encoded_file); // Add encoded file content
+
+  // Convert JSON object to string
+  char *json_string = cJSON_PrintUnformatted(json);
+
+  // Ensure the entire JSON message is sent
+  ssize_t sent = send(sock, json_string, strlen(json_string), 0);
+  if (sent < 0) {
+    perror("Failed to send voice message");
+  } else {
+    g_print("Voice message sent successfully. with size %zi\n", sent);
+  }
+
+  // Cleanup
+  free(encoded_file);
+  free(json_string);
+  cJSON_Delete(json);
+}

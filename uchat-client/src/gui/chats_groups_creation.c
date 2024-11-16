@@ -31,6 +31,81 @@ void create_chat_buttons_from_encrypted_cache(t_main_page_data *main_page,
   closedir(dir);
 }
 
+void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
+                                  const char *name, const char *chat_type,
+                                  const char *last_message,
+                                  const char *last_sender,
+                                  const char *last_time, const char *unread) {
+  // Debug: Print all input variables
+  g_print("Updating/Creating Chat Button:\n");
+  g_print("  chat_id: %d\n", chat_id);
+  g_print("  name: %s\n", name);
+  g_print("  chat_type: %s\n", chat_type);
+  g_print("  last_message: %s\n", last_message);
+  g_print("  last_sender: %s\n", last_sender);
+  g_print("  last_time: %s\n", last_time);
+  g_print("  unread: %s\n", unread);
+
+  // Search for the chat in the linked list
+  t_chat_node *current = main_page->chats;
+  while (current) {
+    if (current->chat.id == chat_id) {
+      // Debug: Found existing chat
+      g_print("Chat ID %d found, updating details...\n", chat_id);
+
+      // Update existing chat button details
+      if (current->chat.last_time) {
+        gtk_label_set_text(GTK_LABEL(current->chat.last_time), last_time);
+      } else {
+        g_warning("last_time label is NULL for chat_id: %d", chat_id);
+      }
+
+      if (current->chat.last_sender) {
+        gtk_label_set_text(GTK_LABEL(current->chat.last_sender), last_sender);
+      } else {
+        g_warning("last_sender label is NULL for chat_id: %d", chat_id);
+      }
+
+      if (current->chat.last_message) {
+        gtk_label_set_text(GTK_LABEL(current->chat.last_message), last_message);
+      } else {
+        g_warning("last_message label is NULL for chat_id: %d", chat_id);
+      }
+
+      if (current->chat.unread) {
+        gtk_label_set_text(GTK_LABEL(current->chat.unread), unread);
+      } else {
+        g_warning("unread label is NULL for chat_id: %d", chat_id);
+      }
+
+      // Highlight unread chats
+      GtkStyleContext *style_context =
+          gtk_widget_get_style_context(current->chat.button);
+      if (style_context) {
+        if (strlen(unread) > 0) {
+          gtk_style_context_add_class(style_context,
+                                      "chat-button-unread-border");
+          g_print("Added 'unread-border' style for chat_id: %d\n", chat_id);
+        } else {
+          gtk_style_context_remove_class(style_context,
+                                         "chat-button-unread-border");
+          g_print("Removed 'unread-border' style for chat_id: %d\n", chat_id);
+        }
+      } else {
+        g_warning("Style context is NULL for chat_id: %d", chat_id);
+      }
+
+      return; // Exit after updating the button
+    }
+    current = current->next;
+  }
+
+  // If chat_id does not exist, create a new chat button
+  g_print("Chat ID %d not found, creating a new button...\n", chat_id);
+  new_chat_button_from_json(main_page, chat_id, name, (char *)chat_type,
+                            last_message, last_sender, last_time, unread);
+}
+
 void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
                                const char *name, char *chat_type,
                                const char *last_message,

@@ -118,6 +118,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
 
   // Parse decrypted JSON
   cJSON *json = cJSON_Parse(decrypted_json);
+  // g_print("extracted data: %s\n", decrypted_json);
   free(decrypted_json);
   if (!json) {
     fprintf(stderr, "Failed to parse JSON file: %s\n", file_path);
@@ -146,7 +147,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
     // Get the last message details
     cJSON *last_message_json = cJSON_GetArrayItem(messages, 0);
     cJSON *message_content = cJSON_GetObjectItem(last_message_json, "content");
-    cJSON *message_sender = cJSON_GetObjectItem(last_message_json, "sender");
+    cJSON *message_sender = cJSON_GetObjectItem(last_message_json, "username");
     cJSON *message_timestamp =
         cJSON_GetObjectItem(last_message_json, "timestamp");
     cJSON *message_unread = cJSON_GetObjectItem(last_message_json, "read");
@@ -467,4 +468,68 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   fwrite(iv, 1, IV_SIZE, file);
   fwrite(ciphertext, 1, ciphertext_len, file);
   fclose(file);
+}
+
+int insert_message_into_chat(const char *file_path, cJSON *new_message) {
+  // Step 1: Decrypt the chat file
+  char *decrypted_json = decrypt_json_from_file(file_path);
+  if (!decrypted_json) {
+    fprintf(stderr, "Failed to decrypt chat file: %s\n", file_path);
+    return -1;
+  }
+
+  // Step 2: Parse the decrypted JSON
+  cJSON *chat_data = cJSON_Parse(decrypted_json);
+  free(decrypted_json);
+  if (!chat_data) {
+    fprintf(stderr, "Failed to parse decrypted JSON.\n");
+    return -1;
+  }
+
+  // Debug: Print the initial chat_data
+  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Step 3: Get the messages array
+  cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
+  if (!cJSON_IsArray(messages)) {
+    fprintf(stderr, "Messages array not found or invalid.\n");
+    cJSON_Delete(chat_data);
+    return -1;
+  }
+
+  // Step 4: Insert the new message at the beginning of the array
+  cJSON *updated_messages = cJSON_CreateArray();
+  cJSON_AddItemToArray(updated_messages, cJSON_Duplicate(new_message, 1));
+
+  // Add existing messages to the updated array
+  cJSON *message;
+  cJSON_ArrayForEach(message, messages) {
+    cJSON_AddItemToArray(updated_messages, cJSON_Duplicate(message, 1));
+  }
+
+  // Replace only the "messages" array
+  cJSON_ReplaceItemInObject(chat_data, "messages", updated_messages);
+
+  // Debug: Print the updated chat_data
+  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Ensure the "members" array is preserved
+  cJSON *members = cJSON_GetObjectItem(chat_data, "members");
+  if (!cJSON_IsArray(members) || cJSON_GetArraySize(members) == 0) {
+    fprintf(stderr,
+            "WARNING: Members array is missing or empty for chat_id: %d\n",
+            cJSON_GetObjectItem(chat_data, "chat_id")->valueint);
+  } else {
+    g_print("Members array preserved with %d members.\n",
+            cJSON_GetArraySize(members));
+  }
+
+  // Step 5: Encrypt and save the updated JSON back to the file
+  save_encrypted_chat_to_cache(file_path, chat_data);
+
+  // Step 6: Clean up
+  cJSON_Delete(chat_data);
+
+  printf("Message inserted successfully into chat file: %s\n", file_path);
+  return 0;
 }

@@ -1,32 +1,41 @@
 #include <uchat.h>
 
 void change_mic_image(GtkWidget *mic_button, gpointer data) {
-  MicData *mic_data = (MicData *)data;
+  t_main_page_data *main_page = (t_main_page_data *)data;
 
-  if (mic_data->is_active) {
+  if (!main_page || !main_page->opened_chat) {
+    g_printerr("Error: Invalid main_page, opened_chat, or mic_data.\n");
+    return;
+  }
+  if (!main_page->opened_chat->mic_data) {
+    main_page->opened_chat->mic_data = g_new0(MicData, 1);
+    main_page->opened_chat->mic_data->is_active = FALSE;
+    main_page->opened_chat->mic_data->img_path_start =
+        g_strdup("uchat-client/src/gui/resources/voice-start.png");
+    main_page->opened_chat->mic_data->img_path_stop =
+        g_strdup("uchat-client/src/gui/resources/voice-stop.png");
+  }
+
+  if (main_page->opened_chat->mic_data->is_active) {
     // Set button image to 'start' and stop recording
-    GtkWidget *mic_button_img_start =
-        gtk_image_new_from_file(mic_data->img_path_start);
+    GtkWidget *mic_button_img_start = gtk_image_new_from_file(
+        main_page->opened_chat->mic_data->img_path_start);
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
-    mic_data->is_active = FALSE;
+    main_page->opened_chat->mic_data->is_active = FALSE;
 
     // Stop recording
     stop_recording();
+    send_voice_message(main_page->sock, "cache/temp_audio.wav",
+                       main_page->opened_chat->id);
   } else {
     // Set button image to 'stop' and start recording
-    GtkWidget *mic_button_img_stop =
-        gtk_image_new_from_file(mic_data->img_path_stop);
+    GtkWidget *mic_button_img_stop = gtk_image_new_from_file(
+        main_page->opened_chat->mic_data->img_path_stop);
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
-    mic_data->is_active = TRUE;
+    main_page->opened_chat->mic_data->is_active = TRUE;
 
-    char output_path[100];
-    // shoud be in a struct
-    int chat_id = 0; // real chat_id from db
-    int vmsg_id = 0; // real msg_if from db
-    snprintf(output_path, sizeof(output_path), "cache/%d_%d_vmsg.wav", chat_id,
-             vmsg_id);
-    // Start recording to the specified output path
-    start_recording(output_path);
+    // Start recording to a temporary file
+    start_recording("cache/temp_audio.wav");
   }
 }
 
@@ -156,22 +165,26 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX(chats), (*main_page).central_area_stack, TRUE,
                      TRUE, 0);
   gtk_style_context_add_class(
-  	gtk_widget_get_style_context((*main_page).central_area_stack), "central-area");
+      gtk_widget_get_style_context((*main_page).central_area_stack),
+      "central-area");
 
   // clear area
   GtkWidget *clear_area = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), clear_area,
                       "clear_area");
-   
+
   GtkWidget *start_label_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_box_pack_start(GTK_BOX(clear_area), start_label_container, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(clear_area), start_label_container, TRUE, FALSE,
+                     0);
   gtk_widget_set_halign(start_label_container, GTK_ALIGN_CENTER);
-  gtk_style_context_add_class(gtk_widget_get_style_context(start_label_container),
-							   "clear-area-container");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context(start_label_container),
+      "clear-area-container");
 
   GtkWidget *start_label = gtk_label_new("Select a chat to start messaging");
-  gtk_box_pack_start(GTK_BOX(start_label_container), start_label, FALSE, FALSE, 0);
-                      
+  gtk_box_pack_start(GTK_BOX(start_label_container), start_label, FALSE, FALSE,
+                     0);
+
   // messages area
   GtkWidget *message_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), message_box,
@@ -191,7 +204,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(input_box),
                               "input-box");
 
-  // box to hold both the message entry and microphone button
+  // box to hold the message entry, smile button and microphone button
   GtkWidget *message_entry_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_box_pack_start(GTK_BOX(input_box), message_entry_box, TRUE, TRUE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box),
@@ -201,9 +214,43 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll, TRUE, TRUE, 0);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(message_scroll),
                                  GTK_POLICY_NEVER, GTK_POLICY_NEVER);
+  GtkWidget *smile_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(message_entry_box), smile_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(smile_button),
+                              "input-button");
+  GtkWidget *smile_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/smile-open.png");
+  gtk_button_set_image(GTK_BUTTON(smile_button), smile_image);
+  (*main_page).smile_window = gtk_popover_new(smile_button);
+  gtk_widget_set_size_request((*main_page).smile_window, -1, 300);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).smile_window), "smile-window");
+  g_signal_connect(smile_button, "clicked", G_CALLBACK(show_smile_menu),
+                   (*main_page).smile_window);
+  g_signal_connect((*main_page).smile_window, "closed",
+                   G_CALLBACK(hide_smile_menu), smile_button);
+
+  GtkWidget *smile_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_container_add(GTK_CONTAINER((*main_page).smile_window), smile_scroll);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(smile_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  GtkWidget *smile_menu = gtk_grid_new();
+  gtk_container_add(GTK_CONTAINER(smile_scroll), smile_menu);
+  const gchar *emojis[] = {"😀", "😃", "😄", "😁", "😆", "😅",
+                           "🤣", "😂", "🙂", "🙃", "😉", "😊",
+                           "😇", "🥰", "😍", "🤩", "😘", "😗"};
+  int emojis_num = sizeof(emojis) / sizeof(emojis[0]);
+  GtkWidget *emoji_buttons[emojis_num];
+  for (int i = 0; i < emojis_num; i++) {
+    emoji_buttons[i] = gtk_button_new_with_label(emojis[i]);
+    g_signal_connect(emoji_buttons[i], "clicked",
+                     G_CALLBACK(insert_emoji_into_text), main_page);
+    gtk_grid_attach(GTK_GRID(smile_menu), emoji_buttons[i], (i % 6), (i / 6), 1,
+                    1);
+  }
 
   GtkWidget *message_entry = gtk_text_view_new();
-  GtkTextBuffer *message_buffer =
+  main_page->message_buffer =
       gtk_text_view_get_buffer(GTK_TEXT_VIEW(message_entry));
   gtk_container_add(GTK_CONTAINER(message_scroll), message_entry);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(message_entry), GTK_WRAP_WORD_CHAR);
@@ -215,7 +262,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
   g_signal_connect(message_entry, "focus-out-event",
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
-  g_signal_connect(message_buffer, "changed",
+  g_signal_connect(main_page->message_buffer, "changed",
                    G_CALLBACK(check_message_entry_height), message_entry);
 
   MicData *mic_data = g_new(MicData, 1);
@@ -226,12 +273,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *mic_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(message_entry_box), mic_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
-                              "mic-button");
+                              "input-button");
   GtkWidget *mic_button_img_start =
       gtk_image_new_from_file(mic_data->img_path_start);
   gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
   g_signal_connect(mic_button, "clicked", G_CALLBACK(change_mic_image),
-                   mic_data);
+                   main_page);
 
   GtkWidget *send_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 0);
@@ -243,7 +290,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_button_set_image(GTK_BUTTON(send_button), send_button_img);
   change_button_hover_image(send_button);
   g_signal_connect(send_button, "clicked", G_CALLBACK(send_message_f),
-                   message_buffer);
+                   main_page);
 
   // create chat
   GtkWidget *create_chat_scroll = gtk_scrolled_window_new(NULL, NULL);

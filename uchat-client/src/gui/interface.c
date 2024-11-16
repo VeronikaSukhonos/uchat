@@ -1,5 +1,10 @@
 #include "uchat.h"
 
+void close_main_window(GtkWidget *main_window, t_main_page_data *main_page) {
+  gtk_widget_destroy((*main_page).smile_window);
+  gtk_main_quit();
+}
+
 void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
@@ -18,16 +23,18 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
 
 void setup_main_application() {
   main_window = 0;
-  setlocale(LC_ALL, "en_US.UTF-8"); //set locale for mac users(idk is it really work) =)
+  setlocale(
+      LC_ALL,
+      "en_US.UTF-8"); // set locale for mac users(idk is it really work) =)
   GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  GdkPixbuf *icon = gdk_pixbuf_new_from_file("uchat-client/src/gui/resources/program.png", NULL);
-  GdkPixbuf *scaled_icon = gdk_pixbuf_scale_simple(icon, 500, 500, GDK_INTERP_BILINEAR);
+  GdkPixbuf *icon = gdk_pixbuf_new_from_file(
+      "uchat-client/src/gui/resources/program.png", NULL);
+  GdkPixbuf *scaled_icon =
+      gdk_pixbuf_scale_simple(icon, 500, 500, GDK_INTERP_BILINEAR);
   gtk_window_set_icon(GTK_WINDOW(main_window), scaled_icon);
   gtk_window_set_title(GTK_WINDOW(main_window), "Green Chat");
   gtk_window_set_default_size(GTK_WINDOW(main_window), 1280, 720);
   gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
-
-  g_signal_connect(main_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
   GtkWidget *pages = gtk_stack_new();
   gtk_container_add(GTK_CONTAINER(main_window), pages);
@@ -55,6 +62,8 @@ void setup_main_application() {
 
   setup_gtk_interface(pages, registration, login, chats, &registration_data,
                       &login_data, &main_page);
+  g_signal_connect(main_window, "destroy", G_CALLBACK(close_main_window),
+                   &main_page);
   gtk_widget_show_all(main_window);
   gtk_window_set_focus(GTK_WINDOW(main_window), NULL);
   gtk_stack_set_transition_type(GTK_STACK(pages),
@@ -84,7 +93,7 @@ void setup_main_application() {
     g_io_channel_unref(gio_channel);
   }
   if (main_page.chats != NULL) {
-    for (t_chat_node *i = main_page.chats; i != NULL; ) {
+    for (t_chat_node *i = main_page.chats; i != NULL;) {
       t_chat_node *temp = i->next;
       free(i);
       i = temp;
