@@ -157,6 +157,10 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
       strncpy(last_message, message_content->valuestring, 1023);
       strncpy(last_sender, message_sender->valuestring, 63);
 
+      if (strcmp(last_message, "") == 0) {
+        strcpy(last_message, "voice message");
+      }
+
       // Parse timestamp using sscanf and convert to local time
       struct tm tm_utc = {0};
       if (sscanf(message_timestamp->valuestring, "%d-%d-%d %d:%d:%d",

@@ -187,6 +187,8 @@ void get_serial_number(char *serial, size_t len);
 
 void handle_not_logged_in_choice(int sock);
 void handle_logged_in_choice(int sock, const char *username);
+void process_voice_message_and_store(const char *json_response,
+                                     AppData *app_data);
 
 // gui
 void load_css(const gchar *file);
@@ -272,6 +274,9 @@ void send_voice_message(int sock, const char *file_path, int chat_id);
 
 char *base64_encode(const unsigned char *data, size_t input_length);
 char *read_and_encode_file(const char *filepath);
+void save_decoded_file(const char *encoded_data, const char *output_file);
+unsigned char *base64_decode(const char *data, size_t input_length,
+                             size_t *output_length);
 
 void get_last_message_info(MessageNode *messages, char *sender, char *content,
                            time_t *date);

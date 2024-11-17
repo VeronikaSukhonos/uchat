@@ -73,8 +73,18 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     handle_update_profile(db, client, json);
     sqlite3_close(db);
-  } else if (strcmp(action->valuestring, "DELETE_ACCOUNT") == 0) {
-    // Handle account deletion
+  } else if (strcmp(action->valuestring, "SEND_VOICE_MESSAGE_TO_CHAT") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    if (handle_voice_message_to_chat(db, client, json, clients, max_clients) ==
+        0) {
+      printf("Message sent to chat ID %d\n",
+             cJSON_GetObjectItem(json, "chat_id")->valueint);
+    } else {
+      send_status_responce_to_client(client, "SEND_MESSAGE_TO_CHAT", "FAILURE");
+    }
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_CHAT") == 0) {
     if (open_database(&db) != 0) {
       fprintf(stderr, "Failed to open database.\n");

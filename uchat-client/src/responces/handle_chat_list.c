@@ -1,8 +1,10 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <stdio.h>
+#include <string.h>
 #include <uchat.h>
 
-// Encrypt and save chat data to file
+// Function to handle chat list response and save data to cache
 void handle_chat_list_response(cJSON *response, const char *cache_dir) {
   cJSON *chats = cJSON_GetObjectItem(response, "chats");
   if (!cJSON_IsArray(chats)) {
@@ -58,7 +60,7 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
         cJSON *username_json = cJSON_GetObjectItem(message, "username");
         cJSON *content_json = cJSON_GetObjectItem(message, "content");
         cJSON *timestamp_json = cJSON_GetObjectItem(message, "timestamp");
-        cJSON *content_type_json = cJSON_GetObjectItem(message, "content_type");
+        cJSON *content_type_json = cJSON_GetObjectItem(message, "type");
         cJSON *read_json = cJSON_GetObjectItem(message, "read");
         cJSON *sender_id_json = cJSON_GetObjectItem(message, "sender_id");
 
@@ -81,11 +83,50 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
                                 username_json->valuestring);
         cJSON_AddStringToObject(json_message, "content",
                                 content_json->valuestring);
-        cJSON_AddStringToObject(json_message, "content_type",
+        cJSON_AddStringToObject(json_message, "type",
                                 content_type_json->valuestring);
         cJSON_AddStringToObject(json_message, "timestamp",
                                 timestamp_json->valuestring);
         cJSON_AddBoolToObject(json_message, "read", cJSON_IsTrue(read_json));
+
+        // Handle voice messages
+        if (strcmp(content_type_json->valuestring, "voice") == 0) {
+          // Decode Base64 voice message content
+          cJSON *voice_json = cJSON_GetObjectItem(message, "voice_message");
+          size_t decoded_size;
+          unsigned char *decoded_data =
+              base64_decode(voice_json->valuestring,
+                            strlen(voice_json->valuestring), &decoded_size);
+          if (decoded_data) {
+            // Create a file path for the voice message
+
+            char file_path[256];
+            snprintf(file_path, sizeof(file_path), "%s/chat_%d_%d_vmsg.wav",
+                     cache_dir, chat_id, message_id_json->valueint);
+
+            // Write the decoded voice message to a file
+            FILE *voice_file = fopen(file_path, "wb");
+            if (voice_file) {
+              fwrite(decoded_data, 1, decoded_size, voice_file);
+              fclose(voice_file);
+
+              // Add the file path to the JSON message object
+              cJSON_AddStringToObject(json_message, "voice_file_path",
+                                      file_path);
+              g_print("success to write voice message to file: %s\n",
+                      file_path);
+            } else {
+              fprintf(stderr, "Failed to write voice message to file: %s\n",
+                      file_path);
+            }
+
+            free(decoded_data);
+          } else {
+            fprintf(stderr,
+                    "Failed to decode voice message for message_id: %d\n",
+                    message_id_json->valueint);
+          }
+        }
 
         cJSON_AddItemToArray(messages_array, json_message);
       }

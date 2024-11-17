@@ -209,6 +209,8 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
 
   } else if (strcmp(action->valuestring, "MESSAGE_FROM_CHAT") == 0) {
     process_message_and_store(cJSON_Print(response), app_data);
+  } else if (strcmp(action->valuestring, "VOICE_FROM_CHAT") == 0) {
+    process_voice_message_and_store(cJSON_Print(response), app_data);
   } else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
     handle_get_profile_response(response, app_data);
   } else if (strcmp(action->valuestring, "UPDATE_PROFILE_DATA") == 0) {
@@ -250,6 +252,15 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("Sending  successful\n");
       process_message_and_store(cJSON_Print(response), app_data);
+    } else {
+      g_print("Error: Sending error.\n");
+    }
+  } else if (strcmp(action->valuestring,
+                    "SEND_VOICE_MESSAGE_TO_SERVER_STATUS") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Sending  successful\n");
+      process_voice_message_and_store(cJSON_Print(response), app_data);
     } else {
       g_print("Error: Sending error.\n");
     }
