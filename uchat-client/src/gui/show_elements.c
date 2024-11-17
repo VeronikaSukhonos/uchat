@@ -76,13 +76,6 @@ void show_edit_page(GtkWidget *edit_button, gpointer data) {
       GTK_ENTRY((*main_page).edit_data.student_group), "Student Group");
 
   gtk_label_set_label(GTK_LABEL((*main_page).edit_data.message), "");
-  // Set role based on current selection (for example, check description for
-  // "Student" or "Teacher")
-  const char *current_role =
-      "Student"; // Replace with logic to fetch current role
-  int index = (strcmp(current_role, "Teacher") == 0) ? 1 : 0;
-  gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo),
-                           index);
 
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "edit_profile");

@@ -5,7 +5,7 @@ void load_css(const gchar *file) {
   gboolean loaded = gtk_css_provider_load_from_path(provider, file, NULL);
 
   if (!loaded) {
-      g_warning("Failed to load CSS file: %s", file);
+    g_warning("Failed to load CSS file: %s", file);
   }
   gtk_style_context_add_provider_for_screen(
       gdk_screen_get_default(), GTK_STYLE_PROVIDER(provider),
@@ -16,7 +16,7 @@ void load_css(const gchar *file) {
 }
 
 void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
-                           GtkWidget *entry_box) {
+                            GtkWidget *entry_box) {
   if (event->in) {
     gtk_style_context_add_class(gtk_widget_get_style_context(entry_box),
                                 "focus");
@@ -101,14 +101,10 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
   }
 }
 
-int check_form_data(char *username, char *password, GtkWidget *message) {
+int check_username(char *username, GtkWidget *message) {
   int username_len = strlen(username);
-  int password_len = password != NULL
-                         ? strlen(password)
-                         : -1; /* this function is used to check
-                               user's nick when creating a chat/group
-                               and in this case password == NULL*/
 
+  // Check if username is provided
   if (username_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Username is required");
     return 0;
@@ -117,31 +113,46 @@ int check_form_data(char *username, char *password, GtkWidget *message) {
                        "Username must contain 2-20 symbols");
     return 0;
   }
-  if (password != NULL) {
-    for (int i = 0; i < username_len; i++) {
-        if (isdigit(username[i])) {
-            gtk_label_set_text(GTK_LABEL(message), "Username cannot contain digits");
-            return 0;
-        }
-        if (!isalnum(username[i])) {
-            gtk_label_set_text(GTK_LABEL(message), "Username cannot contain special characters");
-            return 0;
-        }
-        if (!islower(username[i])) {
-            gtk_label_set_text(GTK_LABEL(message), "Username must be all lowercase");
-            return 0;
-        }
-    }
-    if (password_len == 0) {
-      gtk_label_set_text(GTK_LABEL(message), "Password is required");
-      return 0;
-      // do not forget to change to 8
-    } else if (password_len < 0 || password_len > 20) {
+
+  // Check if username contains only lowercase letters
+  for (int i = 0; i < username_len; i++) {
+    if (!islower(username[i])) { // Ensures character is not a lowercase letter
       gtk_label_set_text(GTK_LABEL(message),
-                         "Password must contain 8-20 symbols");
+                         "Username must contain only lowercase letters");
       return 0;
     }
-    // check for password reliability
+    if (isdigit(username[i])) { // Ensures username does not contain digits
+      gtk_label_set_text(GTK_LABEL(message), "Username cannot contain digits");
+      return 0;
+    }
+  }
+
+  return 1; // Username is valid
+}
+
+int check_password(char *password, GtkWidget *message) {
+  int password_len = password != NULL ? strlen(password) : -1;
+  if (password_len == 0) {
+    gtk_label_set_text(GTK_LABEL(message), "Password is required");
+    return 0;
+  } else if (password_len < 8 || password_len > 20) {
+    gtk_label_set_text(GTK_LABEL(message),
+                       "Password must contain 8-20 symbols");
+    return 0;
+  }
+  return 1;
+}
+
+int check_form_data(char *username, char *password, GtkWidget *message) {
+  // Check if the username is valid
+  if (check_username(username, message) == 0) {
+    return 0; // Username validation failed, no need to check password
+  }
+  // If password is provided, check if it is valid
+  if (password != NULL) {
+    if (check_password(password, message) == 0) {
+      return 0;
+    }
   }
   return 1;
 }

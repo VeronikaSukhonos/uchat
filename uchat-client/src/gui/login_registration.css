@@ -320,6 +320,8 @@ spinner {
 .img-edit {
     margin-bottom: 10px;
     border-radius: 100%;
+	min-width: 300px;
+    min-height: 150px;
 }
 
 .profile-name {
@@ -438,52 +440,53 @@ combobox.form-role, combobox.form-role * {
     background-image: none;
     color: white;
     border: none;
-    padding: 2px 0;  /* Reduced padding for a smaller appearance */
-    margin: 0;       /* Remove any extra spacing around the combo box */
+	padding: 2px 0;
+    margin: 0;
     box-shadow: none;
 }
 
-combobox.form-role .entry,
-combobox.form-role button {
+combobox.form-role .combo-box-entry, 
+combobox.form-role .entry {
     background-color: #1A1A1D;
     border: none;
     box-shadow: none;
     color: white;
-    padding: 2px 10px;  /* Adjust padding for consistent appearance */
-    margin: 0;         /* Remove extra spacing around inner elements */
-    border-radius: 8px;  /* Keep rounded corners consistent with other fields */
+	padding: 2px 10px;
+    margin: 0;
+    border-radius: 8px;
 }
 
 /* Focus state for combo box */
-combobox.form-role:focus,
-combobox.form-role:focus .entry,
-combobox.form-role:focus button {
+combobox.form-role .combo-box-entry:focus, 
+combobox.form-role .entry:focus {
     border: 2px solid #5BCD91;
     transition: border-color 0.3s;
 }
 
 /* Style for the dropdown popup (menu) */
-combobox.form-role .popup {
-    background-color: #1A1A1D;
-    color: white;
-    border-radius: 8px; /* Padding around the popup for spacing */
+combobox.form-role button {
+    background-color: transparent; /* Transparent background for the button */
+    border: none;
+    box-shadow: none;
+	color: white;
+	padding: 2px 5px;
 }
 
 /* Style for the items inside the dropdown list */
-combobox.form-role .popup .menu-item {
+combobox.form-role button:hover {
     background-color: #29292C;
-    color: white;
-    border-radius: 4px;  /* Rounded corners for dropdown items */
 }
 
 /* Style for selected item */
-combobox.form-role .popup .menu-item:selected {
-    background-color: #5BCD91;
-    color: #1A1A1D;
+combobox.form-role .popup {
+    background-color: #1A1A1D;
+    color: white;
+    border-radius: 8px;
 }
 
 /* Hover state for items */
-combobox.form-role .popup .menu-item:hover {
+combobox.form-role .popup .menu-item {
     background-color: #5BCD91;
-    color: #1A1A1D;
+    color: #604BDC;
+    border-radius: 4px;
 }

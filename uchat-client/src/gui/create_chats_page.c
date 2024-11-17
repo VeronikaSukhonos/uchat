@@ -563,15 +563,22 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.student_group, FALSE, FALSE, 0);
 
-  // Student or Teacher
+  // choose description
   (*main_page).edit_data.role_combo = gtk_combo_box_text_new();
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).edit_data.role_combo),
       "form-role");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Student");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Reading PDF");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Teacher");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Devastated");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Busy");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "In progress");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
+      "Competed all tasks");
 
   gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
 
