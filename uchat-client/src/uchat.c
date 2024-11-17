@@ -24,6 +24,7 @@ gboolean periodic_reconnection_attempt(gpointer data) {
 // Additional function definitions and main application setup code
 int main(int argc, char *argv[]) {
   gtk_init(&argc, &argv);
+  delete_cache_directory();
   // Attempt initial connection to the server
   sock = connect_to_server("127.0.0.1", PORT);
   if (sock < 0) {
