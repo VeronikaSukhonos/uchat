@@ -90,6 +90,8 @@ typedef struct s_profile_data {
   GtkWidget *form;
   GtkWidget *message;
   GtkWidget *role_combo;
+  GtkWidget *new_pw;
+  GtkWidget *new_pw_again;
 } t_profile_data;
 
 typedef struct s_chat_data {
@@ -218,6 +220,9 @@ void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
                             GtkWidget *entry_box);
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
+void show_pw(GtkWidget *edit_button, gpointer data);
+
+
 void registration_submit(GtkWidget *registration_button, t_form_data *data);
 void login_submit(GtkWidget *login_button, t_form_data *data);
 void chat_creation(GtkWidget *create_chat_button, gpointer data);
@@ -297,3 +302,4 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                                   const char *last_message,
                                   const char *last_sender,
                                   const char *last_time, const char *unread);
+void on_password_changed(GtkWidget *widget, gpointer data);

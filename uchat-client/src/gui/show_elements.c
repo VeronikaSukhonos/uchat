@@ -1,5 +1,27 @@
 #include <uchat.h>
 
+void show_pw(GtkWidget *edit_button, gpointer data) {
+    t_main_page_data *main_page = (t_main_page_data *)data;
+
+    // Set existing values in the edit fields
+    gtk_entry_set_text(
+        GTK_ENTRY((*main_page).edit_data.new_pw),
+        gtk_label_get_label(GTK_LABEL((*main_page).profile_data.new_pw)));
+    gtk_entry_set_text(
+        GTK_ENTRY((*main_page).edit_data.new_pw_again),
+        gtk_label_get_label(GTK_LABEL((*main_page).profile_data.new_pw_again)));
+    
+    // Set placeholder text
+    gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.new_pw),
+                                   "New password");
+    gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.new_pw_again),
+                                   "Repeat new password");
+    gtk_label_set_label(GTK_LABEL((*main_page).edit_data.message), "");
+
+    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
+                                     "edit_password");
+}
+
 void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   set_selected_button(&(*main_page).menu_button_selected, &new_chat_button);
