@@ -452,7 +452,7 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   }
 
   // Encrypt JSON data
-  unsigned char ciphertext[4096];
+  unsigned char ciphertext[4096 * 2 * 2 * 2];
   int ciphertext_len = encrypt_session((unsigned char *)json_data,
                                        strlen(json_data), key, ciphertext, iv);
   free(json_data);

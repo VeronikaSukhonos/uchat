@@ -25,7 +25,7 @@ int store_voice_message(sqlite3 *db, int chat_id, int sender_id,
   // Get the current timestamp
   time_t now = time(NULL);
   char timestamp[20];
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", gmtime(&now));
   sqlite3_bind_text(stmt, 3, timestamp, -1, SQLITE_STATIC);
 
   // Bind the voice data as a BLOB

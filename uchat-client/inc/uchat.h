@@ -62,12 +62,6 @@ typedef struct MessageNode {
   struct MessageNode *next;
 } MessageNode;
 
-typedef struct {
-  gboolean is_active;
-  const char *img_path_start;
-  const char *img_path_stop;
-} MicData;
-
 typedef struct s_chat_form_data {
   GtkWidget *form;
   GtkWidget *name;
@@ -100,7 +94,7 @@ typedef struct s_chat_data {
   GtkWidget *last_message;
   GtkWidget *unread;
   GtkWidget *box;
-  MicData *mic_data;
+  gboolean is_mic_active;
   int id;
 } t_chat_data;
 

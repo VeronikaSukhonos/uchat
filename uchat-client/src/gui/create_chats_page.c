@@ -7,21 +7,13 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
     g_printerr("Error: Invalid main_page, opened_chat, or mic_data.\n");
     return;
   }
-  if (!main_page->opened_chat->mic_data) {
-    main_page->opened_chat->mic_data = g_new0(MicData, 1);
-    main_page->opened_chat->mic_data->is_active = FALSE;
-    main_page->opened_chat->mic_data->img_path_start =
-        g_strdup("uchat-client/src/gui/resources/voice-start.png");
-    main_page->opened_chat->mic_data->img_path_stop =
-        g_strdup("uchat-client/src/gui/resources/voice-stop.png");
-  }
 
-  if (main_page->opened_chat->mic_data->is_active) {
+  if (main_page->opened_chat->is_mic_active == TRUE) {
     // Set button image to 'start' and stop recording
     GtkWidget *mic_button_img_start = gtk_image_new_from_file(
-        main_page->opened_chat->mic_data->img_path_start);
+        "uchat-client/src/gui/resources/voice-start.png");
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
-    main_page->opened_chat->mic_data->is_active = FALSE;
+    main_page->opened_chat->is_mic_active = FALSE;
 
     // Stop recording
     stop_recording();
@@ -30,9 +22,9 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
   } else {
     // Set button image to 'stop' and start recording
     GtkWidget *mic_button_img_stop = gtk_image_new_from_file(
-        main_page->opened_chat->mic_data->img_path_stop);
+        "uchat-client/src/gui/resources/voice-stop.png");
     gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
-    main_page->opened_chat->mic_data->is_active = TRUE;
+    main_page->opened_chat->is_mic_active = TRUE;
 
     // Start recording to a temporary file
     start_recording("cache/temp_audio.wav");
@@ -267,20 +259,19 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(message_entry, "key-press-event", 
                    G_CALLBACK(on_key_press_event), main_page);
 
-  MicData *mic_data = g_new(MicData, 1);
-  mic_data->is_active = FALSE;
-  mic_data->img_path_start = "uchat-client/src/gui/resources/voice-start.png";
-  mic_data->img_path_stop = "uchat-client/src/gui/resources/voice-stop.png";
-
   GtkWidget *mic_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(message_entry_box), mic_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
                               "input-button");
-  GtkWidget *mic_button_img_start =
-      gtk_image_new_from_file(mic_data->img_path_start);
-  gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
-  g_signal_connect(mic_button, "clicked", G_CALLBACK(change_mic_image),
-                   main_page);
+
+  GtkWidget *mic_start_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/voice-start.png");
+  gtk_button_set_image(GTK_BUTTON(mic_button), mic_start_image);
+  g_signal_connect(mic_button, "clicked",
+                   G_CALLBACK(change_mic_image), main_page);
+
+  if (main_page->opened_chat != NULL)
+	main_page->opened_chat->is_mic_active = FALSE;
 
   GtkWidget *send_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 0);
