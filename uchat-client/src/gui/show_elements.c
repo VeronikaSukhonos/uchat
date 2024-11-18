@@ -10,7 +10,7 @@ void show_pw(GtkWidget *edit_button, gpointer data) {
     gtk_entry_set_text(
         GTK_ENTRY((*main_page).edit_data.new_pw_again),
         gtk_label_get_label(GTK_LABEL((*main_page).profile_data.new_pw_again)));
-    
+        
     // Set placeholder text
     gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.new_pw),
                                    "New password");

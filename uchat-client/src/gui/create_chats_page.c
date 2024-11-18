@@ -610,8 +610,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "clear_area");
-    
-  open_close_menu(NULL, main_page);
 
   //change password
   GtkWidget *edit_password_scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -629,6 +627,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
 
+  GtkWidget *change_pw= gtk_label_new("Change password");
+  gtk_style_context_add_class(gtk_widget_get_style_context(change_pw),
+                              "form-name-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), change_pw, FALSE,
+                     FALSE, 0);
+  gtk_widget_set_halign(change_pw, GTK_ALIGN_CENTER);
+
   // new password
   (*main_page).edit_data.new_pw = gtk_entry_new();
   gtk_style_context_add_class(
@@ -643,6 +648,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.new_pw_again, FALSE, FALSE, 0);
-    
 
+  open_close_menu(NULL, main_page);
 }
