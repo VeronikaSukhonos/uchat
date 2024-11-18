@@ -264,6 +264,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
   g_signal_connect(main_page->message_buffer, "changed",
                    G_CALLBACK(check_message_entry_height), message_entry);
+  g_signal_connect(message_entry, "key-press-event", 
+                   G_CALLBACK(on_key_press_event), main_page);
 
   MicData *mic_data = g_new(MicData, 1);
   mic_data->is_active = FALSE;

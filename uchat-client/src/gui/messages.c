@@ -73,6 +73,21 @@ void check_message_entry_height(GtkTextBuffer *message_buffer,
   }
 }
 
+gboolean on_key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
+    if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter) {
+        if ((event->state & GDK_SHIFT_MASK) != 0) {
+            GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget));
+            gtk_text_buffer_insert_at_cursor(buffer, "\n", -1); 
+            return TRUE; 
+        } else {
+            send_message_f(widget, user_data);
+            return TRUE; 
+        }
+    }
+
+    return FALSE; 
+}
+
 const gchar *message_trim(const gchar *message) {
   int start = -1;
   int finish = 0;
