@@ -38,27 +38,31 @@ void change_profile(GtkWidget *change_button, gpointer data) {
                                      "user_info");
   }
 }
-// void change_password(GtkWidget *change_button, gpointer data) {
-//     t_main_page_data *main_page = (t_main_page_data *)data;
+void change_password(GtkWidget *change_button, gpointer data) {
+    t_main_page_data *main_page = (t_main_page_data *)data;
 
-//     // Retrieve text from input fields
-//     char *new_pw = (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).edit_data.new_pw));
-//     char *new_pw_again = (char *)gtk_entry_get_text(
-//         GTK_ENTRY((*main_page).edit_data.new_pw_again));
-//     //char *username = (char *)gtk_entry_get_text(
-//         GTK_ENTRY((*main_page).edit_data.new_pw_again));
+    // Retrieve text from input fields
+    char *new_pw = (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).edit_data.new_pw));
+    char *new_pw_again = (char *)gtk_entry_get_text(
+        GTK_ENTRY((*main_page).edit_data.new_pw_again));
+    // Check if the passwords match
+    if (strcmp(new_pw, new_pw_again) != 0) {
+        gtk_label_set_text(GTK_LABEL((*main_page).edit_data.message), "Passwords do not match.");
+        return; // Exit the function if passwords do not match
+    }
 
-//     // Check if username is valid (adjust validation as needed)
-//     if (check_form_data(username, NULL, (*main_page).edit_data.message) == 1) {
-//         // Switch to the user info page
-//         cJSON *json = cJSON_CreateObject();
-//         cJSON_AddStringToObject(json, "action", "UPDATE_PASSWORD_DATA");
-//         char *json_str = cJSON_Print(json);
-//         cJSON_Delete(json);
-//         send(main_page->sock, json_str, strlen(json_str), 0);
-//         g_print("Sent: %s\n", json_str);
-//         free(json_str);
-//         gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-//                                          "user_info");
-//     }
-// }
+        if (check_password(new_pw, (*main_page).edit_data.message)) {
+            // Switch to the user info page
+            cJSON *json = cJSON_CreateObject();
+            cJSON_AddStringToObject(json, "action", "CHANGE_PASSWORD_DATA");
+            cJSON_AddStringToObject(json, "new_pass", new_pw ? new_pw : "");
+            char *json_str = cJSON_Print(json);
+            cJSON_Delete(json);
+            send(main_page->sock, json_str, strlen(json_str), 0);
+            g_print("Sent: %s\n", json_str);
+            free(json_str);
+            gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
+                                             "user_info");
+            gtk_label_set_text(GTK_LABEL((*main_page).edit_data.message), "Password changed successfully!");
+        }
+}

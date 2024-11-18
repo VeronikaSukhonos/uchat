@@ -303,3 +303,5 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                                   const char *last_sender,
                                   const char *last_time, const char *unread);
 void on_password_changed(GtkWidget *widget, gpointer data);
+void change_password(GtkWidget *change_button, gpointer data);
+int validate_passwords(const char *password, const char *repassword, GtkWidget *message);

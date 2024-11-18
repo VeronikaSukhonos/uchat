@@ -73,7 +73,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                        t_main_page_data *main_page) {
   GtkWidget *sidebar;
   GtkWidget *menu_box, *chats_list;
-  GtkWidget *create_chat, *create_group, *user_info, *edit_profile, *chat, *edit_password;
+  GtkWidget *create_chat, *create_group, *user_info, *edit_profile, *chat;
   GtkWidget *img_profile;
 
   chats = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -611,43 +611,42 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "clear_area");
 
-  //change password
-  GtkWidget *edit_password_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
-                      edit_password_scroll, "edit_password");
-  edit_password = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add(GTK_CONTAINER(edit_password_scroll), edit_password);
-  gtk_style_context_add_class(gtk_widget_get_style_context(edit_password),
-                              "main_page_form");
-  (*main_page).edit_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_box_pack_start(GTK_BOX(edit_password), (*main_page).edit_data.form, TRUE,
-                     FALSE, 0);
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).edit_data.form), "form");
-  gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
-  gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
+  // Change password setup
+GtkWidget *edit_password_scroll = gtk_scrolled_window_new(NULL, NULL);
+gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), edit_password_scroll, "edit_password");
 
-  GtkWidget *change_pw= gtk_label_new("Change password");
-  gtk_style_context_add_class(gtk_widget_get_style_context(change_pw),
-                              "form-name-label");
-  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), change_pw, FALSE,
-                     FALSE, 0);
-  gtk_widget_set_halign(change_pw, GTK_ALIGN_CENTER);
+GtkWidget *edit_password = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+gtk_container_add(GTK_CONTAINER(edit_password_scroll), edit_password);
+gtk_style_context_add_class(gtk_widget_get_style_context(edit_password), "main_page_form");
 
-  // new password
-  (*main_page).edit_data.new_pw = gtk_entry_new();
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).edit_data.new_pw),
-      "form-entry");
-  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
-                     (*main_page).edit_data.new_pw, FALSE, FALSE, 0);
-  // new pw again
-  (*main_page).edit_data.new_pw_again = gtk_entry_new();
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).edit_data.new_pw_again),
-      "form-entry");
-  gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
-                     (*main_page).edit_data.new_pw_again, FALSE, FALSE, 0);
+(*main_page).edit_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+gtk_box_pack_start(GTK_BOX(edit_password), (*main_page).edit_data.form, TRUE, FALSE, 0);
+gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).edit_data.form), "form");
+gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
+gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
 
-  open_close_menu(NULL, main_page);
+// Label for "Change password"
+GtkWidget *change_pw = gtk_label_new("Change password");
+gtk_style_context_add_class(gtk_widget_get_style_context(change_pw), "form-name-label");
+gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), change_pw, FALSE, FALSE, 0);
+gtk_widget_set_halign(change_pw, GTK_ALIGN_CENTER);
+
+// New password entry
+(*main_page).edit_data.new_pw = gtk_entry_new();
+gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).edit_data.new_pw), "form-entry");
+gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), (*main_page).edit_data.new_pw, FALSE, FALSE, 0);
+
+// Confirm new password entry
+(*main_page).edit_data.new_pw_again = gtk_entry_new();
+gtk_style_context_add_class(gtk_widget_get_style_context((*main_page).edit_data.new_pw_again), "form-entry");
+gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), (*main_page).edit_data.new_pw_again, FALSE, FALSE, 0);
+
+// Submit button
+GtkWidget *pw_button = gtk_button_new_with_label("Submit");
+gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), pw_button, FALSE, FALSE, 0);
+gtk_style_context_add_class(gtk_widget_get_style_context(pw_button), "form-button");
+g_signal_connect(pw_button, "clicked", G_CALLBACK(change_password), main_page);
+
+// Switch to the password change form
+gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack), "edit_password");
 }
