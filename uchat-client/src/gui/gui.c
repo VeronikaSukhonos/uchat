@@ -116,18 +116,13 @@ int check_username(char *username, GtkWidget *message) {
 
   // Check if username contains only lowercase letters
   for (int i = 0; i < username_len; i++) {
-    if (!islower(username[i])) { // Ensures character is not a lowercase letter
+    if (!islower(username[i])) {
       gtk_label_set_text(GTK_LABEL(message),
-                         "Username must contain only lowercase letters");
-      return 0;
-    }
-    if (isdigit(username[i])) { // Ensures username does not contain digits
-      gtk_label_set_text(GTK_LABEL(message), "Username cannot contain digits");
+                         "Username must only be lowercase letters");
       return 0;
     }
   }
-
-  return 1; // Username is valid
+  return 1;
 }
 
 int check_password(char *password, GtkWidget *message) {
@@ -135,11 +130,13 @@ int check_password(char *password, GtkWidget *message) {
   if (password_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Password is required");
     return 0;
-  } else if (password_len < 8 || password_len > 20) {
+  // do not forget to change to 8
+  } else if (password_len < 0 || password_len > 20) {
     gtk_label_set_text(GTK_LABEL(message),
                        "Password must contain 8-20 symbols");
     return 0;
   }
+  // check for password reliability here
   return 1;
 }
 

@@ -242,9 +242,6 @@ void remove_all_chat_buttons(t_main_page_data *main_page) {
     next_node = current->next;
 
     // Destroy GTK widgets
-    if (current->chat.button) {
-      gtk_widget_destroy(current->chat.button);
-    }
     if (current->chat.name) {
       gtk_widget_destroy(current->chat.name);
     }
@@ -262,6 +259,9 @@ void remove_all_chat_buttons(t_main_page_data *main_page) {
     }
     if (current->chat.box) {
       gtk_widget_destroy(current->chat.box);
+    }
+    if (current->chat.button) {
+      gtk_widget_destroy(current->chat.button);
     }
 
     // Free the current node
@@ -357,6 +357,9 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
   if (strcmp(name, "") == 0)
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group must have a name");
+  if (strlen(name) > 40)
+    gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
+                       "Group name cannot exceed 40 characters");
   else if ((*main_page).group_users_count < 2)
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group must have at least three members");

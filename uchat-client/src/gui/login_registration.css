@@ -225,7 +225,7 @@ spinner {
 .gchats {
     font-weight: bold;
     font-size: 26px;
-    padding: 20px;
+    padding: 20px 0;
     color: #5BCD91;
     opacity: 0;
     animation: fadeIn 3s forwards;  

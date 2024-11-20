@@ -90,11 +90,25 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(menu_button, "clicked", G_CALLBACK(open_close_menu),
                    main_page);
 
-  GtkWidget *menu_label = gtk_label_new("Green ❀ Chat");
-  gtk_box_pack_start(GTK_BOX(sidebar_top), menu_label, TRUE, TRUE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(menu_label),
+  GtkWidget *menu_label_box = gtk_grid_new();
+  gtk_box_pack_start(GTK_BOX(sidebar_top), menu_label_box, TRUE, TRUE, 0);
+  gtk_widget_set_halign(menu_label_box, GTK_ALIGN_CENTER);
+
+  GtkWidget *menu_label1 = gtk_label_new("Green ");
+  gtk_grid_attach(GTK_GRID(menu_label_box), menu_label1, 0, 0, 1, 1);
+  gtk_style_context_add_class(gtk_widget_get_style_context(menu_label1),
                               "gchats");
-  gtk_widget_set_halign(menu_label, GTK_ALIGN_CENTER);
+
+  GtkWidget *menu_label2 =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/flower.png");
+  gtk_grid_attach(GTK_GRID(menu_label_box), menu_label2, 1, 0, 1, 1);
+  gtk_style_context_add_class(gtk_widget_get_style_context(menu_label2),
+                              "gchats");
+
+  GtkWidget *menu_label3 = gtk_label_new(" Chat");
+  gtk_grid_attach(GTK_GRID(menu_label_box), menu_label3, 2, 0, 1, 1);
+  gtk_style_context_add_class(gtk_widget_get_style_context(menu_label3),
+                              "gchats");
 
   // stack
   (*main_page).menu_stack = gtk_stack_new();
@@ -149,6 +163,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *chats_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), chats_scroll,
                       "chats_list");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(chats_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   (*main_page).chats_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(chats_scroll), (*main_page).chats_box);
 
@@ -228,17 +244,36 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   GtkWidget *smile_menu = gtk_grid_new();
   gtk_container_add(GTK_CONTAINER(smile_scroll), smile_menu);
-  const gchar *emojis[] = {"😀", "😃", "😄", "😁", "😆", "😅",
-                           "🤣", "😂", "🙂", "🙃", "😉", "😊",
-                           "😇", "🥰", "😍", "🤩", "😘", "😗"};
+
+  const gchar *emojis[] =
+    {"😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂",
+     "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗",
+     "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑",
+     "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑", "😶",
+     "😶‍🌫️", "😏", "😒", "🙄", "😬", "😮‍💨", "🤥", "😌", "😔",
+     "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧",
+     "🥵", "🥶", "🥴", "😵", "😵‍💫", "🤯", "🤠", "🥳", "🥸",
+     "😎", "🤓", "🧐", "😕", "😟", "🙁", "😮", "😯", "😲",
+     "😳", "🥺", "😦", "😧", "😨", "😰", "😥", "😢", "😭",
+     "😱", "😖", "😣", "😞", "😓", "😩", "😫", "🥱", "😤",
+     "😡", "😠", "🤬", "😈", "👿", "💀", "💩", "🤡", "👹",
+     "👺", "👻", "👽", "👾", "🤖", "😺", "😸", "😹", "😻",
+     "😼", "😽", "🙀", "😿", "😾", "🙈", "🙉", "🙊", "👋",
+     "🤚", "🖐", "✋", "🖖", "👌", "🤌", "🤏", "✌", "🤞",
+     "🤟", "🤘", "🤙", "👈", "👉", "👆", "👇", "☝", "👍",
+     "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲",
+     "🤝", "🙏", "✍", "💅", "🧠", "👂", "👀", "👁", "👄",
+     "🙋", "🙋‍♂️", "🙋‍♀️", "🤦", "🤦‍♂️", "🤦‍♀️", "🤷", "🤷‍♂️", "🤷‍♀️",
+     "💘", "💕", "❤️‍🔥", "💜", "💚"};
+
   int emojis_num = sizeof(emojis) / sizeof(emojis[0]);
   GtkWidget *emoji_buttons[emojis_num];
   for (int i = 0; i < emojis_num; i++) {
     emoji_buttons[i] = gtk_button_new_with_label(emojis[i]);
     g_signal_connect(emoji_buttons[i], "clicked",
                      G_CALLBACK(insert_emoji_into_text), main_page);
-    gtk_grid_attach(GTK_GRID(smile_menu), emoji_buttons[i], (i % 6), (i / 6), 1,
-                    1);
+    gtk_grid_attach(GTK_GRID(smile_menu), emoji_buttons[i],
+    				(i % 9), (i / 9), 1, 1);
   }
 
   GtkWidget *message_entry = gtk_text_view_new();
