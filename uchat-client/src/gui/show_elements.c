@@ -83,17 +83,48 @@ void show_edit_page(GtkWidget *edit_button, gpointer data) {
 
 void show_chat(GtkWidget *chat_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  set_selected_button(&(*main_page).menu_button_selected, &chat_button);
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
+
+  // Set the selected button for the menu
+  set_selected_button(&main_page->menu_button_selected, &chat_button);
+
+  // Show the chat stack and hide the chats list
+  gtk_stack_set_visible_child_name(GTK_STACK(main_page->central_area_stack),
                                    "chat");
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
+  gtk_stack_set_visible_child_name(GTK_STACK(main_page->menu_stack),
                                    "chats_list");
-  for (t_chat_node *i = (*main_page).chats; i != NULL; i = i->next) {
-    if ((*i).chat.button == chat_button) {
-      (*main_page).opened_chat = &(*i).chat;
+
+  // Check if any chat has the microphone active, stop it and update the button
+  // image
+  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
+    if (i->chat.is_mic_active) {
+      // Stop recording if any chat's mic is active
+      i->chat.is_mic_active = FALSE;
+
+      // Update the image on the mic button to indicate the recording has
+      // stopped
+      GtkWidget *mic_button_img_start = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/voice-start.png");
+      gtk_button_set_image(GTK_BUTTON(main_page->mic_button),
+                           mic_button_img_start);
+
+      // If the opened chat is the current chat, also stop its mic recording
+      if (main_page->opened_chat == &i->chat) {
+        main_page->opened_chat->is_mic_active = FALSE;
+      }
+
+      // You can add a log or other actions as needed
+      stop_recording();
+      g_print("Recording stopped for chat: %d\n", i->chat.id);
+    }
+  }
+
+  // Iterate through all chats and set the opened chat
+  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
+    if (i->chat.button == chat_button) {
+      main_page->opened_chat = &i->chat;
       char id_str[10];
-      snprintf(id_str, sizeof(id_str), "%d", (*i).chat.id);
-      gtk_stack_set_visible_child_name(GTK_STACK((*main_page).chats_stack),
+      snprintf(id_str, sizeof(id_str), "%d", i->chat.id);
+      gtk_stack_set_visible_child_name(GTK_STACK(main_page->chats_stack),
                                        id_str);
       break;
     }

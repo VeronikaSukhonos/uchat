@@ -16,38 +16,69 @@ char *decrypt_json_from_file(const char *file_path) {
   char serial[128];
   get_serial_number(serial, sizeof(serial));
 
+  // Derive encryption key from the device's serial number
   if (derive_key_from_serial(serial, key) != 0) {
     fprintf(stderr, "Failed to derive encryption key.\n");
     return NULL;
   }
 
+  // Open the encrypted file for reading
   FILE *file = fopen(file_path, "rb");
   if (!file) {
     perror("Failed to open encrypted JSON file");
     return NULL;
   }
 
-  fread(iv, 1, IV_SIZE, file); // Read IV from the file
+  // Read the IV from the file
+  fread(iv, 1, IV_SIZE, file);
 
+  // Get the size of the encrypted data in the file (excluding IV)
   fseek(file, 0, SEEK_END);
   long file_size = ftell(file) - IV_SIZE;
   fseek(file, IV_SIZE, SEEK_SET); // Start reading after IV
+
+  // Dynamically allocate memory for the ciphertext based on file size
   unsigned char *ciphertext = malloc(file_size);
+  if (!ciphertext) {
+    fprintf(stderr, "Memory allocation failed for ciphertext.\n");
+    fclose(file);
+    return NULL;
+  }
+
+  // Read the encrypted data (ciphertext) into the buffer
   fread(ciphertext, 1, file_size, file);
   fclose(file);
 
-  unsigned char plaintext[8192]; // Ensure buffer is large enough
+  // Dynamically allocate memory for the decrypted data (plaintext)
+  unsigned char *plaintext = malloc(
+      file_size); // At worst, plaintext can be the same size as ciphertext
+  if (!plaintext) {
+    fprintf(stderr, "Memory allocation failed for plaintext.\n");
+    free(ciphertext);
+    return NULL;
+  }
+
+  // Decrypt the ciphertext into the plaintext buffer
   int plaintext_len =
       decrypt_session(ciphertext, file_size, key, iv, plaintext);
   free(ciphertext);
 
   if (plaintext_len < 0) {
     fprintf(stderr, "Decryption failed for file: %s\n", file_path);
+    free(plaintext);
     return NULL;
   }
-  plaintext[plaintext_len] = '\0'; // Null-terminate the plaintext
-  return strdup((char *)plaintext);
+
+  // Null-terminate the plaintext
+  plaintext[plaintext_len] = '\0';
+
+  // Duplicate the decrypted plaintext and return it as a string
+  char *result = strdup((char *)plaintext);
+  free(plaintext); // Free plaintext after duplicating it
+
+  return result;
 }
+
 int remove_directory(const char *path) {
   struct dirent *entry;
   DIR *dir = opendir(path);
@@ -105,6 +136,22 @@ void ensure_cache_directory() {
   }
 }
 
+void copy_until_newline_or_max_len(const char *input, char *output,
+                                   size_t max_len) {
+  size_t i = 0;
+
+  // Iterate over each character of the input string
+  while (i < max_len - 1 && input[i] != '\0') {
+    if (input[i] == '\n') {
+      break; // Stop copying at the newline
+    }
+    output[i] = input[i]; // Copy the character to the output
+    i++;
+  }
+
+  output[i] = '\0'; // Ensure the string is null-terminated
+}
+
 int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
                                        char *name, char *chat_type,
                                        char *last_message, char *last_sender,
@@ -154,7 +201,8 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
 
     if (cJSON_IsString(message_content) && cJSON_IsString(message_sender) &&
         cJSON_IsString(message_timestamp)) {
-      strncpy(last_message, message_content->valuestring, 1023);
+      copy_until_newline_or_max_len(message_content->valuestring, last_message,
+                                    26);
       strncpy(last_sender, message_sender->valuestring, 63);
 
       if (strcmp(last_message, "") == 0) {
@@ -317,7 +365,6 @@ MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
     fprintf(stderr, "Failed to read ciphertext.\n");
     return NULL;
   }
-
   // Decrypt JSON data
   unsigned char plaintext[4096];
   int plaintext_len =
@@ -452,10 +499,20 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   }
 
   // Encrypt JSON data
-  unsigned char ciphertext[4096 * 2 * 2 * 2];
+  int json_data_len = strlen(json_data);
+  unsigned char *ciphertext = (unsigned char *)malloc(
+      json_data_len + 16); // Allocate enough space for padding
+
+  if (!ciphertext) {
+    fprintf(stderr, "Memory allocation failed\n");
+    free(json_data);
+    return;
+  }
+
+  // Call encryption function
   int ciphertext_len = encrypt_session((unsigned char *)json_data,
-                                       strlen(json_data), key, ciphertext, iv);
-  free(json_data);
+                                       json_data_len, key, ciphertext, iv);
+  free(json_data); // Free JSON data after encryption
 
   if (ciphertext_len < 0) {
     fprintf(stderr, "Encryption failed.\n");
@@ -472,6 +529,7 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   fwrite(iv, 1, IV_SIZE, file);
   fwrite(ciphertext, 1, ciphertext_len, file);
   fclose(file);
+  free(ciphertext);
 }
 
 int insert_message_into_chat(const char *file_path, cJSON *new_message) {

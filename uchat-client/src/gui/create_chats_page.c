@@ -33,10 +33,30 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
 
 void open_close_menu(GtkWidget *menu_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
-                                   (*main_page).menu_opened == 1 ? "chats_list"
-                                                                 : "menu");
-  (*main_page).menu_opened *= -1;
+
+  // Check if any chat has the microphone active
+  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
+    if (i->chat.is_mic_active) {
+      // Stop the microphone recording
+      i->chat.is_mic_active = FALSE;
+
+      // Update the mic button image to indicate stopped recording
+      GtkWidget *mic_button_img_start = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/voice-start.png");
+      gtk_button_set_image(GTK_BUTTON(main_page->mic_button),
+                           mic_button_img_start);
+
+      // Log or perform additional actions if needed
+      g_print("Recording stopped for chat: %d\n", i->chat.id);
+    }
+  }
+
+  // Toggle the menu visibility
+  stop_recording();
+  gtk_stack_set_visible_child_name(GTK_STACK(main_page->menu_stack),
+                                   main_page->menu_opened == 1 ? "chats_list"
+                                                               : "menu");
+  main_page->menu_opened *= -1;
 }
 
 void set_selected_button(GtkWidget **selected_button,
@@ -245,26 +265,173 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *smile_menu = gtk_grid_new();
   gtk_container_add(GTK_CONTAINER(smile_scroll), smile_menu);
 
-  const gchar *emojis[] =
-    {"😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂",
-     "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗",
-     "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑",
-     "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑", "😶",
-     "😶‍🌫️", "😏", "😒", "🙄", "😬", "😮‍💨", "🤥", "😌", "😔",
-     "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧",
-     "🥵", "🥶", "🥴", "😵", "😵‍💫", "🤯", "🤠", "🥳", "🥸",
-     "😎", "🤓", "🧐", "😕", "😟", "🙁", "😮", "😯", "😲",
-     "😳", "🥺", "😦", "😧", "😨", "😰", "😥", "😢", "😭",
-     "😱", "😖", "😣", "😞", "😓", "😩", "😫", "🥱", "😤",
-     "😡", "😠", "🤬", "😈", "👿", "💀", "💩", "🤡", "👹",
-     "👺", "👻", "👽", "👾", "🤖", "😺", "😸", "😹", "😻",
-     "😼", "😽", "🙀", "😿", "😾", "🙈", "🙉", "🙊", "👋",
-     "🤚", "🖐", "✋", "🖖", "👌", "🤌", "🤏", "✌", "🤞",
-     "🤟", "🤘", "🤙", "👈", "👉", "👆", "👇", "☝", "👍",
-     "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲",
-     "🤝", "🙏", "✍", "💅", "🧠", "👂", "👀", "👁", "👄",
-     "🙋", "🙋‍♂️", "🙋‍♀️", "🤦", "🤦‍♂️", "🤦‍♀️", "🤷", "🤷‍♂️", "🤷‍♀️",
-     "💘", "💕", "❤️‍🔥", "💜", "💚"};
+  const gchar *emojis[] = {"😀",
+                           "😃",
+                           "😄",
+                           "😁",
+                           "😆",
+                           "😅",
+                           "🤣",
+                           "😂",
+                           "🙂",
+                           "🙃",
+                           "😉",
+                           "😊",
+                           "😇",
+                           "🥰",
+                           "😍",
+                           "🤩",
+                           "😘",
+                           "😗",
+                           "😚",
+                           "😙",
+                           "🥲",
+                           "😋",
+                           "😛",
+                           "😜",
+                           "🤪",
+                           "😝",
+                           "🤑",
+                           "🤗",
+                           "🤭",
+                           "🤫",
+                           "🤔",
+                           "🤐",
+                           "🤨",
+                           "😐",
+                           "😑",
+                           "😶",
+                           "😶‍🌫️",
+                           "😏",
+                           "😒",
+                           "🙄",
+                           "😬",
+                           "😮‍💨",
+                           "🤥",
+                           "😌",
+                           "😔",
+                           "😪",
+                           "🤤",
+                           "😴",
+                           "😷",
+                           "🤒",
+                           "🤕",
+                           "🤢",
+                           "🤮",
+                           "🤧",
+                           "🥵",
+                           "🥶",
+                           "🥴",
+                           "😵",
+                           "😵‍💫",
+                           "🤯",
+                           "🤠",
+                           "🥳",
+                           "🥸",
+                           "😎",
+                           "🤓",
+                           "🧐",
+                           "😕",
+                           "😟",
+                           "🙁",
+                           "😮",
+                           "😯",
+                           "😲",
+                           "😳",
+                           "🥺",
+                           "😦",
+                           "😧",
+                           "😨",
+                           "😰",
+                           "😥",
+                           "😢",
+                           "😭",
+                           "😱",
+                           "😖",
+                           "😣",
+                           "😞",
+                           "😓",
+                           "😩",
+                           "😫",
+                           "🥱",
+                           "😤",
+                           "😡",
+                           "😠",
+                           "🤬",
+                           "😈",
+                           "👿",
+                           "💀",
+                           "💩",
+                           "🤡",
+                           "👹",
+                           "👺",
+                           "👻",
+                           "👽",
+                           "👾",
+                           "🤖",
+                           "😺",
+                           "😸",
+                           "😹",
+                           "😻",
+                           "😼",
+                           "😽",
+                           "🙀",
+                           "😿",
+                           "😾",
+                           "🙈",
+                           "🙉",
+                           "🙊",
+                           "👋",
+                           "🤚",
+                           "🖐",
+                           "✋",
+                           "🖖",
+                           "👌",
+                           "🤌",
+                           "🤏",
+                           "✌",
+                           "🤞",
+                           "🤟",
+                           "🤘",
+                           "🤙",
+                           "👈",
+                           "👉",
+                           "👆",
+                           "👇",
+                           "☝",
+                           "👍",
+                           "👎",
+                           "✊",
+                           "👊",
+                           "🤛",
+                           "🤜",
+                           "👏",
+                           "🙌",
+                           "👐",
+                           "🤲",
+                           "🤝",
+                           "🙏",
+                           "✍",
+                           "💅",
+                           "🧠",
+                           "👂",
+                           "👀",
+                           "👁",
+                           "👄",
+                           "🙋",
+                           "🙋‍♂️",
+                           "🙋‍♀️",
+                           "🤦",
+                           "🤦‍♂️",
+                           "🤦‍♀️",
+                           "🤷",
+                           "🤷‍♂️",
+                           "🤷‍♀️",
+                           "💘",
+                           "💕",
+                           "❤️‍🔥",
+                           "💜",
+                           "💚"};
 
   int emojis_num = sizeof(emojis) / sizeof(emojis[0]);
   GtkWidget *emoji_buttons[emojis_num];
@@ -272,8 +439,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
     emoji_buttons[i] = gtk_button_new_with_label(emojis[i]);
     g_signal_connect(emoji_buttons[i], "clicked",
                      G_CALLBACK(insert_emoji_into_text), main_page);
-    gtk_grid_attach(GTK_GRID(smile_menu), emoji_buttons[i],
-    				(i % 9), (i / 9), 1, 1);
+    gtk_grid_attach(GTK_GRID(smile_menu), emoji_buttons[i], (i % 9), (i / 9), 1,
+                    1);
   }
 
   GtkWidget *message_entry = gtk_text_view_new();
@@ -291,22 +458,23 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    G_CALLBACK(change_entry_box_focus), message_entry_box);
   g_signal_connect(main_page->message_buffer, "changed",
                    G_CALLBACK(check_message_entry_height), message_entry);
-  g_signal_connect(message_entry, "key-press-event", 
+  g_signal_connect(message_entry, "key-press-event",
                    G_CALLBACK(on_key_press_event), main_page);
 
-  GtkWidget *mic_button = gtk_button_new();
-  gtk_box_pack_start(GTK_BOX(message_entry_box), mic_button, FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(mic_button),
-                              "input-button");
+  main_page->mic_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(message_entry_box), main_page->mic_button, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context(main_page->mic_button), "input-button");
 
   GtkWidget *mic_start_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/voice-start.png");
-  gtk_button_set_image(GTK_BUTTON(mic_button), mic_start_image);
-  g_signal_connect(mic_button, "clicked",
+  gtk_button_set_image(GTK_BUTTON(main_page->mic_button), mic_start_image);
+  g_signal_connect(main_page->mic_button, "clicked",
                    G_CALLBACK(change_mic_image), main_page);
 
   if (main_page->opened_chat != NULL)
-	main_page->opened_chat->is_mic_active = FALSE;
+    main_page->opened_chat->is_mic_active = FALSE;
 
   GtkWidget *send_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 0);

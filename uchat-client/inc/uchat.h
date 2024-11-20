@@ -121,10 +121,11 @@ typedef struct s_main_page_data {
   int group_users_count;
   t_group_users_data group_users[USERS_IN_GROUP_COUNT];
   GtkWidget *chats_stack;
-  GtkWidget *messages_container;  
+  GtkWidget *messages_container;
   GtkTextView *message_entry;
   GtkTextBuffer *message_buffer; // Add message_buffer here
   GtkWidget *smile_window;
+  GtkWidget *mic_button;
 } t_main_page_data;
 
 typedef struct s_form_data {
@@ -249,13 +250,14 @@ gboolean on_button_hover(GtkWidget *send_button, GdkEvent *event,
                          gpointer user_data);
 gboolean on_button_leave(GtkWidget *send_button, GdkEvent *event,
                          gpointer user_data);
-gboolean on_key_press_event(GtkWidget *widget, GdkEventKey *event, 
+gboolean on_key_press_event(GtkWidget *widget, GdkEventKey *event,
                             gpointer user_data);
 void change_button_hover_image(GtkWidget *send_button);
 const gchar *message_trim(const gchar *message);
 void send_message_to_server(int chat_id, const gchar *message);
 void send_message_f(GtkWidget *widget, gpointer data);
-void add_message(GtkWidget *messages_container, const gchar *message_text, gboolean is_my_message);
+void add_message(GtkWidget *messages_container, const gchar *message_text,
+                 gboolean is_my_message);
 void on_message_send(GtkWidget *send_button, gpointer user_data);
 void on_message_received(const gchar *message_text);
 
