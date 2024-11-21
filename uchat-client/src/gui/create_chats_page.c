@@ -473,9 +473,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(main_page->mic_button, "clicked",
                    G_CALLBACK(change_mic_image), main_page);
 
-  if (main_page->opened_chat != NULL)
-    main_page->opened_chat->is_mic_active = FALSE;
-
   GtkWidget *send_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(input_box), send_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(send_button),
