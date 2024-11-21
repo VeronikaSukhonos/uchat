@@ -47,6 +47,7 @@ typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
 
 typedef struct {
   int message_id;
+  int chat_id;
   char sender[64];
   time_t date;
   ContentType content_type;
@@ -54,6 +55,12 @@ typedef struct {
   char content[1024];
   char voice_path[256];
   int read; // New field to indicate read (1) or unread (0)
+  GtkWidget *button;
+  GtkWidget *voice_message_button;
+  GtkWidget *message_label;
+  GtkWidget *time_label;
+  GtkWidget *changed_label;
+  GtkWidget *seen_label;
 } MessageCache;
 
 // Linked list node for MessageCache
@@ -110,6 +117,7 @@ typedef struct s_main_page_data {
   GtkWidget *menu_button_selected;
   GtkWidget *chats_box;
   t_chat_node *chats;
+  MessageNode *messages;
   int chats_count;
   t_chat_data *opened_chat;
   GtkWidget *central_area_stack;
@@ -212,6 +220,8 @@ void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window);
 void hide_smile_menu(GtkWidget *smile_window, GtkWidget *smile_button);
 void insert_emoji_into_text(GtkWidget *emoji_button,
                             t_main_page_data *main_page);
+MessageNode *create_message_node(t_main_page_data *main_page, ContentType message_type, int chat_id);
+void create_message_button(t_main_page_data *main_page, MessageNode *temp_node);
 
 void show_chat(GtkWidget *chat_button, gpointer data);
 void show_registration(GtkWidget *registration_link_button, t_form_data *data);
