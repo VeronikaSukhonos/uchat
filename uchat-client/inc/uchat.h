@@ -139,6 +139,11 @@ typedef struct s_form_data {
   GtkWidget *message;
 } t_form_data;
 
+typedef struct s_reconnect_message {
+  GtkWidget *box;
+  GtkWidget *label;
+} t_reconnect_message;
+
 typedef struct {
   GtkWidget *pages;
   GtkWidget *registration;
@@ -147,6 +152,8 @@ typedef struct {
   t_form_data *registration_data;
   t_form_data *login_data;
   t_main_page_data *main_page;
+  GtkWidget *main_overlay;
+  t_reconnect_message *reconnect;
 } AppData;
 
 // encrypt
@@ -238,9 +245,12 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
-                         t_form_data *login_data, t_main_page_data *main_page);
+                         t_form_data *login_data, t_main_page_data *main_page,
+                         GtkWidget *main_overlay, t_reconnect_message *reconnect);
 int attempt_main_reconnection(AppData *app_data);
 gboolean periodic_reconnection_attempt(gpointer data);
+void create_reconnect_message(GtkWidget *main_overlay,
+							  t_reconnect_message *reconnect);
 void on_retry_clicked(GtkButton *button, gpointer data);
 
 // input box gui

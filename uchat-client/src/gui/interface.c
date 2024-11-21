@@ -8,7 +8,8 @@ void close_main_window(GtkWidget *main_window, t_main_page_data *main_page) {
 void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
-                         t_form_data *login_data, t_main_page_data *main_page) {
+                         t_form_data *login_data, t_main_page_data *main_page,
+                         GtkWidget *main_overlay, t_reconnect_message *reconnect) {
   load_css("uchat-client/src/gui/login_registration.css");
 
   if (logged_in == 1) {
@@ -19,6 +20,7 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
     create_chats_page(pages, chats, main_page);
   }
   create_registration_page(pages, registration, registration_data);
+  create_reconnect_message(main_overlay, reconnect);
 }
 
 void setup_main_application() {
@@ -36,12 +38,16 @@ void setup_main_application() {
   gtk_window_set_default_size(GTK_WINDOW(main_window), 1280, 720);
   gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
 
+  GtkWidget *main_overlay = gtk_overlay_new();
+  gtk_container_add(GTK_CONTAINER(main_window), main_overlay);
+
   GtkWidget *pages = gtk_stack_new();
-  gtk_container_add(GTK_CONTAINER(main_window), pages);
+  gtk_container_add(GTK_CONTAINER(main_overlay), pages);
 
   GtkWidget *registration, *login, *chats;
   t_form_data registration_data, login_data;
   t_main_page_data main_page;
+  t_reconnect_message reconnect;
 
   login_data.sock = sock;
   registration_data.sock = sock;
@@ -61,7 +67,7 @@ void setup_main_application() {
   }
 
   setup_gtk_interface(pages, registration, login, chats, &registration_data,
-                      &login_data, &main_page);
+                      &login_data, &main_page, main_overlay, &reconnect);
   g_signal_connect(main_window, "destroy", G_CALLBACK(close_main_window),
                    &main_page);
   gtk_widget_show_all(main_window);
@@ -72,7 +78,7 @@ void setup_main_application() {
   // Set up AppData struct
   AppData app_data = {pages,     registration,       login,
                       chats,     &registration_data, &login_data,
-                      &main_page};
+                      &main_page, main_overlay, &reconnect};
 
   // Monitor the socket with GIOChannel
   if (sock >= 0) {
@@ -114,6 +120,7 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
       // Successfully received data, do nothing further
       return TRUE;
     } else {
+      gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
       g_print("Error in response. Starting reconnection attempts...\n");
 
       // Close the socket and remove the GIOChannel
@@ -138,6 +145,7 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
   }
 
   if (condition & (G_IO_HUP | G_IO_ERR)) {
+    gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
     g_print("Disconnected from server. Starting reconnection attempts...\n");
 
     // Close the GIOChannel if the connection was lost

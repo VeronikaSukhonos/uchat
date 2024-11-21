@@ -55,6 +55,8 @@ int attempt_main_reconnection(AppData *app_data) {
           check_session_on_server(sock, username, session_token, serial_number);
     }
 
+  	gtk_widget_set_child_visible(app_data->reconnect->box, FALSE);
+
     if (logged_in) {
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");
     } else {

@@ -43,6 +43,7 @@ spinner {
 
 .uf-retry-button {
 	background: transparent;
+	font-weight: bold;
 	color: #7F7F7F;
 	border: none;
 	outline: none;
@@ -50,9 +51,37 @@ spinner {
 	padding: 5px;
 }
 
-.uf-retry-button:hover {
+.uf-retry-button:hover,
+.reconnect-message-button:hover {
 	color: #AFAFAF;
 	transition: 0.3s;
+}
+
+.reconnect-message {
+	background-color: #29292C;
+	border: solid 2px #3B3B3E;
+	box-shadow: 0 0 5px 2px #1A1A1D;
+	padding: 5px;
+	border-radius: 8px;
+	margin: 2px 5px 10px 10px;
+}
+
+.reconnect-message-label {
+	font-weight: bold;
+	font-size: 14px;
+	color: #5BCD91;
+	margin-left: 5px;
+}
+
+.reconnect-message-button {
+	background: transparent;
+	font-weight: bold;
+	font-size: 14px;
+	color: #7F7F7F;
+	border: none;
+	outline: none;
+	border-radius: 8px;
+	padding: 0 3px;
 }
 
 .form-name-label {
