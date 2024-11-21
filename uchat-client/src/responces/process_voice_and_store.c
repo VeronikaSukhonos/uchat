@@ -112,6 +112,9 @@ void process_voice_message_and_store(const char *json_response,
   } else {
     fprintf(stderr, "Failed to store voice message in cache.\n");
   }
+  MessageNode *msg_node =
+      create_message_node(app_data->main_page, VOICE, chat_id, message);
+  create_message_button(app_data->main_page, msg_node);
 
   // Clean up
   cJSON_Delete(response);

@@ -44,7 +44,6 @@ int attempt_main_reconnection(AppData *app_data) {
     app_data->registration_data->sock = sock;
     app_data->main_page->sock = sock;
 
-    char username[64] = {0};
     char serial_number[64] = {0};
     get_serial_number(serial_number, sizeof(serial_number));
 
@@ -55,7 +54,7 @@ int attempt_main_reconnection(AppData *app_data) {
           check_session_on_server(sock, username, session_token, serial_number);
     }
 
-  	gtk_widget_set_child_visible(app_data->reconnect->box, FALSE);
+    gtk_widget_set_child_visible(app_data->reconnect->box, FALSE);
 
     if (logged_in) {
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");

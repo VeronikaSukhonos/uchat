@@ -206,6 +206,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     ensure_cache_directory();
     handle_chat_list_response(response, "cache");
     create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
+    create_msg_buttons_from_cache(app_data->main_page, "cache");
 
   } else if (strcmp(action->valuestring, "MESSAGE_FROM_CHAT") == 0) {
     process_message_and_store(cJSON_Print(response), app_data);

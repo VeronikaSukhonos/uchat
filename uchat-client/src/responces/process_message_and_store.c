@@ -53,6 +53,10 @@ void process_message_and_store(const char *json_response, AppData *app_data) {
     fprintf(stderr, "Failed to store message in cache.\n");
   }
 
+  MessageNode *msg_node =
+      create_message_node(app_data->main_page, TEXT, chat_id, message);
+  create_message_button(app_data->main_page, msg_node);
+
   // Clean up
   cJSON_Delete(response);
 }

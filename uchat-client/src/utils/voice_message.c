@@ -12,7 +12,6 @@ static int level_heights[NUM_BARS] = {0};
 
 void start_recording(const char *output_path) {
   GstElement *source, *encoder, *sink;
-  gst_init(NULL, NULL);
 
   source = gst_element_factory_make("autoaudiosrc", "source");
   level = gst_element_factory_make("level", "audio-level");

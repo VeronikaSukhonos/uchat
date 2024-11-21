@@ -19,8 +19,9 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
     stop_recording();
     send_voice_message(main_page->sock, "cache/temp_audio.wav",
                        main_page->opened_chat->id);
-    MessageNode *new_message = create_message_node(main_page, VOICE, main_page->opened_chat->id);
-    create_message_button(main_page, new_message);
+    // MessageNode *new_message = create_message_node(main_page, VOICE,
+    // main_page->opened_chat->id); create_message_button(main_page,
+    // new_message);
   } else {
     // Set button image to 'stop' and start recording
     GtkWidget *mic_button_img_stop = gtk_image_new_from_file(
@@ -56,11 +57,12 @@ void open_close_menu(GtkWidget *menu_button, gpointer data) {
   // Toggle the menu visibility
   stop_recording();
   if ((*main_page).chats != NULL && (*main_page).menu_opened == 1) {
-    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack), "chats_list");
+    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
+                                     "chats_list");
     (*main_page).menu_opened = -1;
-  }
-  else {
-    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack), "menu");
+  } else {
+    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
+                                     "menu");
     (*main_page).menu_opened = 1;
   }
 }

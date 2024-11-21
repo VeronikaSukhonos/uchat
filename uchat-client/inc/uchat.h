@@ -40,6 +40,7 @@ extern guint retry_timeout_id;
 extern guint main_retry_timeout;
 extern guint reconnect_timer_id;
 extern GIOChannel *gio_channel;
+extern char username[64];
 
 typedef enum { TEXT, VOICE } ContentType;
 
@@ -55,6 +56,7 @@ typedef struct {
   char content[1024];
   char voice_path[256];
   int read; // New field to indicate read (1) or unread (0)
+  GtkWidget *username_label;
   GtkWidget *button;
   GtkWidget *voice_message_button;
   GtkWidget *message_label;
@@ -220,7 +222,9 @@ void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window);
 void hide_smile_menu(GtkWidget *smile_window, GtkWidget *smile_button);
 void insert_emoji_into_text(GtkWidget *emoji_button,
                             t_main_page_data *main_page);
-MessageNode *create_message_node(t_main_page_data *main_page, ContentType message_type, int chat_id);
+MessageNode *create_message_node(t_main_page_data *main_page,
+                                 ContentType message_type, int chat_id,
+                                 cJSON *message_json);
 void create_message_button(t_main_page_data *main_page, MessageNode *temp_node);
 
 void show_chat(GtkWidget *chat_button, gpointer data);
@@ -256,11 +260,12 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
                          t_form_data *login_data, t_main_page_data *main_page,
-                         GtkWidget *main_overlay, t_reconnect_message *reconnect);
+                         GtkWidget *main_overlay,
+                         t_reconnect_message *reconnect);
 int attempt_main_reconnection(AppData *app_data);
 gboolean periodic_reconnection_attempt(gpointer data);
 void create_reconnect_message(GtkWidget *main_overlay,
-							  t_reconnect_message *reconnect);
+                              t_reconnect_message *reconnect);
 void on_retry_clicked(GtkButton *button, gpointer data);
 
 // input box gui
@@ -322,3 +327,5 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                                   const char *last_message,
                                   const char *last_sender,
                                   const char *last_time, const char *unread);
+void create_msg_buttons_from_cache(t_main_page_data *main_page,
+                                   const char *cache_dir);

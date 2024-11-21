@@ -9,7 +9,8 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *login, GtkWidget *chats,
                          t_form_data *registration_data,
                          t_form_data *login_data, t_main_page_data *main_page,
-                         GtkWidget *main_overlay, t_reconnect_message *reconnect) {
+                         GtkWidget *main_overlay,
+                         t_reconnect_message *reconnect) {
   load_css("uchat-client/src/gui/login_registration.css");
 
   if (logged_in == 1) {
@@ -55,7 +56,6 @@ void setup_main_application() {
   g_print("Connected to the server successfully.%i\n", login_data.sock);
 
   // Load session data and check status
-  char username[64] = {0};
   char serial_number[64] = {0};
   get_serial_number(serial_number, sizeof(serial_number));
 
@@ -76,9 +76,9 @@ void setup_main_application() {
                                 GTK_STACK_TRANSITION_TYPE_CROSSFADE);
 
   // Set up AppData struct
-  AppData app_data = {pages,     registration,       login,
-                      chats,     &registration_data, &login_data,
-                      &main_page, main_overlay, &reconnect};
+  AppData app_data = {pages,      registration,       login,
+                      chats,      &registration_data, &login_data,
+                      &main_page, main_overlay,       &reconnect};
 
   // Monitor the socket with GIOChannel
   if (sock >= 0) {
@@ -106,7 +106,7 @@ void setup_main_application() {
     }
   }
   if (main_page.messages != NULL) {
-    for (MessageNode *i = main_page.messages; i != NULL; ) {
+    for (MessageNode *i = main_page.messages; i != NULL;) {
       MessageNode *temp = i->next;
       free(i);
       i = temp;

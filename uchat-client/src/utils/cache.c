@@ -595,3 +595,102 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
   printf("Message inserted successfully into chat file: %s\n", file_path);
   return 0;
 }
+
+void create_msg_buttons_from_cache(t_main_page_data *main_page,
+                                   const char *cache_dir) {
+  // Step 1: Iterate over the chat cache files in the given directory
+  DIR *dir = opendir(cache_dir);
+  if (!dir) {
+    perror("Failed to open cache directory");
+    return;
+  }
+
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != NULL) {
+    // Skip non-chat files and hidden files
+    if (entry->d_name[0] == '.' || strstr(entry->d_name, ".json") == NULL) {
+      continue;
+    }
+
+    // Step 2: Build the full path to the chat file
+    char file_path[256];
+    snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
+
+    // Step 3: Decrypt and parse the chat data from the file
+    char *decrypted_json = decrypt_json_from_file(file_path);
+    if (!decrypted_json) {
+      fprintf(stderr, "Failed to decrypt chat file: %s\n", file_path);
+      continue;
+    }
+
+    cJSON *chat_json = cJSON_Parse(decrypted_json);
+    free(decrypted_json);
+    if (!chat_json) {
+      fprintf(stderr, "Failed to parse JSON for chat: %s\n", file_path);
+      continue;
+    }
+
+    // Step 4: Extract chat metadata (chat_id, name, type) from JSON
+    cJSON *chat_id_json = cJSON_GetObjectItem(chat_json, "chat_id");
+    cJSON *name_json = cJSON_GetObjectItem(chat_json, "name");
+    cJSON *type_json = cJSON_GetObjectItem(chat_json, "type");
+    cJSON *messages_json = cJSON_GetObjectItem(chat_json, "messages");
+
+    if (!chat_id_json || !name_json || !type_json || !messages_json) {
+      fprintf(stderr, "Missing required fields in chat data: %s\n", file_path);
+      cJSON_Delete(chat_json);
+      continue;
+    }
+
+    int chat_id = chat_id_json->valueint;
+    const char *chat_name = name_json->valuestring;
+    const char *chat_type = type_json->valuestring;
+
+    // Step 5: Create a list to store the message nodes
+    MessageNode *message_list = NULL;
+
+    // Step 6: Process messages in this chat and create MessageNode for each
+    cJSON *message_json;
+    cJSON_ArrayForEach(message_json, messages_json) {
+      // Determine the message type (text or voice)
+      ContentType message_type = TEXT; // Default to text
+      cJSON *content_type_json = cJSON_GetObjectItem(message_json, "type");
+      if (cJSON_IsString(content_type_json) &&
+          strcmp(content_type_json->valuestring, "voice") == 0) {
+        message_type = VOICE;
+      }
+
+      // Create message node and populate message data
+      MessageNode *new_node =
+          create_message_node(main_page, message_type, chat_id, message_json);
+
+      // Append the new node to the list
+      new_node->next = message_list;
+      message_list = new_node;
+    }
+
+    // Step 7: Now that the message list is complete, create buttons for all
+    // messages
+    MessageNode *current_node = message_list;
+    while (current_node != NULL) {
+      // Step 8: Check if the message is of type VOICE and create button
+      // accordingly
+      if (current_node->message.content_type == VOICE) {
+        // For voice message, we might want to do something special for the
+        // button creation
+        create_message_button(main_page, current_node);
+      } else {
+        // For regular (text) messages, create the usual button
+        create_message_button(main_page, current_node);
+      }
+
+      // Move to the next node
+      current_node = current_node->next;
+    }
+
+    // Step 9: Clean up after processing the chat
+    cJSON_Delete(chat_json);
+  }
+
+  closedir(dir);
+}
