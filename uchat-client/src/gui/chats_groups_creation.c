@@ -202,13 +202,16 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
       "chat-button-unread");
   gtk_widget_set_halign((*temp_node).chat.unread, GTK_ALIGN_END);
 
-  (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  GtkWidget *dialog_scroll = gtk_scrolled_window_new(NULL, NULL);
 
   // Convert chat_id to string and set it as the child name
   char id_str[32];
   snprintf(id_str, sizeof(id_str), "%d", chat_id);
   gtk_stack_add_named(GTK_STACK((*main_page).chats_stack),
-                      (*temp_node).chat.box, id_str);
+                      dialog_scroll, id_str);
+
+  (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(dialog_scroll), (*temp_node).chat.box);
 
   // Highlight unread chats
   if (strlen(unread) > 0)
@@ -229,6 +232,7 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
     gtk_widget_set_visible((*temp_node).chat.last_sender, 1);
   gtk_widget_set_visible((*temp_node).chat.last_message, 1);
   gtk_widget_set_visible((*temp_node).chat.unread, 1);
+  gtk_widget_set_visible(dialog_scroll, 1);
   gtk_widget_set_visible((*temp_node).chat.box, 1);
 
   (*main_page).chats_count += 1;

@@ -519,3 +519,43 @@ combobox.form-role .popup .menu-item {
     color: #604BDC;
     border-radius: 4px;
 }
+
+.outgoing-messages {
+    background: #604BDC;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+.outgoing-messages:hover {
+    background: #604BDC;
+}
+
+.ingoing-messages {
+    background: #29292C;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+.ingoing-messages:hover {
+    background: #29292C;
+}
+
+.small-inscriptions {
+    color: white;
+    font-size: 13px;
+    margin: 3px 0;
+}
+
+.play-button {
+    background: transparent;
+    border: none;
+}
+
+.play-button:hover {
+    background: transparent;
+}
+

@@ -105,6 +105,13 @@ void setup_main_application() {
       i = temp;
     }
   }
+  if (main_page.messages != NULL) {
+    for (MessageNode *i = main_page.messages; i != NULL; ) {
+      MessageNode *temp = i->next;
+      free(i);
+      i = temp;
+    }
+  }
   close(sock);
 }
 
