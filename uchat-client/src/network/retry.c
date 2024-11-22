@@ -55,6 +55,8 @@ int attempt_main_reconnection(AppData *app_data) {
     }
 
     gtk_widget_set_child_visible(app_data->reconnect->box, FALSE);
+    gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
+                                         app_data->reconnect->box, TRUE);
 
     if (logged_in) {
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");

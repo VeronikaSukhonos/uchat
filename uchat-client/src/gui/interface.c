@@ -128,6 +128,8 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
       return TRUE;
     } else {
       gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
+      gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
+                                           app_data->reconnect->box, FALSE);
       g_print("Error in response. Starting reconnection attempts...\n");
 
       // Close the socket and remove the GIOChannel
@@ -153,6 +155,8 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 
   if (condition & (G_IO_HUP | G_IO_ERR)) {
     gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
+    gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
+                                         app_data->reconnect->box, FALSE);
     g_print("Disconnected from server. Starting reconnection attempts...\n");
 
     // Close the GIOChannel if the connection was lost

@@ -60,10 +60,10 @@ spinner {
 .reconnect-message {
 	background-color: #29292C;
 	border: solid 2px #3B3B3E;
-	box-shadow: 0 0 5px 2px #1A1A1D;
-	padding: 5px;
+	box-shadow: 0 0 2px 1px #1A1A1D;
+	padding: 3px;
 	border-radius: 8px;
-	margin: 2px 5px 10px 10px;
+	margin: 2px 5px 5px 15px;
 }
 
 .reconnect-message-label {
@@ -71,6 +71,7 @@ spinner {
 	font-size: 14px;
 	color: #5BCD91;
 	margin-left: 5px;
+	padding: 0;
 }
 
 .reconnect-message-button {
