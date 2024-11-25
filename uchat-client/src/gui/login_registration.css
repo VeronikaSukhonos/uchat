@@ -569,3 +569,8 @@ combobox.form-role .popup .menu-item {
     background: transparent;
 }
 
+.sender-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+

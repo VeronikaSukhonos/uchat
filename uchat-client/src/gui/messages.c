@@ -2,123 +2,126 @@
 #include <time.h>
 #include <uchat.h>
 
-// static GstElement *current_pipeline = NULL;
-// static pthread_mutex_t pipeline_mutex =
-//     PTHREAD_MUTEX_INITIALIZER; // Mutex to synchronize access
+/* static GstElement *current_pipeline = NULL;
+static pthread_mutex_t pipeline_mutex =
+    PTHREAD_MUTEX_INITIALIZER; // Mutex to synchronize access
 
-// // Function to handle dynamically linking pads
-// void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
-//   GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
-//   if (!gst_pad_is_linked(sinkpad)) {
-//     gst_pad_link(pad, sinkpad);
-//   }
-//   gst_object_unref(sinkpad);
-// }
+// Function to handle dynamically linking pads
+void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
+  GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
+  if (!gst_pad_is_linked(sinkpad)) {
+    gst_pad_link(pad, sinkpad);
+  }
+  gst_object_unref(sinkpad);
+}
 
-// // Stop the currently playing audio and free the pipeline
-// void stop_playback() {
-//   if (current_pipeline) {
-//     g_print("Stopping the currently playing audio.\n");
-//     gst_element_set_state(current_pipeline,
-//                           GST_STATE_NULL); // Stop the current pipeline
-//     gst_object_unref(current_pipeline);    // Unreference the pipeline
-//     current_pipeline = NULL;               // Nullify the pipeline
-//   }
-// }
+// Stop the currently playing audio and free the pipeline
+void stop_playback() {
+  if (current_pipeline) {
+    g_print("Stopping the currently playing audio.\n");
+    gst_element_set_state(current_pipeline,
+                          GST_STATE_NULL); // Stop the current pipeline
+    gst_object_unref(current_pipeline);    // Unreference the pipeline
+    current_pipeline = NULL;               // Nullify the pipeline
+  }
+}
 
-// // This is the function that will be run in a new thread to play the audio
-// void *play_audio_thread(void *data) {
-//   // Cast the gpointer data to get the MessageNode or the data you need
-//   MessageNode *temp_node = (MessageNode *)data;
-//   const char *file_path =
-//       temp_node->message.voice_path; // The path to the audio file
+// This is the function that will be run in a new thread to play the audio
+void *play_audio_thread(void *data) {
+  // Cast the gpointer data to get the MessageNode or the data you need
+  MessageNode *temp_node = (MessageNode *)data;
+  const char *file_path =
+      temp_node->message.voice_path; // The path to the audio file
 
-//   g_print("The message is being played: %s\n", file_path);
+  g_print("The message is being played: %s\n", file_path);
 
-//   // Lock the mutex to ensure no race conditions when accessing the pipeline
-//   pthread_mutex_lock(&pipeline_mutex);
+  // Lock the mutex to ensure no race conditions when accessing the pipeline
+  pthread_mutex_lock(&pipeline_mutex);
 
-//   // Stop the currently playing audio immediately
-//   stop_playback();
+  // Stop the currently playing audio immediately
+  stop_playback();
 
-//   // Create the GStreamer elements for the new pipeline
-//   GstElement *pipeline, *source, *decodebin, *sink;
-//   pipeline = gst_pipeline_new("audio-pipeline");
-//   source = gst_element_factory_make("filesrc", "source");
-//   decodebin = gst_element_factory_make("decodebin", "decodebin");
-//   sink = gst_element_factory_make("autoaudiosink", "sink");
+  // Create the GStreamer elements for the new pipeline
+  GstElement *pipeline, *source, *decodebin, *sink;
+  pipeline = gst_pipeline_new("audio-pipeline");
+  source = gst_element_factory_make("filesrc", "source");
+  decodebin = gst_element_factory_make("decodebin", "decodebin");
+  sink = gst_element_factory_make("autoaudiosink", "sink");
 
-//   if (!pipeline || !source || !decodebin || !sink) {
-//     g_printerr("Failed to create GStreamer elements.\n");
-//     pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
-//     returning return NULL;
-//   }
+  if (!pipeline || !source || !decodebin || !sink) {
+    g_printerr("Failed to create GStreamer elements.\n");
+    pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
+    // returning
+    return NULL;
+  }
 
-//   // Set the source file location (the path to the audio file)
-//   g_object_set(G_OBJECT(source), "location", file_path, NULL);
+  // Set the source file location (the path to the audio file)
+  g_object_set(G_OBJECT(source), "location", file_path, NULL);
 
-//   // Add elements to the pipeline
-//   gst_bin_add_many(GST_BIN(pipeline), source, decodebin, sink, NULL);
+  // Add elements to the pipeline
+  gst_bin_add_many(GST_BIN(pipeline), source, decodebin, sink, NULL);
 
-//   // Link the source to decodebin (dynamic linking to handle different
-//   formats) gst_element_link(source, decodebin);
+  // Link the source to decodebin (dynamic linking to handle different
+  // formats)
+  gst_element_link(source, decodebin);
 
-//   // Set up the dynamic pad for decodebin
-//   g_signal_connect(decodebin, "pad-added", G_CALLBACK(on_pad_added), sink);
+  // Set up the dynamic pad for decodebin
+  g_signal_connect(decodebin, "pad-added", G_CALLBACK(on_pad_added), sink);
 
-//   // Set the new pipeline as the current one
-//   current_pipeline = pipeline;
+  // Set the new pipeline as the current one
+  current_pipeline = pipeline;
 
-//   // Start playing the audio
-//   GstStateChangeReturn ret = gst_element_set_state(pipeline,
-//   GST_STATE_PLAYING); if (ret == GST_STATE_CHANGE_FAILURE) {
-//     g_printerr("Failed to change pipeline state to PLAYING.\n");
-//     pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
-//     returning return NULL;
-//   }
+  // Start playing the audio
+  GstStateChangeReturn ret = gst_element_set_state(pipeline,
+  GST_STATE_PLAYING); if (ret == GST_STATE_CHANGE_FAILURE) {
+    g_printerr("Failed to change pipeline state to PLAYING.\n");
+    pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
+    // returning
+    return NULL;
+  }
 
-//   // Wait for EOS (End Of Stream) or errors
-//   GstBus *bus = gst_element_get_bus(pipeline);
-//   GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_EOS | GST_MESSAGE_ERROR,
-//                                  GST_CLOCK_TIME_NONE);
+  // Wait for EOS (End Of Stream) or errors
+  GstBus *bus = gst_element_get_bus(pipeline);
+  GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_EOS | GST_MESSAGE_ERROR,
+                                 GST_CLOCK_TIME_NONE);
 
-//   if (msg != NULL) {
-//     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
-//       GError *err;
-//       gchar *debug_info;
+  if (msg != NULL) {
+    if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
+      GError *err;
+      gchar *debug_info;
 
-//       gst_message_parse_error(msg, &err, &debug_info);
-//       g_printerr("Error: %s\n", err->message);
-//       g_free(debug_info);
-//       g_error_free(err);
-//     }
-//   }
+      gst_message_parse_error(msg, &err, &debug_info);
+      g_printerr("Error: %s\n", err->message);
+      g_free(debug_info);
+      g_error_free(err);
+    }
+  }
 
-//   // Clean up
-//   gst_object_unref(bus);
-//   pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before returning
+  // Clean up
+  gst_object_unref(bus);
+  pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before returning
 
-//   return NULL;
-// }
+  return NULL;
+} */
 
-// // Function to start the audio playback in a new thread
+// Function to start the audio playback in a new thread
 void play_voice(GtkWidget *button, gpointer data) {
-  // pthread_t audio_thread;
+  /* pthread_t audio_thread;
 
-  // // Check if there is already an audio playing
-  // if (current_pipeline != NULL) {
-  //   g_print("Stopping the currently playing audio.\n");
-  //   stop_playback(); // Stop the currently playing audio immediately
-  // }
+  // Check if there is already an audio playing
+  if (current_pipeline != NULL) {
+    g_print("Stopping the currently playing audio.\n");
+    stop_playback(); // Stop the currently playing audio immediately
+  }
 
-  // // Create a new thread to handle the audio playback
-  // if (pthread_create(&audio_thread, NULL, play_audio_thread, data) != 0) {
-  //   g_printerr("Failed to create audio thread.\n");
-  //   return;
-  // }
+  // Create a new thread to handle the audio playback
+  if (pthread_create(&audio_thread, NULL, play_audio_thread, data) != 0) {
+    g_printerr("Failed to create audio thread.\n");
+    return;
+  }
 
-  // // Detach the thread so it can clean up itself when done
-  // pthread_detach(audio_thread);
+  // Detach the thread so it can clean up itself when done
+  pthread_detach(audio_thread); */
   g_print("Playing...\n");
 }
 
@@ -367,13 +370,27 @@ void create_message_button(t_main_page_data *main_page,
   gtk_container_add(GTK_CONTAINER((*temp_node).message.button), main_box);
 
   // Add a label with the sender's username
+  if (strcmp(temp_node->message.sender, username) != 0) {
+    (*temp_node).message.username_label = gtk_label_new((*temp_node).message.sender);
+    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message.username_label, FALSE,
+		       FALSE, 0);
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).message.username_label),
+	"sender-name");
+    gtk_widget_set_halign((*temp_node).message.username_label, GTK_ALIGN_START);
+  }
 
   // If it's a text message, show the content
   if ((*temp_node).message.content_type == TEXT) {
     (*temp_node).message.message_label =
         gtk_label_new((*temp_node).message.content);
     gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message.message_label,
-                       FALSE, FALSE, 0);
+                       TRUE, FALSE, 0);
+    gtk_label_set_xalign(GTK_LABEL((*temp_node).message.message_label), 0);
+    gtk_label_set_justify(GTK_LABEL((*temp_node).message.message_label),
+		          GTK_JUSTIFY_LEFT);
+    gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message.message_label), TRUE);
+    gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message.message_label), PANGO_WRAP_WORD_CHAR);
   } else {
     // If it's a voice message, show a button to play the voice message
     GtkWidget *play_button = gtk_image_new_from_file(
@@ -387,6 +404,7 @@ void create_message_button(t_main_page_data *main_page,
     gtk_style_context_add_class(
         gtk_widget_get_style_context((*temp_node).message.voice_message_button),
         "play-button");
+    gtk_widget_set_halign((*temp_node).message.voice_message_button, GTK_ALIGN_START);
 
     // Make sure the signal handler is connected to the voice button
     g_signal_connect((*temp_node).message.voice_message_button, "clicked",
@@ -435,6 +453,8 @@ void create_message_button(t_main_page_data *main_page,
   // Set visibility for all elements
   gtk_widget_set_visible((*temp_node).message.button, 1);
   gtk_widget_set_visible(main_box, 1);
+  if (strcmp(temp_node->message.sender, username) != 0)
+    gtk_widget_set_visible((*temp_node).message.username_label, 1);
   gtk_widget_set_visible(bottom_box, 1);
   if ((*temp_node).message.content_type == TEXT)
     gtk_widget_set_visible((*temp_node).message.message_label, 1);
