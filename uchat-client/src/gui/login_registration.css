@@ -464,15 +464,16 @@ textview text selection, entry selection {
 		margin-left: 10px;
 	}
 
- /* Style for the combo box itself (entry part) */
+
 combobox.form-role, combobox.form-role * {
-    background-color: transparent;
+    background-color:  #1A1A1D;
     background-image: none;
     color: white;
     border: none;
 	padding: 2px 0;
     margin: 0;
     box-shadow: none;
+	border-radius: 8px;
 }
 
 combobox.form-role .combo-box-entry, 
@@ -493,18 +494,12 @@ combobox.form-role .entry:focus {
     transition: border-color 0.3s;
 }
 
-/* Style for the dropdown popup (menu) */
 combobox.form-role button {
-    background-color: transparent; /* Transparent background for the button */
+    background-color: transparent;
     border: none;
     box-shadow: none;
 	color: white;
 	padding: 2px 5px;
-}
-
-/* Style for the items inside the dropdown list */
-combobox.form-role button:hover {
-    background-color: #29292C;
 }
 
 /* Style for selected item */
@@ -574,3 +569,44 @@ combobox.form-role .popup .menu-item {
     margin-bottom: 5px;
 }
 
+
+.settings-link {
+    background: rgba(0, 0, 0, 0); 
+    color: #7F7F7F;
+    border: none;
+    outline: none;
+    padding: 5px 10px;
+    margin-top: 35px;
+    font-size: 25px;
+    text-decoration: none;
+}
+.settings-link:hover {
+    color: #604BDC;
+    text-decoration: underline;
+}
+
+.settings-link:focus {
+    outline: 2px solid #5BCD91;
+    outline-offset: 4px;
+    color: #5BCD91;
+}
+
+.settings-link:active {
+    color: #3B3B3E;
+}
+.support-description-entry, .support-description-entry text {
+	background-color: #1A1A1D;
+	color: white;
+	border: none;
+	border-radius: 8px;
+	caret-color: white;
+	padding: 20px 16px;
+	margin: 5px 0;
+}
+.description-text-view {
+    background-color: #1A1A1D;
+    color: white;
+    border: solid 2px #5BCD91;
+    border-radius: 8px;
+    padding: 10px;
+}

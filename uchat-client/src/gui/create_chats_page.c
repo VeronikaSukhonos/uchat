@@ -1,99 +1,11 @@
 #include <uchat.h>
 
-void change_mic_image(GtkWidget *mic_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-
-  if (!main_page || !main_page->opened_chat) {
-    g_printerr("Error: Invalid main_page, opened_chat, or mic_data.\n");
-    return;
-  }
-
-  if (main_page->opened_chat->is_mic_active == TRUE) {
-    // Set button image to 'start' and stop recording
-    GtkWidget *mic_button_img_start = gtk_image_new_from_file(
-        "uchat-client/src/gui/resources/voice-start.png");
-    gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_start);
-    main_page->opened_chat->is_mic_active = FALSE;
-
-    // Stop recording
-    stop_recording();
-    send_voice_message(main_page->sock, "cache/temp_audio.wav",
-                       main_page->opened_chat->id);
-    // MessageNode *new_message = create_message_node(main_page, VOICE,
-    // main_page->opened_chat->id); create_message_button(main_page,
-    // new_message);
-  } else {
-    // Set button image to 'stop' and start recording
-    GtkWidget *mic_button_img_stop = gtk_image_new_from_file(
-        "uchat-client/src/gui/resources/voice-stop.png");
-    gtk_button_set_image(GTK_BUTTON(mic_button), mic_button_img_stop);
-    main_page->opened_chat->is_mic_active = TRUE;
-
-    // Start recording to a temporary file
-    start_recording("cache/temp_audio.wav");
-  }
-}
-
-void open_close_menu(GtkWidget *menu_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-
-  // Check if any chat has the microphone active
-  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
-    if (i->chat.is_mic_active) {
-      // Stop the microphone recording
-      i->chat.is_mic_active = FALSE;
-
-      // Update the mic button image to indicate stopped recording
-      GtkWidget *mic_button_img_start = gtk_image_new_from_file(
-          "uchat-client/src/gui/resources/voice-start.png");
-      gtk_button_set_image(GTK_BUTTON(main_page->mic_button),
-                           mic_button_img_start);
-
-      // Log or perform additional actions if needed
-      g_print("Recording stopped for chat: %d\n", i->chat.id);
-    }
-  }
-
-  // Toggle the menu visibility
-  stop_recording();
-  if ((*main_page).chats != NULL && (*main_page).menu_opened == 1) {
-    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
-                                     "chats_list");
-    (*main_page).menu_opened = -1;
-  } else {
-    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
-                                     "menu");
-    (*main_page).menu_opened = 1;
-  }
-}
-
-void set_selected_button(GtkWidget **selected_button,
-                         GtkWidget **new_selected_button) {
-  if (*selected_button != NULL)
-    gtk_style_context_remove_class(
-        gtk_widget_get_style_context(*selected_button), "menu-button-selected");
-  *selected_button = *new_selected_button;
-  gtk_style_context_add_class(gtk_widget_get_style_context(*selected_button),
-                              "menu-button-selected");
-}
-
-void log_out(GtkWidget *log_out_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  cJSON *json = cJSON_CreateObject();
-  cJSON_AddStringToObject(json, "action", "LOGOUT");
-  char *json_str = cJSON_Print(json);
-  cJSON_Delete(json);
-  send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
-  free(json_str);
-  // gtk_stack_set_visible_child_name(GTK_STACK((*GtkWidget)data), "login");
-}
-
 void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                        t_main_page_data *main_page) {
   GtkWidget *sidebar;
   GtkWidget *menu_box, *chats_list;
   GtkWidget *create_chat, *create_group, *user_info, *edit_profile, *chat;
+  GtkWidget *settings, *edit_password, *support, *email;
   GtkWidget *img_profile;
 
   chats = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -179,14 +91,21 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                               "menu-button");
   g_signal_connect(profile_button, "clicked", G_CALLBACK(show_profile),
                    main_page);
+  GtkWidget *settings_button = gtk_button_new();
+  GtkWidget *settings_button_label = gtk_label_new("Settings");
+  gtk_container_add(GTK_CONTAINER(settings_button), settings_button_label);
+  gtk_widget_set_halign(settings_button_label, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(menu_box), settings_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(settings_button),
+                              "menu-button");
+  g_signal_connect(settings_button, "clicked", G_CALLBACK(show_settings), main_page);
 
   GtkWidget *log_out_button = gtk_button_new();
   GtkWidget *log_out_button_label = gtk_label_new("Log out");
   gtk_container_add(GTK_CONTAINER(log_out_button), log_out_button_label);
-  gtk_widget_set_halign(log_out_button_label, GTK_ALIGN_START);
-  gtk_box_pack_start(GTK_BOX(menu_box), log_out_button, FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(log_out_button),
-                              "menu-button");
+  gtk_style_context_add_class(gtk_widget_get_style_context(log_out_button), "menu-button");
+  gtk_widget_set_halign(log_out_button, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(sidebar), log_out_button, FALSE, FALSE, 10); 
   g_signal_connect(log_out_button, "clicked", G_CALLBACK(log_out), main_page);
 
   GtkWidget *chats_scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -775,25 +694,26 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Devastated");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Busy");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Assesment");
   gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "In progress");
   gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
-      "Competed all tasks");
+      "Genius");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
+      "No status");
 
   gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
 
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.role_combo, FALSE, FALSE, 0);
-  // message
   (*main_page).edit_data.message = gtk_label_new("");
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).edit_data.message),
       "form-message");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.message, FALSE, FALSE, 0);
-  // change profile details
   GtkWidget *button = gtk_button_new_with_label("Change profile details");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), button, FALSE, FALSE,
                      0);
@@ -801,7 +721,195 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                               "form-button");
   g_signal_connect(button, "clicked", G_CALLBACK(change_profile), main_page);
 
+  // settings
+  GtkWidget *settings_page = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      settings_page, "settings");
+  settings = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(settings_page), settings);
+  gtk_style_context_add_class(gtk_widget_get_style_context(settings),
+                              "main_page_form");
+  (*main_page).settings_data.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(settings), (*main_page).settings_data.form, TRUE,
+                     FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).settings_data.form), "form");
+  gtk_widget_set_halign((*main_page).settings_data.form, GTK_ALIGN_CENTER);
+  gtk_widget_set_size_request(GTK_WIDGET((*main_page).settings_data.form), 450, -1);
+
+  GtkWidget *settings_label = gtk_label_new("Settings");
+  gtk_style_context_add_class(gtk_widget_get_style_context(settings_label),
+                              "form-name-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), settings_label, FALSE,
+                     FALSE, 0);
+  gtk_widget_set_halign(settings_label, GTK_ALIGN_CENTER);
+
+//   GtkWidget *link_pw_change = gtk_button_new_with_label("Change password");
+//   gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_pw_change, FALSE,
+//                      FALSE, 0);
+//   gtk_style_context_add_class(gtk_widget_get_style_context(link_pw_change),
+//                               "settings-link");
+//   g_signal_connect(link_pw_change, "clicked", G_CALLBACK(show_pw), main_page);
+
+  GtkWidget *link_email = gtk_button_new_with_label("Change email");
+  gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_email, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(link_email),
+                              "settings-link");
+  g_signal_connect(link_email, "clicked", G_CALLBACK(show_email), main_page);
+
+  // support
+  GtkWidget *link_support = gtk_button_new_with_label("Support");
+  gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_support, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(link_support),
+                              "settings-link");
+  g_signal_connect(link_support, "clicked", G_CALLBACK(show_support), main_page);
+
+  // change pw
+  GtkWidget *pw_change_page = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      pw_change_page, "edit_password");
+  edit_password = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(pw_change_page), edit_password);
+  gtk_style_context_add_class(gtk_widget_get_style_context(edit_password),
+                              "main_page_form");
+  (*main_page).change_pw.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(edit_password), (*main_page).change_pw.form, TRUE,
+                     FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.form), "form");
+  gtk_widget_set_halign((*main_page).change_pw.form, GTK_ALIGN_CENTER);
+  gtk_widget_set_size_request(GTK_WIDGET((*main_page).change_pw.form), 450, -1);
+  GtkWidget *change_pw_label = gtk_label_new("Change password");
+  gtk_style_context_add_class(gtk_widget_get_style_context(change_pw_label),
+                              "form-name-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_label, FALSE,
+                     FALSE, 0);
+  gtk_widget_set_halign(change_pw_label, GTK_ALIGN_CENTER);
+
+  (*main_page).change_pw.old_pw = gtk_entry_new();
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.old_pw),
+      "form-entry");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
+                     (*main_page).change_pw.old_pw, FALSE, FALSE, 0);
+  (*main_page).change_pw.new_pw = gtk_entry_new();
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.new_pw),
+      "form-entry");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
+                     (*main_page).change_pw.new_pw, FALSE, FALSE, 0);
+  (*main_page).change_pw.new_pw_again = gtk_entry_new();
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.new_pw_again),
+      "form-entry");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
+                     (*main_page).change_pw.new_pw_again, FALSE, FALSE, 0);
+  GtkWidget *change_pw_button = gtk_button_new_with_label("Submit");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_button, FALSE, FALSE,
+                     0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(change_pw_button),
+                              "form-button");
+  g_signal_connect(change_pw_button, "clicked", G_CALLBACK(change_password), main_page);
+
+  // Email page setup
+  GtkWidget *email_page = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      email_page, "email");
+
+  email = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(email_page), email);
+  gtk_style_context_add_class(gtk_widget_get_style_context(email), "main_page_form");
+
+  (*main_page).email_change.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(email), (*main_page).email_change.form, TRUE, FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).email_change.form), "form");
+  gtk_widget_set_halign((*main_page).email_change.form, GTK_ALIGN_CENTER);
+  gtk_widget_set_size_request(GTK_WIDGET((*main_page).email_change.form), 450, -1);
+  GtkWidget *email_label = gtk_label_new("Change email");
+  gtk_style_context_add_class(gtk_widget_get_style_context(email_label),
+                              "form-name-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), email_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(email_label, GTK_ALIGN_CENTER);
+  GtkWidget *enter_email_label = gtk_label_new("Enter new email:");
+  gtk_style_context_add_class(gtk_widget_get_style_context(enter_email_label), "form-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), enter_email_label, FALSE, FALSE, 5);
+  GtkWidget *email_entry = gtk_entry_new();
+  gtk_style_context_add_class(gtk_widget_get_style_context(email_entry), "form-entry");
+  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), email_entry, FALSE, FALSE, 5);
+  (*main_page).email_change.email = email_entry;
+  GtkWidget *email_change_button = gtk_button_new_with_label("Submit");
+  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), email_change_button, FALSE, FALSE,
+                     0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(email_change_button),
+                              "form-button");
+  g_signal_connect(email_change_button, "clicked", G_CALLBACK(change_email), main_page);
+  (*main_page).email_change.message = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).email_change.message),
+      "form-message");
+  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form),
+                     (*main_page).email_change.message, FALSE, FALSE, 0);
+
+  // Support page setup
+  GtkWidget *support_page = gtk_scrolled_window_new(NULL, NULL);
+  gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
+                      support_page, "support");
+
+  support = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(support_page), support);
+  gtk_style_context_add_class(gtk_widget_get_style_context(support), "main_page_form");
+
+  (*main_page).support.form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(support), (*main_page).support.form, TRUE, FALSE, 0);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).support.form), "form");
+  gtk_widget_set_halign((*main_page).support.form, GTK_ALIGN_CENTER);
+  gtk_widget_set_size_request(GTK_WIDGET((*main_page).support.form), 450, -1);
+  GtkWidget *support_label = gtk_label_new("Support");
+  gtk_style_context_add_class(gtk_widget_get_style_context(support_label),
+                              "form-name-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form), support_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(support_label, GTK_ALIGN_CENTER);
+  GtkWidget *title_label = gtk_label_new("Subject:");
+  gtk_style_context_add_class(gtk_widget_get_style_context(title_label), "form-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form), title_label, FALSE, FALSE, 5);
+  (*main_page).support.subject_combo = gtk_combo_box_text_new();
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).support.subject_combo),
+      "form-role");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Forgot password");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Account issue");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Technical support");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "General inquiry");
+  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Other");
+  gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).support.subject_combo), 0);
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form), (*main_page).support.subject_combo, FALSE, FALSE, 0);
+
+  GtkWidget *description_entry = gtk_entry_new();
+  gtk_widget_set_size_request(description_entry, 450, 50);
+  gtk_entry_set_placeholder_text(GTK_ENTRY(description_entry), "Describe your problem here...");
+  gtk_style_context_add_class(gtk_widget_get_style_context(description_entry), "support-description-entry");
+
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form), description_entry, FALSE, FALSE, 5);
+  (*main_page).support.support_request = description_entry;
+  GtkWidget *support_button = gtk_button_new_with_label("Submit");
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form), support_button, FALSE, FALSE,
+                     0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(support_button),
+                              "form-button");
+  g_signal_connect(support_button, "clicked", G_CALLBACK(send_support_request), main_page);
+  (*main_page).support.message = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).support.message),
+      "form-message");
+  gtk_box_pack_start(GTK_BOX((*main_page).support.form),
+                     (*main_page).support.message, FALSE, FALSE, 0);
+
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "clear_area");
+ 
   open_close_menu(NULL, main_page);
 }

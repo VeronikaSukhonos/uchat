@@ -42,128 +42,144 @@ extern guint reconnect_timer_id;
 extern GIOChannel *gio_channel;
 extern char username[64];
 
-typedef enum { TEXT, VOICE } ContentType;
+typedef enum { TEXT,
+               VOICE } ContentType;
 
-typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
+typedef enum { NEW,
+               MODIFIED,
+               DELETED } MessageStatus;
 
 typedef struct {
-  int message_id;
-  int chat_id;
-  char sender[64];
-  time_t date;
-  ContentType content_type;
-  MessageStatus status;
-  char content[1024];
-  char voice_path[256];
-  int read; // New field to indicate read (1) or unread (0)
-  GtkWidget *username_label;
-  GtkWidget *button;
-  GtkWidget *voice_message_button;
-  GtkWidget *message_label;
-  GtkWidget *time_label;
-  GtkWidget *changed_label;
-  GtkWidget *seen_label;
+    int message_id;
+    int chat_id;
+    char sender[64];
+    time_t date;
+    ContentType content_type;
+    MessageStatus status;
+    char content[1024];
+    char voice_path[256];
+    int read; // New field to indicate read (1) or unread (0)
+    GtkWidget *username_label;
+    GtkWidget *button;
+    GtkWidget *voice_message_button;
+    GtkWidget *message_label;
+    GtkWidget *time_label;
+    GtkWidget *changed_label;
+    GtkWidget *seen_label;
 } MessageCache;
 
 // Linked list node for MessageCache
 typedef struct MessageNode {
-  MessageCache *message;
-  struct MessageNode *next;
+    MessageCache *message;
+    struct MessageNode *next;
 } MessageNode;
 
 typedef struct s_chat_form_data {
-  GtkWidget *form;
-  GtkWidget *name;
-  GtkWidget *username;
-  GtkWidget *message;
+    GtkWidget *form;
+    GtkWidget *name;
+    GtkWidget *username;
+    GtkWidget *message;
 } t_chat_form_data;
 
 typedef struct s_group_users_data {
-  char username[50];
-  GtkWidget *button;
+    char username[50];
+    GtkWidget *button;
 } t_group_users_data;
 
 // profile_data
 typedef struct s_profile_data {
-  GtkWidget *username;
-  GtkWidget *name_surname;
-  GtkWidget *student_group;
-  GtkWidget *description;
-  GtkWidget *status;
-  GtkWidget *form;
-  GtkWidget *message;
-  GtkWidget *role_combo;
+    GtkWidget *username;
+    GtkWidget *name_surname;
+    GtkWidget *student_group;
+    GtkWidget *description;
+    GtkWidget *status;
+    GtkWidget *form;
+    GtkWidget *message;
+    GtkWidget *role_combo;
+    GtkWidget *old_pw;
+    GtkWidget *new_pw;
+    GtkWidget *new_pw_again;
+    GtkWidget *email;
+    GtkWidget *subject_combo;
+    GtkWidget *support_request;
 } t_profile_data;
 
 typedef struct s_chat_data {
-  GtkWidget *button;
-  GtkWidget *name;
-  GtkWidget *last_time;
-  GtkWidget *last_sender;
-  GtkWidget *last_message;
-  GtkWidget *unread;
-  GtkWidget *box;
-  gboolean is_mic_active;
-  int id;
+    GtkWidget *button;
+    GtkWidget *name;
+    GtkWidget *last_time;
+    GtkWidget *last_sender;
+    GtkWidget *last_message;
+    GtkWidget *unread;
+    GtkWidget *box;
+    gboolean is_mic_active;
+    int id;
 } t_chat_data;
 
 typedef struct s_chat_node {
-  t_chat_data chat;
-  struct s_chat_node *next;
+    t_chat_data chat;
+    struct s_chat_node *next;
 } t_chat_node;
 
 typedef struct s_main_page_data {
-  int sock;
-  GtkWidget *menu_stack;
-  int menu_opened;
-  GtkWidget *menu_button_selected;
-  GtkWidget *chats_box;
-  t_chat_node *chats;
-  MessageNode *messages;
-  int chats_count;
-  t_chat_data *opened_chat;
-  GtkWidget *central_area_stack;
-  t_chat_form_data create_chat_data;
-  t_chat_form_data create_group_data;
-  t_profile_data profile_data;
-  t_profile_data edit_data;
-  GtkWidget *group_box;
-  int group_users_count;
-  t_group_users_data group_users[USERS_IN_GROUP_COUNT];
-  GtkWidget *chats_stack;
-  GtkWidget *messages_container;
-  GtkTextView *message_entry;
-  GtkTextBuffer *message_buffer; // Add message_buffer here
-  GtkWidget *smile_window;
-  GtkWidget *mic_button;
+    int sock;
+    GtkWidget *menu_stack;
+    int menu_opened;
+    GtkWidget *menu_button_selected;
+    GtkWidget *chats_box;
+    t_chat_node *chats;
+    MessageNode *messages;
+    int chats_count;
+    t_chat_data *opened_chat;
+    GtkWidget *central_area_stack;
+    t_chat_form_data create_chat_data;
+    t_chat_form_data create_group_data;
+    t_profile_data profile_data;
+    t_profile_data edit_data;
+    t_profile_data settings_data;
+    t_profile_data change_pw;
+    t_profile_data support;
+    t_profile_data email_change;
+    GtkWidget *group_box;
+    int group_users_count;
+    t_group_users_data group_users[USERS_IN_GROUP_COUNT];
+    GtkWidget *chats_stack;
+    GtkWidget *messages_container;
+    GtkTextView *message_entry;
+    GtkTextBuffer *message_buffer; // Add message_buffer here
+    GtkWidget *smile_window;
+    GtkWidget *mic_button;
+    // Add fields for page switching
+    const char *current_page;
+    const char *previous_page;
 } t_main_page_data;
 
 typedef struct s_form_data {
-  int sock;
-  GtkWidget *form;
-  GtkWidget *username;
-  GtkWidget *password;
-  GtkWidget *repassword;
-  GtkWidget *pw_button;
-  GtkWidget *repw_button;
-  GtkWidget *message;
+    int sock;
+    GtkWidget *form;
+    GtkWidget *username;
+    GtkWidget *password;
+    GtkWidget *repassword;
+    GtkWidget *pw_button;
+    GtkWidget *repw_button;
+    GtkWidget *message;
 } t_form_data;
 
 typedef struct s_reconnect_message {
-  GtkWidget *box;
-  GtkWidget *label;
+    GtkWidget *box;
+    GtkWidget *label;
 } t_reconnect_message;
 
 typedef struct {
-  GtkWidget *pages;
-  GtkWidget *registration;
-  GtkWidget *login;
-  GtkWidget *chats;
-  t_form_data *registration_data;
-  t_form_data *login_data;
-  t_main_page_data *main_page;
-  GtkWidget *main_overlay;
-  t_reconnect_message *reconnect;
+    GtkWidget *pages;
+    GtkWidget *registration;
+    GtkWidget *login;
+    GtkWidget *chats;
+    t_form_data *registration_data;
+    t_form_data *login_data;
+    t_main_page_data *main_page;
+    GtkWidget *main_overlay;
+    t_reconnect_message *reconnect;
 } AppData;
 
 // encrypt
@@ -285,6 +301,29 @@ void add_message(GtkWidget *messages_container, const gchar *message_text,
                  gboolean is_my_message);
 void on_message_send(GtkWidget *send_button, gpointer user_data);
 void on_message_received(const gchar *message_text);
+
+// settings gui
+void show_pw(GtkWidget *edit_button, gpointer data);
+void change_password(GtkWidget *change_button, gpointer data);
+void show_settings(GtkWidget *settings_button, gpointer data);
+void show_support(GtkWidget *edit_button, gpointer data);
+void send_support_request(GtkWidget *support_button, gpointer data);
+void success_or_error_msg(GtkWidget *label, const char *message, gboolean is_success);
+void show_email(GtkWidget *support_button, gpointer data);
+gboolean check_email(const char *email, GtkWidget *message_label);
+int check_username(char *username, GtkWidget *message);
+int check_password(char *password, GtkWidget *message);
+void change_email(GtkWidget *change_button, gpointer data);
+
+// menu gui
+void change_mic_image(GtkWidget *mic_button, gpointer data);
+void open_close_menu(GtkWidget *menu_button, gpointer data);
+void set_selected_button(GtkWidget **selected_button, GtkWidget **new_selected_button);
+void log_out(GtkWidget *log_out_button, gpointer data);
+
+// switch pages with delay
+gboolean delayed_page_switch(gpointer data);
+void switch_to_page_with_delay(t_main_page_data *main_page, const char *page_name, guint delay_ms);
 
 // cache
 MessageNode *load_encrypted_messages_from_cache(const char *chat_id);
