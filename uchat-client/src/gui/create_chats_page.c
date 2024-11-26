@@ -145,6 +145,52 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *message_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack), message_box,
                       "chat");
+  
+  // Create profile bar 
+  GtkWidget *profile_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+  gtk_box_pack_start(GTK_BOX(message_box), profile_bar, FALSE, FALSE, 0);
+  GtkStyleContext *context = gtk_widget_get_style_context(profile_bar);
+  gtk_style_context_add_class(context, "profile-bar");
+  gtk_widget_set_size_request(profile_bar, -1, 50);
+  gtk_widget_set_halign(profile_bar, GTK_ALIGN_FILL);
+  
+  // Add avatar
+  GtkWidget *avatar_frame = gtk_frame_new(NULL);
+  gtk_frame_set_shadow_type(GTK_FRAME(avatar_frame), GTK_SHADOW_NONE);
+  gtk_box_pack_start(GTK_BOX(profile_bar), avatar_frame, FALSE, FALSE, 10);
+  
+  GtkWidget *avatar = gtk_image_new_from_file("uchat-client/src/gui/resources/rabbit_chats.png");
+  gtk_container_add(GTK_CONTAINER(avatar_frame), avatar);
+  gtk_widget_set_size_request(avatar, 40, 40);
+  
+  // Add nickname
+  GtkWidget *nickname_label = gtk_label_new("");
+  gtk_box_pack_start(GTK_BOX(profile_bar), nickname_label, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(nickname_label), "profile-name");
+  (*main_page).chat_nickname = nickname_label;
+  
+  // Add spacer to push icons to the right
+  GtkWidget *spacer = gtk_label_new("");
+  gtk_box_pack_start(GTK_BOX(profile_bar), spacer, TRUE, TRUE, 0);
+  
+  // Add voice call icon button
+  GtkWidget *voice_call_button = gtk_button_new();
+  GtkWidget *voice_call_icon = gtk_image_new_from_file("uchat-client/src/gui/resources/voice-call-start.png");
+  gtk_button_set_image(GTK_BUTTON(voice_call_button), voice_call_icon);
+  gtk_box_pack_start(GTK_BOX(profile_bar), voice_call_button, FALSE, FALSE, 5);
+  gtk_style_context_add_class(gtk_widget_get_style_context(voice_call_button), "icon-button");
+  
+  // Add user icon button
+  GtkWidget *user_button = gtk_button_new();
+  GtkWidget *user_icon = gtk_image_new_from_file("uchat-client/src/gui/resources/user.png");
+  gtk_button_set_image(GTK_BUTTON(user_button), user_icon);
+  gtk_box_pack_start(GTK_BOX(profile_bar), user_button, FALSE, FALSE, 5);
+  gtk_style_context_add_class(gtk_widget_get_style_context(user_button), "icon-button");
+  g_signal_connect(user_button, "clicked", G_CALLBACK(show_participant_profile), main_page);
+
+  // Add separator
+  GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+  gtk_box_pack_start(GTK_BOX(message_box), separator, FALSE, FALSE, 0);
 
   (*main_page).chats_stack = gtk_stack_new();
   gtk_box_pack_start(GTK_BOX(message_box), (*main_page).chats_stack, TRUE, TRUE,
@@ -377,7 +423,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_container_add(GTK_CONTAINER(message_scroll), message_entry);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(message_entry), GTK_WRAP_WORD_CHAR);
   gtk_widget_set_size_request(message_scroll, -1, 30);
-  // HERE MUST BE A PLACEHOLDER
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry),
                               "message-entry");
   g_signal_connect(message_entry, "focus-in-event",
@@ -698,8 +743,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "In progress");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
-      "Genius");
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Genius");
   gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
       "No status");

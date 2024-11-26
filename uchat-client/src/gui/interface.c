@@ -12,6 +12,7 @@ void setup_gtk_interface(GtkWidget *pages, GtkWidget *registration,
                          GtkWidget *main_overlay,
                          t_reconnect_message *reconnect) {
   load_css("uchat-client/src/gui/login_registration.css");
+  load_css("uchat-client/src/gui/profile_bar.css");
 
   if (logged_in == 1) {
     create_chats_page(pages, chats, main_page);

@@ -146,9 +146,10 @@ typedef struct s_main_page_data {
     GtkWidget *chats_stack;
     GtkWidget *messages_container;
     GtkTextView *message_entry;
-    GtkTextBuffer *message_buffer; // Add message_buffer here
+    GtkTextBuffer *message_buffer;
     GtkWidget *smile_window;
     GtkWidget *mic_button;
+    GtkWidget *chat_nickname;  
     // Add fields for page switching
     const char *current_page;
     const char *previous_page;
@@ -368,3 +369,6 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                                   const char *last_time, const char *unread);
 void create_msg_buttons_from_cache(t_main_page_data *main_page,
                                    const char *cache_dir);
+
+void show_profile_from_icon(GtkWidget *profile_icon, gpointer data);
+void show_participant_profile(GtkWidget *profile_icon, gpointer data);

@@ -1,0 +1,66 @@
+.profile-bar {
+    background-color: #29292C;
+    border-bottom: solid 2px #3B3B3E;
+    padding: 10px;
+    margin: 0;
+    min-height: 50px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.profile-name {
+    color: white;
+    font-size: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100% - 60px);
+    overflow: hidden;
+}
+
+frame {
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.icon-button {
+    background: none;
+    border: none;
+    padding: 5px;
+    min-width: 30px;
+    min-height: 30px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.icon-button:hover {
+    opacity: 1;
+    background: none;
+}
+
+.icon-button image {
+    color: white;
+}
+
+/* Profile Dialog Styles */
+.profile-content {
+    background-color: #29292C;
+    color: white;
+    padding: 20px;
+}
+
+.profile-username {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.profile-status {
+    color: #5BCD91;
+    font-size: 16px;
+    font-style: italic;
+}
