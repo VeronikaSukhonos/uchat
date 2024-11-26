@@ -1,7 +1,39 @@
 #include <uchat.h>
 
+void remove_buttons(t_main_page_data *main_page) {
+  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
+    if (main_page->opened_chat == &i->chat) {
+      GtkWidget *chat_box =
+          i->chat.box; // The container for the message buttons
+
+      // Ensure chat_box is valid
+      if (!chat_box) {
+        g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
+        continue;
+      }
+
+      // Remove all message buttons from the chat's container (box)
+      for (MessageNode *msg_node = main_page->messages; msg_node != NULL;
+           msg_node = msg_node->next) {
+        if (msg_node->message->chat_id == i->chat.id) {
+          if (msg_node->message->button != NULL) {
+            gtk_container_remove(GTK_CONTAINER(chat_box),
+                                 msg_node->message->button);
+            g_print("Removed button for message ID: %d\n",
+                    msg_node->message->message_id);
+          } else {
+            g_print("Warning: button is NULL for message ID: %d\n",
+                    msg_node->message->message_id);
+          }
+        }
+      }
+    }
+  }
+}
+
 void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
+  remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_chat_button);
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "create_chat");
@@ -10,6 +42,7 @@ void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
 
 void show_new_group(GtkWidget *new_group_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
+  remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_group_button);
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "create_group");
@@ -18,6 +51,7 @@ void show_new_group(GtkWidget *new_group_button, gpointer data) {
 
 void show_profile(GtkWidget *settings_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
+  remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &settings_button);
 
   // Set default or current username and description
@@ -55,6 +89,7 @@ void show_profile(GtkWidget *settings_button, gpointer data) {
 
 void show_edit_page(GtkWidget *edit_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
+  remove_buttons(main_page);
 
   // Set existing values in the edit fields
   gtk_entry_set_text(
@@ -93,8 +128,8 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
   gtk_stack_set_visible_child_name(GTK_STACK(main_page->menu_stack),
                                    "chats_list");
 
-  // Check if any chat has the microphone active, stop it and update the button
-  // image
+  // Check if any chat has the microphone active, stop it and update the
+  // button image
   for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
     if (i->chat.is_mic_active) {
       // Stop recording if any chat's mic is active
