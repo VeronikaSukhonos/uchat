@@ -115,6 +115,8 @@ void process_voice_message_and_store(const char *json_response,
   MessageNode *msg_node =
       create_message_node(app_data->main_page, VOICE, chat_id, message);
   create_message_button(app_data->main_page, msg_node);
+  g_print("Signal connected to play voice for message ID: %d\n",
+          msg_node->message->message_id);
 
   // Clean up
   cJSON_Delete(response);

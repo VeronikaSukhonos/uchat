@@ -118,6 +118,36 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
     }
   }
 
+  // Delete existing message buttons for the current chat
+  for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
+    if (main_page->opened_chat == &i->chat) {
+      GtkWidget *chat_box =
+          i->chat.box; // The container for the message buttons
+
+      // Ensure chat_box is valid
+      if (!chat_box) {
+        g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
+        continue;
+      }
+
+      // Remove all message buttons from the chat's container (box)
+      for (MessageNode *msg_node = main_page->messages; msg_node != NULL;
+           msg_node = msg_node->next) {
+        if (msg_node->message->chat_id == i->chat.id) {
+          if (msg_node->message->button != NULL) {
+            gtk_container_remove(GTK_CONTAINER(chat_box),
+                                 msg_node->message->button);
+            g_print("Removed button for message ID: %d\n",
+                    msg_node->message->message_id);
+          } else {
+            g_print("Warning: button is NULL for message ID: %d\n",
+                    msg_node->message->message_id);
+          }
+        }
+      }
+    }
+  }
+
   // Iterate through all chats and set the opened chat
   for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
     if (i->chat.button == chat_button) {
@@ -126,7 +156,27 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
       snprintf(id_str, sizeof(id_str), "%d", i->chat.id);
       gtk_stack_set_visible_child_name(GTK_STACK(main_page->chats_stack),
                                        id_str);
-      break;
+
+      // Create new message buttons for this chat
+      for (MessageNode *msg_node = main_page->messages; msg_node != NULL;
+           msg_node = msg_node->next) {
+        if (msg_node == NULL) {
+          g_print("msg_node in NULL\n");
+          break;
+        }
+        if (msg_node->message == NULL) {
+          g_print("msg_node in NULL\n");
+          break;
+        }
+        if (msg_node->message->chat_id == i->chat.id) {
+          create_message_button(
+              main_page, msg_node); // Create a new button for each message
+          g_print("Created button for message ID: %d\n",
+                  msg_node->message->message_id);
+        }
+      }
+
+      break; // Exit loop after setting the opened chat
     }
   }
 }

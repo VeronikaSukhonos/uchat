@@ -256,222 +256,7 @@ void get_message_file_path(char *path, size_t size, const char *chat_id) {
   snprintf(path, size, CACHE_DIR "/" MESSAGE_FILE_FORMAT, chat_id);
 }
 
-// Encrypt and save messages as JSON
-int save_encrypted_messages_to_cache(const char *chat_id,
-                                     MessageNode *messages) {
-  ensure_cache_directory();
-  unsigned char key[KEY_SIZE];
-  unsigned char iv[IV_SIZE];
-
-  char serial[128];
-  get_serial_number(serial, sizeof(serial));
-
-  if (derive_key_from_serial(serial, key) != 0) {
-    fprintf(stderr, "Failed to derive encryption key.\n");
-    return -1;
-  }
-
-  if (RAND_bytes(iv, IV_SIZE) != 1) {
-    fprintf(stderr, "Failed to generate IV.\n");
-    return -1;
-  }
-
-  char message_file_path[256];
-  get_message_file_path(message_file_path, sizeof(message_file_path), chat_id);
-
-  // Convert messages to JSON
-  cJSON *json_array = cJSON_CreateArray();
-  MessageNode *current = messages;
-  while (current) {
-    cJSON *json_message = cJSON_CreateObject();
-    cJSON_AddNumberToObject(json_message, "message_id",
-                            current->message.message_id);
-    cJSON_AddStringToObject(json_message, "sender", current->message.sender);
-    cJSON_AddNumberToObject(json_message, "date", current->message.date);
-    cJSON_AddNumberToObject(json_message, "status", current->message.status);
-    cJSON_AddNumberToObject(json_message, "content_type",
-                            current->message.content_type);
-    cJSON_AddStringToObject(json_message, "content", current->message.content);
-    cJSON_AddStringToObject(json_message, "voice_path",
-                            current->message.voice_path);
-    cJSON_AddNumberToObject(json_message, "read", current->message.read);
-    cJSON_AddItemToArray(json_array, json_message);
-
-    current = current->next;
-  }
-
-  char *json_data = cJSON_Print(json_array);
-  cJSON_Delete(json_array);
-
-  // Encrypt JSON data
-  unsigned char ciphertext[4096];
-  int ciphertext_len = encrypt_session((unsigned char *)json_data,
-                                       strlen(json_data), key, ciphertext, iv);
-  free(json_data);
-
-  if (ciphertext_len < 0) {
-    fprintf(stderr, "Encryption failed.\n");
-    return -1;
-  }
-
-  // Save IV and ciphertext to file
-  FILE *file = fopen(message_file_path, "wb");
-  if (!file) {
-    perror("Failed to open message cache file");
-    return -1;
-  }
-
-  fwrite(iv, 1, IV_SIZE, file);
-  fwrite(ciphertext, 1, ciphertext_len, file);
-  fclose(file);
-
-  return 0;
-}
-
-// Load and decrypt messages from JSON file
-MessageNode *load_encrypted_messages_from_cache(const char *chat_id) {
-  unsigned char key[KEY_SIZE];
-  unsigned char iv[IV_SIZE];
-  char message_file_path[256];
-  get_message_file_path(message_file_path, sizeof(message_file_path), chat_id);
-
-  char serial[128];
-  get_serial_number(serial, sizeof(serial));
-
-  if (derive_key_from_serial(serial, key) != 0) {
-    fprintf(stderr, "Failed to derive encryption key.\n");
-    return NULL;
-  }
-
-  FILE *file = fopen(message_file_path, "rb");
-  if (!file) {
-    perror("Failed to open message cache file");
-    return NULL;
-  }
-
-  // Read IV
-  if (fread(iv, 1, IV_SIZE, file) != IV_SIZE) {
-    fprintf(stderr, "Failed to read IV.\n");
-    fclose(file);
-    return NULL;
-  }
-
-  // Read ciphertext
-  unsigned char ciphertext[4096];
-  int ciphertext_len = fread(ciphertext, 1, sizeof(ciphertext), file);
-  fclose(file);
-
-  if (ciphertext_len <= 0) {
-    fprintf(stderr, "Failed to read ciphertext.\n");
-    return NULL;
-  }
-  // Decrypt JSON data
-  unsigned char plaintext[4096];
-  int plaintext_len =
-      decrypt_session(ciphertext, ciphertext_len, key, iv, plaintext);
-  if (plaintext_len < 0) {
-    fprintf(stderr, "Decryption failed.\n");
-    return NULL;
-  }
-  plaintext[plaintext_len] = '\0';
-
-  // Parse JSON and populate linked list
-  cJSON *json_array = cJSON_Parse((char *)plaintext);
-  if (!cJSON_IsArray(json_array)) {
-    fprintf(stderr, "Failed to parse JSON array.\n");
-    cJSON_Delete(json_array);
-    return NULL;
-  }
-
-  MessageNode *head = NULL;
-  cJSON *json_message;
-  cJSON_ArrayForEach(json_message, json_array) {
-    MessageCache message;
-    message.message_id =
-        cJSON_GetObjectItem(json_message, "message_id")->valueint;
-    strcpy(message.sender,
-           cJSON_GetObjectItem(json_message, "sender")->valuestring);
-    message.date =
-        (time_t)cJSON_GetObjectItem(json_message, "date")->valuedouble;
-    message.status =
-        (MessageStatus)cJSON_GetObjectItem(json_message, "status")->valueint;
-    message.content_type =
-        (ContentType)cJSON_GetObjectItem(json_message, "content_type")
-            ->valueint;
-    strcpy(message.content,
-           cJSON_GetObjectItem(json_message, "content")->valuestring);
-    strcpy(message.voice_path,
-           cJSON_GetObjectItem(json_message, "voice_path")->valuestring);
-    message.read = cJSON_GetObjectItem(json_message, "read")->valueint;
-
-    head = append_message_node(head, message);
-  }
-
-  cJSON_Delete(json_array);
-  return head;
-}
-
-MessageNode *append_message_node(MessageNode *head, MessageCache message) {
-  MessageNode *new_node = (MessageNode *)malloc(sizeof(MessageNode));
-  if (!new_node) {
-    perror("Failed to allocate memory for new node");
-    return head;
-  }
-  new_node->message = message;
-  new_node->next = NULL;
-
-  if (!head) {
-    return new_node;
-  }
-
-  MessageNode *current = head;
-  while (current->next) {
-    current = current->next;
-  }
-  current->next = new_node;
-  return head;
-}
 // Example function to get the last message's information
-void get_last_message_info(MessageNode *messages, char *sender, char *content,
-                           time_t *date) {
-  if (!messages) {
-    strcpy(sender, "");
-    strcpy(content, "");
-    *date = 0;
-    return;
-  }
-
-  MessageNode *current = messages;
-  while (current->next) {
-    current = current->next;
-  }
-
-  strcpy(sender, current->message.sender);
-  strcpy(content, current->message.content);
-  *date = current->message.date;
-}
-
-// Free the linked list
-void free_message_list(MessageNode *head) {
-  while (head) {
-    MessageNode *temp = head;
-    head = head->next;
-    free(temp);
-  }
-}
-
-// Print all messages in the linked list (for testing)
-void print_messages(MessageNode *head) {
-  MessageNode *current = head;
-  while (current) {
-    MessageCache *msg = &current->message;
-    printf("MessageID: %d, Sender: %s, Date: %s, Status: %d, ContentType: %d, "
-           "Content: %s\n",
-           msg->message_id, msg->sender, ctime(&msg->date), msg->status,
-           msg->content_type, msg->content);
-    current = current->next;
-  }
-}
 
 void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   unsigned char key[KEY_SIZE];
@@ -608,7 +393,7 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
     // Skip non-chat files and hidden files
-    if (entry->d_name[0] == '.' || strstr(entry->d_name, ".json") == NULL) {
+    if (strstr(entry->d_name, ".json") == NULL) {
       continue;
     }
 
@@ -646,46 +431,22 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
     const char *chat_name = name_json->valuestring;
     const char *chat_type = type_json->valuestring;
 
-    // Step 5: Create a list to store the message nodes
-    MessageNode *message_list = NULL;
-
-    // Step 6: Process messages in this chat and create MessageNode for each
+    // Step 5: Process messages in this chat and create MessageNode for each
     cJSON *message_json;
-    cJSON_ArrayForEach(message_json, messages_json) {
+    int messages_size = cJSON_GetArraySize(messages_json); // Get array size
+    for (int i = messages_size - 1; i >= 0; i--) {
+      // Step 6: Access each message from the end
+      message_json = cJSON_GetArrayItem(messages_json, i);
+
       // Determine the message type (text or voice)
-      ContentType message_type = TEXT; // Default to text
+      MessageNode *new_node;
       cJSON *content_type_json = cJSON_GetObjectItem(message_json, "type");
       if (cJSON_IsString(content_type_json) &&
           strcmp(content_type_json->valuestring, "voice") == 0) {
-        message_type = VOICE;
-      }
-
-      // Create message node and populate message data
-      MessageNode *new_node =
-          create_message_node(main_page, message_type, chat_id, message_json);
-
-      // Append the new node to the list
-      new_node->next = message_list;
-      message_list = new_node;
-    }
-
-    // Step 7: Now that the message list is complete, create buttons for all
-    // messages
-    MessageNode *current_node = message_list;
-    while (current_node != NULL) {
-      // Step 8: Check if the message is of type VOICE and create button
-      // accordingly
-      if (current_node->message.content_type == VOICE) {
-        // For voice message, we might want to do something special for the
-        // button creation
-        create_message_button(main_page, current_node);
+        new_node = create_message_node(main_page, VOICE, chat_id, message_json);
       } else {
-        // For regular (text) messages, create the usual button
-        create_message_button(main_page, current_node);
+        new_node = create_message_node(main_page, TEXT, chat_id, message_json);
       }
-
-      // Move to the next node
-      current_node = current_node->next;
     }
 
     // Step 9: Clean up after processing the chat

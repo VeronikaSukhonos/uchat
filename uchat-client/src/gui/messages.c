@@ -2,44 +2,33 @@
 #include <time.h>
 #include <uchat.h>
 
-/* static GstElement *current_pipeline = NULL;
-static pthread_mutex_t pipeline_mutex =
-    PTHREAD_MUTEX_INITIALIZER; // Mutex to synchronize access
+static pthread_t audio_thread = 0; // Track the thread
+static pthread_mutex_t play_mutex =
+    PTHREAD_MUTEX_INITIALIZER; // Mutex to protect thread and playback state
+static GstElement *current_pipeline = NULL; // Track the current pipeline
 
 // Function to handle dynamically linking pads
 void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
   GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
   if (!gst_pad_is_linked(sinkpad)) {
     gst_pad_link(pad, sinkpad);
+    g_print("Pad linked dynamically.\n");
+  } else {
+    g_print("Pad was already linked.\n");
   }
   gst_object_unref(sinkpad);
 }
 
-// Stop the currently playing audio and free the pipeline
-void stop_playback() {
-  if (current_pipeline) {
-    g_print("Stopping the currently playing audio.\n");
-    gst_element_set_state(current_pipeline,
-                          GST_STATE_NULL); // Stop the current pipeline
-    gst_object_unref(current_pipeline);    // Unreference the pipeline
-    current_pipeline = NULL;               // Nullify the pipeline
-  }
-}
-
 // This is the function that will be run in a new thread to play the audio
 void *play_audio_thread(void *data) {
-  // Cast the gpointer data to get the MessageNode or the data you need
   MessageNode *temp_node = (MessageNode *)data;
   const char *file_path =
-      temp_node->message.voice_path; // The path to the audio file
+      temp_node->message->voice_path; // The path to the audio file
 
   g_print("The message is being played: %s\n", file_path);
 
   // Lock the mutex to ensure no race conditions when accessing the pipeline
-  pthread_mutex_lock(&pipeline_mutex);
-
-  // Stop the currently playing audio immediately
-  stop_playback();
+  pthread_mutex_lock(&play_mutex);
 
   // Create the GStreamer elements for the new pipeline
   GstElement *pipeline, *source, *decodebin, *sink;
@@ -50,69 +39,113 @@ void *play_audio_thread(void *data) {
 
   if (!pipeline || !source || !decodebin || !sink) {
     g_printerr("Failed to create GStreamer elements.\n");
-    pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
-    // returning
+    pthread_mutex_unlock(&play_mutex); // Unlock the mutex before returning
     return NULL;
   }
 
-  // Set the source file location (the path to the audio file)
+  g_print("GStreamer elements created successfully.\n");
+
+  // Set the source file location
   g_object_set(G_OBJECT(source), "location", file_path, NULL);
 
   // Add elements to the pipeline
   gst_bin_add_many(GST_BIN(pipeline), source, decodebin, sink, NULL);
+  g_print("Elements added to the pipeline.\n");
 
-  // Link the source to decodebin (dynamic linking to handle different
-  // formats)
+  // Link the source to decodebin
   gst_element_link(source, decodebin);
+  g_print("Source linked to decodebin.\n");
 
-  // Set up the dynamic pad for decodebin
+  // Handle dynamic pads for decodebin
   g_signal_connect(decodebin, "pad-added", G_CALLBACK(on_pad_added), sink);
+  g_print("Dynamic pad setup for decodebin.\n");
 
-  // Set the new pipeline as the current one
+  // Set the current pipeline
   current_pipeline = pipeline;
 
   // Start playing the audio
-  GstStateChangeReturn ret = gst_element_set_state(pipeline,
-  GST_STATE_PLAYING); if (ret == GST_STATE_CHANGE_FAILURE) {
+  GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
+  if (ret == GST_STATE_CHANGE_FAILURE) {
     g_printerr("Failed to change pipeline state to PLAYING.\n");
-    pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before
-    // returning
+    current_pipeline = NULL;           // Clear current pipeline on failure
+    pthread_mutex_unlock(&play_mutex); // Unlock the mutex before returning
     return NULL;
   }
 
-  // Wait for EOS (End Of Stream) or errors
+  g_print("Audio playback started.\n");
+
+  // Non-blocking loop to monitor the bus
   GstBus *bus = gst_element_get_bus(pipeline);
-  GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_EOS | GST_MESSAGE_ERROR,
-                                 GST_CLOCK_TIME_NONE);
-
-  if (msg != NULL) {
-    if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
-      GError *err;
-      gchar *debug_info;
-
-      gst_message_parse_error(msg, &err, &debug_info);
-      g_printerr("Error: %s\n", err->message);
-      g_free(debug_info);
-      g_error_free(err);
+  gboolean running = TRUE;
+  while (running) {
+    GstMessage *msg =
+        gst_bus_timed_pop(bus, GST_MSECOND * 100); // Check every 100ms
+    if (msg != NULL) {
+      switch (GST_MESSAGE_TYPE(msg)) {
+      case GST_MESSAGE_EOS:
+        g_print("Audio playback completed (EOS).\n");
+        running = FALSE;
+        break;
+      case GST_MESSAGE_ERROR: {
+        GError *err;
+        gchar *debug_info;
+        gst_message_parse_error(msg, &err, &debug_info);
+        g_printerr("Error: %s\n", err->message);
+        g_free(debug_info);
+        g_error_free(err);
+        running = FALSE;
+        break;
+      }
+      default:
+        break;
+      }
+      gst_message_unref(msg);
     }
   }
 
-  // Clean up
+  // Clean up the pipeline
+  gst_element_set_state(pipeline, GST_STATE_NULL);
   gst_object_unref(bus);
-  pthread_mutex_unlock(&pipeline_mutex); // Unlock the mutex before returning
+  gst_object_unref(pipeline);
+  current_pipeline = NULL;
+  g_print("Pipeline cleaned up.\n");
+
+  // Unlock the mutex to indicate the thread is done
+  pthread_mutex_unlock(&play_mutex);
+  g_print("Mutex unlocked after playback.\n");
 
   return NULL;
-} */
+}
+// Function to stop the current audio pipeline
+void stop_audio() {
+  g_print("Stopping audio playback...\n");
+  pthread_mutex_unlock(&play_mutex);
 
-// Function to start the audio playback in a new thread
-void play_voice(GtkWidget *button, gpointer data) {
-  /* pthread_t audio_thread;
-
-  // Check if there is already an audio playing
   if (current_pipeline != NULL) {
-    g_print("Stopping the currently playing audio.\n");
-    stop_playback(); // Stop the currently playing audio immediately
+    g_print("Setting pipeline state to NULL...\n");
+    gst_element_set_state(current_pipeline, GST_STATE_NULL);
+    gst_object_unref(current_pipeline);
+    current_pipeline = NULL;
+    g_print("Current audio pipeline stopped and cleared successfully.\n");
+  } else {
+    g_print("No active audio pipeline to stop.\n");
   }
+}
+
+// Function to stop the current audio thread (if any) and start a new one
+void play_voice(GtkWidget *button, gpointer data) {
+  g_print("play_voice function called.\n");
+
+  // Check if a thread is already running, if so, stop playback
+  if (audio_thread != 0) {
+    g_print("Cancelling and joining the previous audio thread.\n");
+    pthread_cancel(audio_thread);     // Cancel the previous thread
+    pthread_join(audio_thread, NULL); // Wait for the thread to finish
+    g_print("Previous audio thread stopped successfully.\n");
+  }
+
+  // Stop any currently playing audio
+  stop_audio();
 
   // Create a new thread to handle the audio playback
   if (pthread_create(&audio_thread, NULL, play_audio_thread, data) != 0) {
@@ -120,9 +153,11 @@ void play_voice(GtkWidget *button, gpointer data) {
     return;
   }
 
+  g_print("New audio thread created successfully.\n");
+
   // Detach the thread so it can clean up itself when done
-  pthread_detach(audio_thread); */
-  g_print("Playing...\n");
+  pthread_detach(audio_thread);
+  g_print("New audio thread detached.\n");
 }
 
 void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window) {
@@ -257,15 +292,30 @@ MessageNode *create_message_node(t_main_page_data *main_page,
     fprintf(stderr, "Failed to allocate memory for new message node.\n");
     return NULL;
   }
+  temp_node->message = malloc(sizeof(MessageCache));
+
+  if (!temp_node->message) {
+    fprintf(stderr, "Failed to allocate memory for message.\n");
+    free(temp_node); // Free the node if allocation fails
+    return NULL;
+  }
 
   // Initialize the message fields
-  temp_node->next =
-      (*main_page).messages;         // Insert at the beginning of the list
-  (*main_page).messages = temp_node; // Update the head of the list
+  if ((*main_page).messages == NULL) {
+    // Initialize the first node if the list is empty
+    (*main_page).messages = temp_node;
+  } else {
+    // Otherwise, insert at the beginning of the list
+    temp_node->next = (*main_page).messages;
+    (*main_page).messages = temp_node;
+  }
+  // temp_node->next =
+  //     (*main_page).messages;         // Insert at the beginning of the list
+  // (*main_page).messages = temp_node; // Update the head of the list
 
-  temp_node->message.chat_id = chat_id;
-  temp_node->message.content_type = message_type;
-  temp_node->message.status = NEW;
+  temp_node->message->chat_id = chat_id;
+  temp_node->message->content_type = message_type;
+  temp_node->message->status = NEW;
 
   // Set the values from the parsed JSON message
   cJSON *id_json = cJSON_GetObjectItem(message_json, "message_id");
@@ -278,16 +328,23 @@ MessageNode *create_message_node(t_main_page_data *main_page,
 
   // Populate message fields
   if (cJSON_IsString(content_json)) {
-    strncpy(temp_node->message.content, content_json->valuestring,
-            sizeof(temp_node->message.content) - 1);
+    strncpy(temp_node->message->content, content_json->valuestring,
+            sizeof(temp_node->message->content) - 1);
   }
 
   if (cJSON_IsString(sender_json)) {
-    strncpy(temp_node->message.sender, sender_json->valuestring,
-            sizeof(temp_node->message.sender) - 1);
+    strncpy(temp_node->message->sender, sender_json->valuestring,
+            sizeof(temp_node->message->sender) - 1);
   }
-  if (cJSON_IsString(id_json)) {
-    temp_node->message.message_id = id_json->valueint;
+  if (cJSON_IsNumber(id_json)) {
+    temp_node->message->message_id = id_json->valueint;
+    g_print("Message ID set to: %d\n",
+            temp_node->message->message_id); // Debugging print
+  } else {
+    g_print(
+        "Error: message_id not found or not a number.\n"); // Debugging error if
+                                                           // missing or invalid
+    temp_node->message->message_id = 0; // Set default ID if invalid
   }
 
   if (cJSON_IsString(timestamp_json)) {
@@ -308,30 +365,33 @@ MessageNode *create_message_node(t_main_page_data *main_page,
         struct tm *tm_local = localtime(&utc_time);
         if (tm_local) {
           // Convert localtime back to time_t
-          temp_node->message.date = mktime(tm_local); // Assign the local time
+          temp_node->message->date = mktime(tm_local); // Assign the local time
         } else {
-          temp_node->message.date = 0; // Handle error if localtime fails
+          temp_node->message->date = 0; // Handle error if localtime fails
         }
       } else {
-        temp_node->message.date = 0; // Handle error if mktime fails
+        temp_node->message->date = 0; // Handle error if mktime fails
       }
     }
   }
 
   if (cJSON_IsNumber(read_json)) {
-    temp_node->message.read = read_json->valueint;
+    temp_node->message->read = read_json->valueint;
   }
 
   // Store voice path if the message is of type VOICE
   if (message_type == VOICE && cJSON_IsString(voice_path_json)) {
-    strncpy(temp_node->message.voice_path, voice_path_json->valuestring,
-            sizeof(temp_node->message.voice_path) - 1);
+    strncpy(temp_node->message->voice_path, voice_path_json->valuestring,
+            sizeof(temp_node->message->voice_path) - 1);
+    g_print("filepath set to %s\n", temp_node->message->voice_path);
   }
 
-  temp_node->message.button = NULL; // Initial value, you can modify later
-
+  temp_node->message->button = NULL; // Initial value, you can modify later
+  // If it's a voice message, create the button and connect the signal
   return temp_node;
 }
+
+void test(gpointer *ptr) { g_print("test\n"); }
 
 void create_message_button(t_main_page_data *main_page,
                            MessageNode *temp_node) {
@@ -339,75 +399,83 @@ void create_message_button(t_main_page_data *main_page,
 
   // Find the correct chat to add the message button
   for (chat_with_new_message = (*main_page).chats;
-       chat_with_new_message->chat.id != (*temp_node).message.chat_id;
+       chat_with_new_message->chat.id != (*temp_node).message->chat_id;
        chat_with_new_message = chat_with_new_message->next)
     ;
 
   // Create a new button for the message
-  (*temp_node).message.button = gtk_button_new();
+  (*temp_node).message->button = gtk_button_new();
   gtk_box_pack_end(GTK_BOX(chat_with_new_message->chat.box),
-                   (*temp_node).message.button, FALSE, FALSE, 0);
+                   (*temp_node).message->button, FALSE, FALSE, 0);
   gtk_box_reorder_child(GTK_BOX(chat_with_new_message->chat.box),
-                        (*temp_node).message.button, 0);
+                        (*temp_node).message->button, 0);
+  g_signal_connect(temp_node->message->button, "clicked", G_CALLBACK(test),
+                   (gpointer)temp_node);
 
   // Compare with the message sender
-  if (strcmp(temp_node->message.sender, username) == 0) {
+  if (strcmp(temp_node->message->sender, username) == 0) {
     // If the sender is the current user, it's an outgoing message
-    gtk_widget_set_halign((*temp_node).message.button, GTK_ALIGN_END);
+    gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_END);
     gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message.button),
+        gtk_widget_get_style_context((*temp_node).message->button),
         "outgoing-messages");
   } else {
     // If the sender is not the current user, it's an incoming message
-    gtk_widget_set_halign((*temp_node).message.button, GTK_ALIGN_START);
+    gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_START);
     gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message.button),
+        gtk_widget_get_style_context((*temp_node).message->button),
         "ingoing-messages");
   }
 
   // Create the main box to hold the message content
   GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add(GTK_CONTAINER((*temp_node).message.button), main_box);
+  gtk_container_add(GTK_CONTAINER((*temp_node).message->button), main_box);
 
   // Add a label with the sender's username
-  if (strcmp(temp_node->message.sender, username) != 0) {
-    (*temp_node).message.username_label = gtk_label_new((*temp_node).message.sender);
-    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message.username_label, FALSE,
-		       FALSE, 0);
+  if (strcmp(temp_node->message->sender, username) != 0) {
+    (*temp_node).message->username_label =
+        gtk_label_new((*temp_node).message->sender);
+    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->username_label,
+                       FALSE, FALSE, 0);
     gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message.username_label),
-	"sender-name");
-    gtk_widget_set_halign((*temp_node).message.username_label, GTK_ALIGN_START);
+        gtk_widget_get_style_context((*temp_node).message->username_label),
+        "sender-name");
+    gtk_widget_set_halign((*temp_node).message->username_label,
+                          GTK_ALIGN_START);
   }
 
   // If it's a text message, show the content
-  if ((*temp_node).message.content_type == TEXT) {
-    (*temp_node).message.message_label =
-        gtk_label_new((*temp_node).message.content);
-    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message.message_label,
+  if ((*temp_node).message->content_type == TEXT) {
+    (*temp_node).message->message_label =
+        gtk_label_new((*temp_node).message->content);
+    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
                        TRUE, FALSE, 0);
-    gtk_label_set_xalign(GTK_LABEL((*temp_node).message.message_label), 0);
-    gtk_label_set_justify(GTK_LABEL((*temp_node).message.message_label),
-		          GTK_JUSTIFY_LEFT);
-    gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message.message_label), TRUE);
-    gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message.message_label), PANGO_WRAP_WORD_CHAR);
+    gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
+    gtk_label_set_justify(GTK_LABEL((*temp_node).message->message_label),
+                          GTK_JUSTIFY_LEFT);
+    gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                            TRUE);
+    gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message->message_label),
+                                 PANGO_WRAP_WORD_CHAR);
   } else {
     // If it's a voice message, show a button to play the voice message
     GtkWidget *play_button = gtk_image_new_from_file(
         "uchat-client/src/gui/resources/play_button.png");
-    (*temp_node).message.voice_message_button = gtk_button_new();
-    gtk_button_set_image(GTK_BUTTON((*temp_node).message.voice_message_button),
+    (*temp_node).message->voice_message_button = gtk_button_new();
+    gtk_button_set_image(GTK_BUTTON((*temp_node).message->voice_message_button),
                          play_button);
     gtk_box_pack_start(GTK_BOX(main_box),
-                       (*temp_node).message.voice_message_button, FALSE, FALSE,
+                       (*temp_node).message->voice_message_button, FALSE, FALSE,
                        0);
-    gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message.voice_message_button),
-        "play-button");
-    gtk_widget_set_halign((*temp_node).message.voice_message_button, GTK_ALIGN_START);
-
+    gtk_style_context_add_class(gtk_widget_get_style_context(
+                                    (*temp_node).message->voice_message_button),
+                                "play-button");
+    gtk_widget_set_halign((*temp_node).message->voice_message_button,
+                          GTK_ALIGN_START);
+    // g_print("Connecting signal to play voice for message: %s\n",
+    //         temp_node->message.voice_path);
     // Make sure the signal handler is connected to the voice button
-    g_signal_connect((*temp_node).message.voice_message_button, "clicked",
+    g_signal_connect(temp_node->message->voice_message_button, "clicked",
                      G_CALLBACK(play_voice), (gpointer)temp_node);
   }
 
@@ -418,51 +486,51 @@ void create_message_button(t_main_page_data *main_page,
                               "chat-button-bottom-box");
 
   // Time label
-  (*temp_node).message.time_label = gtk_label_new("00:00");
+  (*temp_node).message->time_label = gtk_label_new("00:00");
   char *time_str =
-      ctime(&(*temp_node).message.date); // Convert time_t to string
+      ctime(&(*temp_node).message->date); // Convert time_t to string
   if (time_str) {
     time_str[strlen(time_str) - 1] = '\0'; // Remove the newline character
-    gtk_label_set_text(GTK_LABEL((*temp_node).message.time_label), time_str);
+    gtk_label_set_text(GTK_LABEL((*temp_node).message->time_label), time_str);
   }
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message.time_label, FALSE,
+  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->time_label, FALSE,
                    FALSE, 0);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message.time_label),
+      gtk_widget_get_style_context((*temp_node).message->time_label),
       "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message.time_label, GTK_ALIGN_END);
+  gtk_widget_set_halign((*temp_node).message->time_label, GTK_ALIGN_END);
 
   // Changed label
-  (*temp_node).message.changed_label = gtk_label_new("");
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message.changed_label,
+  (*temp_node).message->changed_label = gtk_label_new("");
+  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->changed_label,
                    FALSE, FALSE, 0);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message.changed_label),
+      gtk_widget_get_style_context((*temp_node).message->changed_label),
       "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message.changed_label, GTK_ALIGN_END);
+  gtk_widget_set_halign((*temp_node).message->changed_label, GTK_ALIGN_END);
 
   // Seen label
-  (*temp_node).message.seen_label = gtk_label_new("");
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message.seen_label, FALSE,
+  (*temp_node).message->seen_label = gtk_label_new("");
+  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->seen_label, FALSE,
                    FALSE, 0);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message.seen_label),
+      gtk_widget_get_style_context((*temp_node).message->seen_label),
       "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message.seen_label, GTK_ALIGN_END);
+  gtk_widget_set_halign((*temp_node).message->seen_label, GTK_ALIGN_END);
 
   // Set visibility for all elements
-  gtk_widget_set_visible((*temp_node).message.button, 1);
+  gtk_widget_set_visible((*temp_node).message->button, 1);
   gtk_widget_set_visible(main_box, 1);
-  if (strcmp(temp_node->message.sender, username) != 0)
-    gtk_widget_set_visible((*temp_node).message.username_label, 1);
+  if (strcmp(temp_node->message->sender, username) != 0)
+    gtk_widget_set_visible((*temp_node).message->username_label, 1);
   gtk_widget_set_visible(bottom_box, 1);
-  if ((*temp_node).message.content_type == TEXT)
-    gtk_widget_set_visible((*temp_node).message.message_label, 1);
+  if ((*temp_node).message->content_type == TEXT)
+    gtk_widget_set_visible((*temp_node).message->message_label, 1);
   else
-    gtk_widget_set_visible((*temp_node).message.voice_message_button, 1);
-  gtk_widget_set_visible((*temp_node).message.changed_label, 1);
-  gtk_widget_set_visible((*temp_node).message.time_label, 1);
-  gtk_widget_set_visible((*temp_node).message.seen_label, 1);
+    gtk_widget_set_visible((*temp_node).message->voice_message_button, 1);
+  gtk_widget_set_visible((*temp_node).message->changed_label, 1);
+  gtk_widget_set_visible((*temp_node).message->time_label, 1);
+  gtk_widget_set_visible((*temp_node).message->seen_label, 1);
 }
 
 void send_message_f(GtkWidget *widget, gpointer data) {

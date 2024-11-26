@@ -67,7 +67,7 @@ typedef struct {
 
 // Linked list node for MessageCache
 typedef struct MessageNode {
-  MessageCache message;
+  MessageCache *message;
   struct MessageNode *next;
 } MessageNode;
 
@@ -189,7 +189,7 @@ char *build_json_login(const char *username, const char *password,
 char *build_json_message(const char *receiver, const char *message);
 char *build_json_group_chat(const char *chat_name, char usernames[][50],
                             int num_users);
-
+void play_voice(GtkWidget *button, gpointer data);
 // response
 int handle_get_profile_response(cJSON *response, AppData *app_data);
 

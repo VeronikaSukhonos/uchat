@@ -55,7 +55,7 @@ cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id) {
       char file_path[128] = "";
       snprintf(file_path, sizeof(file_path), "chat_%d_%d_vmsg.wav", chat_id,
                message_id);
-      cJSON_AddStringToObject(message, "voice_file_path", file_path);
+      cJSON_AddStringToObject(message, "file_name", file_path);
 
       // Base64-encode the voice message for JSON
       char *encoded_voice = base64_encode(
@@ -68,7 +68,7 @@ cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id) {
       }
     } else {
       cJSON_AddStringToObject(message, "voice_message", ""); // No voice message
-      cJSON_AddStringToObject(message, "voice_file_path", ""); // No file path
+      cJSON_AddStringToObject(message, "file_name", "");     // No file path
     }
 
     cJSON_AddItemToArray(messages, message);

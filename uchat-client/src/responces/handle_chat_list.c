@@ -128,6 +128,10 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
           }
         }
 
+        // Remove the voice_message field after processing
+        cJSON_DeleteItemFromObject(message, "voice_message");
+        cJSON_DeleteItemFromObject(message, "file_name");
+
         cJSON_AddItemToArray(messages_array, json_message);
       }
     }
