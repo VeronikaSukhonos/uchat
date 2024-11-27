@@ -313,8 +313,8 @@ MessageNode *create_message_node(t_main_page_data *main_page,
 
     // Set the next pointer of the last node to the new node
     last_node->next = temp_node;
-    temp_node->next = NULL; // Make sure the new node's next is NULL
   }
+  temp_node->next = NULL; // Make sure the new node's next is NULL
   // temp_node->next =
   //     (*main_page).messages;         // Insert at the beginning of the list
   // (*main_page).messages = temp_node; // Update the head of the list
