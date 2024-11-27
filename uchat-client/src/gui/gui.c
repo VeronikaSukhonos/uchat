@@ -62,7 +62,7 @@ void registration_submit(GtkWidget *registration_button, t_form_data *data) {
       char *json_str = build_json_register(username, password);
       g_print("Sock: %i", data->sock);
       send(data->sock, json_str, strlen(json_str), 0);
-      free(json_str);
+      g_free(json_str);
       g_print("Registration sended to server:\nUsername: %s\nPassword: "
               "%s\nRepassword: %s\n",
               username, password, repassword);
@@ -90,7 +90,7 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
     char *json_str = build_json_login(username, password, serial_number);
     g_print("Sock: %i", data->sock);
     send(data->sock, json_str, strlen(json_str), 0);
-    free(json_str);
+    g_free(json_str);
     g_print("Login sended to server:\nUsername: %s\nPassword: %s\n", username,
             password);
     gtk_entry_set_text(GTK_ENTRY(data->username), "");
@@ -130,7 +130,7 @@ int check_password(char *password, GtkWidget *message) {
   if (password_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Password is required");
     return 0;
-  // do not forget to change to 8
+    // do not forget to change to 8
   } else if (password_len < 0 || password_len > 20) {
     gtk_label_set_text(GTK_LABEL(message),
                        "Password must contain 8-20 symbols");

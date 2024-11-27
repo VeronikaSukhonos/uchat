@@ -75,7 +75,7 @@ void send_voice_message(int sock, const char *file_path, int chat_id) {
   }
 
   // Cleanup
-  free(encoded_file);
-  free(json_string);
+  g_free(encoded_file);
+  g_free(json_string);
   cJSON_Delete(json);
 }

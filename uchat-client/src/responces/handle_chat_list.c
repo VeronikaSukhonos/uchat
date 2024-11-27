@@ -120,7 +120,7 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
                       file_path);
             }
 
-            free(decoded_data);
+            g_free(decoded_data);
           } else {
             fprintf(stderr,
                     "Failed to decode voice message for message_id: %d\n",

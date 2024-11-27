@@ -5,9 +5,9 @@
 
 char *receive_large_json(int socket_fd) {
   size_t buffer_size = INITIAL_BUFFER_SIZE;
-  char *buffer = malloc(buffer_size);
+  char *buffer = g_malloc(buffer_size);
   if (!buffer) {
-    perror("malloc failed");
+    perror("g_malloc failed");
     return NULL;
   }
 
@@ -29,12 +29,12 @@ char *receive_large_json(int socket_fd) {
 
     if (activity < 0) {
       perror("select failed");
-      free(buffer);
+      g_free(buffer);
       return NULL;
     } else if (activity == 0) {
       // Timeout occurred
       fprintf(stderr, "recv timed out.\n");
-      free(buffer);
+      g_free(buffer);
       return NULL;
     }
 
@@ -42,7 +42,7 @@ char *receive_large_json(int socket_fd) {
     bytes = recv(socket_fd, buffer + received, buffer_size - received, 0);
     if (bytes < 0) {
       perror("recv failed");
-      free(buffer);
+      g_free(buffer);
       return NULL;
     } else if (bytes == 0) {
       // Connection closed by the server
@@ -57,7 +57,7 @@ char *receive_large_json(int socket_fd) {
       char *temp = realloc(buffer, buffer_size);
       if (!temp) {
         perror("realloc failed");
-        free(buffer);
+        g_free(buffer);
         return NULL;
       }
       buffer = temp;
@@ -85,7 +85,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
   g_print("Buffer: %s\n", buffer);
 
   cJSON *response = cJSON_Parse(buffer);
-  free(buffer); // Free buffer after parsing
+  g_free(buffer); // Free buffer after parsing
 
   if (response == NULL) {
     g_print("Failed to parse server response.\n");
@@ -111,7 +111,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       char *chat_list_request_str = cJSON_Print(chat_list_request);
       send(sock, chat_list_request_str, strlen(chat_list_request_str), 0);
       g_print("Sent: %s\n", chat_list_request_str);
-      free(chat_list_request_str);
+      g_free(chat_list_request_str);
       cJSON_Delete(chat_list_request);
     } else {
       g_print("Error: Login Error.\n");
@@ -196,7 +196,11 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       g_print("LOGOUT successful\n");
       delete_cache_directory();
+      remove_buttons(app_data->main_page);
       remove_all_chat_buttons(app_data->main_page);
+      free_message_list(app_data->main_page->messages);
+      app_data->main_page->messages = NULL;
+      g_print("Message head set to null\n");
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "login");
       delete_session();
     } else {
@@ -235,7 +239,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
         cJSON_Delete(logout);
         send(app_data->main_page->sock, logout_str, strlen(logout_str), 0);
         g_print("Sent: %s\n", logout_str);
-        free(logout_str);
+        g_free(logout_str);
         cJSON_Delete(response);
         return 0;
       }
@@ -245,7 +249,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       cJSON_Delete(json);
       send(app_data->main_page->sock, json_str, strlen(json_str), 0);
       g_print("Sent: %s\n", json_str);
-      free(json_str);
+      g_free(json_str);
     }
   } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_SERVER_STATUS") ==
              0) {

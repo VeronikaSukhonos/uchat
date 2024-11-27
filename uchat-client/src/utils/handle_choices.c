@@ -40,7 +40,7 @@ void handle_logged_in_choice(int sock, const char *username) {
         cJSON_Delete(json);
         send(sock, json_str, strlen(json_str), 0);
         printf("Sent: %s\n", json_str);
-        free(json_str);
+        g_free(json_str);
       }
       break;
     }
@@ -68,7 +68,7 @@ void handle_logged_in_choice(int sock, const char *username) {
         char *json_str = build_json_group_chat(chat_name, usernames, num_users);
         send(sock, json_str, strlen(json_str), 0);
         printf("Sent: %s\n", json_str);
-        free(json_str);
+        g_free(json_str);
       }
       break;
     }
@@ -79,7 +79,7 @@ void handle_logged_in_choice(int sock, const char *username) {
       cJSON_Delete(json);
       send(sock, json_str, strlen(json_str), 0);
       printf("Sent request for chat list: %s\n", json_str);
-      free(json_str);
+      g_free(json_str);
       break;
     }
     default:

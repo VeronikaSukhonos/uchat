@@ -34,7 +34,7 @@ void change_profile(GtkWidget *change_button, gpointer data) {
     cJSON_Delete(json);
     send(main_page->sock, json_str, strlen(json_str), 0);
     g_print("Sent: %s\n", json_str);
-    free(json_str);
+    g_free(json_str);
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                      "user_info");
   }

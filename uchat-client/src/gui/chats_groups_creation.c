@@ -113,13 +113,13 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
                                const char *unread) {
   t_chat_node *temp_node;
   if ((*main_page).chats == NULL) {
-    (*main_page).chats = malloc(sizeof(t_chat_node));
+    (*main_page).chats = g_malloc(sizeof(t_chat_node));
     temp_node = (*main_page).chats;
   } else {
     temp_node = (*main_page).chats;
     while (temp_node->next != NULL)
       temp_node = temp_node->next;
-    temp_node->next = malloc(sizeof(t_chat_node));
+    temp_node->next = g_malloc(sizeof(t_chat_node));
     temp_node = temp_node->next;
   }
   temp_node->next = NULL;
@@ -207,8 +207,8 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   // Convert chat_id to string and set it as the child name
   char id_str[32];
   snprintf(id_str, sizeof(id_str), "%d", chat_id);
-  gtk_stack_add_named(GTK_STACK((*main_page).chats_stack),
-                      dialog_scroll, id_str);
+  gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), dialog_scroll,
+                      id_str);
 
   (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(dialog_scroll), (*temp_node).chat.box);
@@ -269,7 +269,7 @@ void remove_all_chat_buttons(t_main_page_data *main_page) {
     }
 
     // Free the current node
-    free(current);
+    g_free(current);
     current = next_node;
   }
 
@@ -298,7 +298,7 @@ void chat_creation(GtkWidget *create_chat_button, gpointer data) {
   cJSON_Delete(json);
   send(main_page->sock, json_str, strlen(json_str), 0);
   g_print("Sent: %s\n", json_str);
-  free(json_str);
+  g_free(json_str);
   // if (получилось) {
   // new_chat_button(main_page, username, 'c');
   gtk_entry_set_text(GTK_ENTRY((*main_page).create_chat_data.username), "");
@@ -344,7 +344,7 @@ void adding_user(GtkWidget *add_user_button, gpointer data) {
       cJSON_Delete(json);
       send(main_page->sock, json_str, strlen(json_str), 0);
       g_print("Sent: %s\n", json_str);
-      free(json_str);
+      g_free(json_str);
 
       gtk_entry_set_text(GTK_ENTRY((*main_page).create_group_data.username),
                          "");
@@ -384,7 +384,7 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
         build_json_group_chat(name, usernames, (*main_page).group_users_count);
     send((*main_page).sock, json_str, strlen(json_str), 0);
     printf("Sent: %s\n", json_str);
-    free(json_str);
+    g_free(json_str);
     (*main_page).group_users_count = 0;
     //    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),
     //                                   "chats_list");

@@ -38,7 +38,7 @@ char *decrypt_json_from_file(const char *file_path) {
   fseek(file, IV_SIZE, SEEK_SET); // Start reading after IV
 
   // Dynamically allocate memory for the ciphertext based on file size
-  unsigned char *ciphertext = malloc(file_size);
+  unsigned char *ciphertext = g_malloc(file_size);
   if (!ciphertext) {
     fprintf(stderr, "Memory allocation failed for ciphertext.\n");
     fclose(file);
@@ -50,22 +50,22 @@ char *decrypt_json_from_file(const char *file_path) {
   fclose(file);
 
   // Dynamically allocate memory for the decrypted data (plaintext)
-  unsigned char *plaintext = malloc(
+  unsigned char *plaintext = g_malloc(
       file_size); // At worst, plaintext can be the same size as ciphertext
   if (!plaintext) {
     fprintf(stderr, "Memory allocation failed for plaintext.\n");
-    free(ciphertext);
+    g_free(ciphertext);
     return NULL;
   }
 
   // Decrypt the ciphertext into the plaintext buffer
   int plaintext_len =
       decrypt_session(ciphertext, file_size, key, iv, plaintext);
-  free(ciphertext);
+  g_free(ciphertext);
 
   if (plaintext_len < 0) {
     fprintf(stderr, "Decryption failed for file: %s\n", file_path);
-    free(plaintext);
+    g_free(plaintext);
     return NULL;
   }
 
@@ -74,7 +74,7 @@ char *decrypt_json_from_file(const char *file_path) {
 
   // Duplicate the decrypted plaintext and return it as a string
   char *result = strdup((char *)plaintext);
-  free(plaintext); // Free plaintext after duplicating it
+  g_free(plaintext); // Free plaintext after duplicating it
 
   return result;
 }
@@ -166,7 +166,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
   // Parse decrypted JSON
   cJSON *json = cJSON_Parse(decrypted_json);
   // g_print("extracted data: %s\n", decrypted_json);
-  free(decrypted_json);
+  g_free(decrypted_json);
   if (!json) {
     fprintf(stderr, "Failed to parse JSON file: %s\n", file_path);
     return -1;
@@ -285,19 +285,19 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
 
   // Encrypt JSON data
   int json_data_len = strlen(json_data);
-  unsigned char *ciphertext = (unsigned char *)malloc(
+  unsigned char *ciphertext = (unsigned char *)g_malloc(
       json_data_len + 16); // Allocate enough space for padding
 
   if (!ciphertext) {
     fprintf(stderr, "Memory allocation failed\n");
-    free(json_data);
+    g_free(json_data);
     return;
   }
 
   // Call encryption function
   int ciphertext_len = encrypt_session((unsigned char *)json_data,
                                        json_data_len, key, ciphertext, iv);
-  free(json_data); // Free JSON data after encryption
+  g_free(json_data); // Free JSON data after encryption
 
   if (ciphertext_len < 0) {
     fprintf(stderr, "Encryption failed.\n");
@@ -314,7 +314,7 @@ void save_encrypted_chat_to_cache(const char *file_path, cJSON *chat_data) {
   fwrite(iv, 1, IV_SIZE, file);
   fwrite(ciphertext, 1, ciphertext_len, file);
   fclose(file);
-  free(ciphertext);
+  g_free(ciphertext);
 }
 
 int insert_message_into_chat(const char *file_path, cJSON *new_message) {
@@ -327,7 +327,7 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
 
   // Step 2: Parse the decrypted JSON
   cJSON *chat_data = cJSON_Parse(decrypted_json);
-  free(decrypted_json);
+  g_free(decrypted_json);
   if (!chat_data) {
     fprintf(stderr, "Failed to parse decrypted JSON.\n");
     return -1;
@@ -409,7 +409,7 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
     }
 
     cJSON *chat_json = cJSON_Parse(decrypted_json);
-    free(decrypted_json);
+    g_free(decrypted_json);
     if (!chat_json) {
       fprintf(stderr, "Failed to parse JSON for chat: %s\n", file_path);
       continue;
@@ -454,4 +454,18 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
   }
 
   closedir(dir);
+}
+
+void free_message_list(MessageNode *head) {
+  MessageNode *current_node = head;
+  while (current_node != NULL) {
+    MessageNode *next_node = current_node->next; // Save the next node
+    if (current_node->message != NULL) {
+      g_print("deleted node with id: %i\n", current_node->message->message_id);
+      g_free(current_node->message); // Free the associated message data
+    }
+    g_free(current_node);     // Free the node itself
+    current_node = next_node; // Move to the next node
+  }
+  head = NULL;
 }

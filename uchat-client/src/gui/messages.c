@@ -278,7 +278,7 @@ void send_message_to_server(int chat_id, const gchar *message) {
   send(sock, json_str, strlen(json_str), 0);
 
   cJSON_Delete(json_message);
-  free(json_str);
+  g_free(json_str);
   g_free((gpointer)message);
 }
 
@@ -286,17 +286,17 @@ MessageNode *create_message_node(t_main_page_data *main_page,
                                  ContentType message_type, int chat_id,
                                  cJSON *message_json) {
   // Create a new node
-  MessageNode *temp_node = malloc(sizeof(MessageNode));
+  MessageNode *temp_node = g_malloc(sizeof(MessageNode));
 
   if (!temp_node) {
     fprintf(stderr, "Failed to allocate memory for new message node.\n");
     return NULL;
   }
-  temp_node->message = malloc(sizeof(MessageCache));
+  temp_node->message = g_malloc(sizeof(MessageCache));
 
   if (!temp_node->message) {
     fprintf(stderr, "Failed to allocate memory for message.\n");
-    free(temp_node); // Free the node if allocation fails
+    g_free(temp_node); // Free the node if allocation fails
     return NULL;
   }
 

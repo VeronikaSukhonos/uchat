@@ -17,7 +17,7 @@ char *base64_encode(const unsigned char *data, size_t input_length) {
   static const char base64_table[] =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   size_t output_length = 4 * ((input_length + 2) / 3);
-  char *encoded_data = malloc(output_length + 1);
+  char *encoded_data = g_malloc(output_length + 1);
   if (!encoded_data)
     return NULL;
 
@@ -56,7 +56,7 @@ char *read_and_encode_file(const char *filepath) {
   }
   rewind(file);
 
-  unsigned char *file_content = malloc(file_size);
+  unsigned char *file_content = g_malloc(file_size);
   if (!file_content) {
     fprintf(stderr, "Memory allocation failed for file content\n");
     fclose(file);
@@ -66,7 +66,7 @@ char *read_and_encode_file(const char *filepath) {
   size_t read_size = fread(file_content, 1, file_size, file);
   if (read_size != file_size) {
     fprintf(stderr, "Failed to read the file completely\n");
-    free(file_content);
+    g_free(file_content);
     fclose(file);
     return NULL;
   }
@@ -75,7 +75,7 @@ char *read_and_encode_file(const char *filepath) {
   printf("File read successfully, size: %ld bytes\n", file_size);
 
   char *encoded_content = base64_encode(file_content, file_size);
-  free(file_content);
+  g_free(file_content);
 
   if (!encoded_content || strlen(encoded_content) == 0) {
     fprintf(stderr, "Base64 encoding failed or returned empty string\n");
@@ -96,7 +96,7 @@ unsigned char *base64_decode(const char *data, size_t input_length,
   if (data[input_length - 2] == '=')
     (*output_length)--;
 
-  unsigned char *decoded_data = malloc(*output_length);
+  unsigned char *decoded_data = g_malloc(*output_length);
   if (!decoded_data)
     return NULL;
 
@@ -136,5 +136,5 @@ void save_decoded_file(const char *encoded_data, const char *output_file) {
   fwrite(decoded_data, 1, decoded_length, file);
   fclose(file);
 
-  free(decoded_data);
+  g_free(decoded_data);
 }

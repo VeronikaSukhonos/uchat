@@ -34,7 +34,7 @@ int check_session_on_server(int sock, const char *username,
       char *chat_list_request_str = cJSON_Print(chat_list_request);
       send(sock, chat_list_request_str, strlen(chat_list_request_str), 0);
       g_print("Sent: %s\n", chat_list_request_str);
-      free(chat_list_request_str);
+      g_free(chat_list_request_str);
       cJSON_Delete(chat_list_request);
       return 1;
     }

@@ -66,14 +66,14 @@ void process_voice_message_and_store(const char *json_response,
   FILE *voice_file = fopen(file_path, "wb");
   if (!voice_file) {
     perror("Failed to create voice file");
-    free(decoded_voice);
+    g_free(decoded_voice);
     cJSON_Delete(response);
     return;
   }
 
   fwrite(decoded_voice, 1, decoded_size, voice_file);
   fclose(voice_file);
-  free(decoded_voice);
+  g_free(decoded_voice);
 
   printf("Voice message saved to file: %s\n", file_path);
 
