@@ -147,6 +147,7 @@ typedef struct s_main_page_data {
   GtkWidget *smile_window;
   GtkWidget *mic_button;
   GtkWidget *chat_nickname;
+  GtkWidget *voice_call_window;
   // Add fields for page switching
   const char *current_page;
   const char *previous_page;
@@ -374,3 +375,7 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
 
 void show_profile_from_icon(GtkWidget *profile_icon, gpointer data);
 void show_participant_profile(GtkWidget *profile_icon, gpointer data);
+void create_voice_call_window(GtkWidget *voice_call_button, t_main_page_data *main_page);
+void close_voice_call_window(GtkWidget *voice_call_window, t_main_page_data *main_page);
+void stop_voice_call(GtkWidget *reject_button, t_main_page_data *main_page);
+

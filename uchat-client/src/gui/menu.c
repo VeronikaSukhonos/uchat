@@ -79,6 +79,10 @@ void set_selected_button(GtkWidget **selected_button,
 
 void log_out(GtkWidget *log_out_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
+
+  if (main_page->voice_call_window)
+    close_voice_call_window(main_page->voice_call_window, main_page);
+
   cJSON *json = cJSON_CreateObject();
   cJSON_AddStringToObject(json, "action", "LOGOUT");
   char *json_str = cJSON_Print(json);

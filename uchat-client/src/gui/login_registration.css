@@ -5,9 +5,17 @@ window {
 	color: white;
 }
 
-button, button:hover, entry, entry:focus {
+button, button:hover {
+	box-shadow: none;
+	text-shadow: none;
+	outline: none;
+}
+
+entry, entry:focus {
 	box-shadow: none;
 }
+
+/* LOGIN, REGISTRATION, UPDATE FAILED */
 
 .log-reg {
 	padding: 50px;
@@ -46,7 +54,6 @@ spinner {
 	font-weight: bold;
 	color: #7F7F7F;
 	border: none;
-	outline: none;
 	border-radius: 8px;
 	padding: 5px;
 }
@@ -80,7 +87,6 @@ spinner {
 	font-size: 14px;
 	color: #7F7F7F;
 	border: none;
-	outline: none;
 	border-radius: 8px;
 	padding: 0 3px;
 }
@@ -133,7 +139,6 @@ spinner {
 	background: transparent;
 	border: none;
     padding: 0;
-    outline: none; 
     background-image: none; 
     margin-right: 2px;
 }
@@ -153,7 +158,6 @@ spinner {
 	color: white;
 	font-weight: bold;
 	border: none;
-	outline: none;
 	border-radius: 8px;
 	margin: 5px 0;
 	padding: 8px;
@@ -174,7 +178,6 @@ spinner {
 	color: #5BCD91;
 	border: none;
     padding: 0;
-    outline: none; 
     background-image: none; 
 }
 
@@ -184,9 +187,10 @@ spinner {
     background: transparent;
 	border: none;
     padding: 0;
-    outline: none; 
     background-image: none; 
 }
+
+/* MENU */
 
 .menu {
     background-color: #29292C;
@@ -200,9 +204,7 @@ spinner {
     color: white;
     font-weight: bold;
     border: none;
-    outline: none;
-    padding: 7px;
-    padding-left: 12px;
+    padding: 7px 12px;
 }
 
 .menu-button:hover, .menu-button:active {
@@ -276,7 +278,6 @@ spinner {
     font-size: 25px;
     font-weight: bold;
     border: none;
-    outline: none;
     margin-left: 15px;
 }
 
@@ -284,6 +285,8 @@ spinner {
     color: #6F54F8;
     transition: 0.3s
 }
+
+/* CENTRAL AREA */
 
 .central-area {
 	background: 
@@ -316,7 +319,6 @@ spinner {
     color: white;
     font-weight: bold;
     border: none;
-    outline: none;
     border-radius: 100%;
     margin-left: 5px;
 }
@@ -336,7 +338,6 @@ spinner {
 	color: #1A1A1D;
 	font-weight: bold;
 	border: none;
-	outline: none;
 	border-radius: 8px;
 	margin: 5px;
 	padding: 8px;
@@ -364,7 +365,6 @@ spinner {
     background: rgba(0,0,0,0);
     color: #7F7F7F;
     border: none;
-    outline: none;
     padding: 0;
     margin-top: 35px;
     background-image: none; 
@@ -375,13 +375,12 @@ spinner {
     transition: 0.3s;
 }
 
-/* input box */
+/* INPUT BOX */
 
 .input-box {
     background-color: #29292C;
     padding: 5px 10px;
     border-top: solid 2px #3B3B3E;
-    margin-top: 2px;
 }
 
 .message-entry-box {
@@ -423,15 +422,6 @@ textview text selection, entry selection {
 	background-color: #3B3B3E;
 }
 
-.input-button {
-    background-color: transparent;
-    border: none;
-    padding: 0;
-    outline: none;
-    background-image: none; 
-    margin: 5px;
-}
-
 .smile-window {
 	background-color: #29292C;
 	border: solid 2px #3B3B3E;
@@ -448,22 +438,49 @@ textview text selection, entry selection {
     border: none;
 	border-radius: 8px;
     padding: 5px;
-	outline: none;
-    background-image: none; }
+    background-image: none;
+}
 
-	.smile-window grid button:hover {
-		background-color: #3B3B3E;
-		transition: 0.3s;
-	}
-	.send-button {
-		background-color: #2C2C2E;
-		border: none;
-		padding: 0;
-		outline: none;
-		background-image: none;
-		margin-left: 10px;
-	}
+.smile-window grid button:hover {
+	background-color: #3B3B3E;
+	transition: 0.3s;
+}
 
+.input-button, .send-button, .voice-call-button {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.input-button {
+    margin: 5px;
+}
+
+.send-button {
+	margin-left: 10px;
+}
+
+/* VOICE CALL */
+
+.voice-call {
+	padding: 50px 100px;
+}
+
+.voice-call-username {
+	font-weight: bold;
+	font-size: 24px;
+	margin: 10px;
+	margin-top: 50px;
+}
+
+.voice-call-status {
+	color: #5BCD91;
+	margin-bottom: 50px;
+}
+
+/* ... */
 
 combobox.form-role, combobox.form-role * {
     background-color:  #1A1A1D;
@@ -574,7 +591,6 @@ combobox.form-role .popup .menu-item {
     background: rgba(0, 0, 0, 0); 
     color: #7F7F7F;
     border: none;
-    outline: none;
     padding: 5px 10px;
     margin-top: 35px;
     font-size: 25px;
