@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   receive_port =
       5000 + (getpid() % 1000); // Generates unique ports like 5001, 5002, etc.
   // Attempt initial connection to the server
-  sock = connect_to_server("192.168.192.136", PORT);
+  sock = connect_to_server("127.0.0.1", PORT);
   if (sock < 0) {
     g_print("Initial connection failed. Showing retry window.\n");
     create_update_failed_window(); // Show retry window if connection fails
