@@ -269,8 +269,18 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     } else {
       g_print("Error: Sending error.\n");
     }
+  } else if (strcmp(action->valuestring, "CALL") == 0) {
+    process_voice_call_start(response, app_data);
+  } else if (strcmp(action->valuestring, "ACCEPT_CALL") == 0) {
+    process_voice_call_accept(response, app_data);
+  } else if (strcmp(action->valuestring, "CALL_OFFLINE") == 0) {
+    g_print("User is offline\n");
+    gtk_label_set_text(GTK_LABEL(app_data->main_page->voice_call_window_label),
+                       "Offline");
+  } else if (strcmp(action->valuestring, "STOP_CALL") == 0) {
+    process_voice_call_stop(response, app_data);
   }
-  // Clean up JSON object
+  // Clean up JSON objec
   cJSON_Delete(response);
   return 0;
 }

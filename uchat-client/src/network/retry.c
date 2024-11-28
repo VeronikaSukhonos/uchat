@@ -70,7 +70,10 @@ int attempt_main_reconnection(AppData *app_data) {
                    app_data);
 
   } else {
-    g_print("Retry connection failed. Retrying again in 1 second...\n");
+    main_retry_timeout = 10;
+    reconnect_timer_id =
+        g_timeout_add_seconds(1, periodic_reconnection_attempt, app_data);
+    g_print("Retry connection failed. Retrying again in 10 second...\n");
   }
   return 0;
 }

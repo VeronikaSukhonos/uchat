@@ -181,8 +181,12 @@ void handle_request(Client *client, char *buffer, Client clients[],
     // Handle muting a chat
   } else if (strcmp(action->valuestring, "UNMUTE_CHAT") == 0) {
     // Handle unmuting a chat
-  } else if (strcmp(action->valuestring, "BLOCK_USER") == 0) {
-    // Handle blocking a user
+  } else if (strcmp(action->valuestring, "CALL") == 0) {
+    handle_call_forward(clients, client, json, max_clients);
+  } else if (strcmp(action->valuestring, "ACCEPT_CALL") == 0) {
+    handle_accept_call_forward(clients, client, json, max_clients);
+  } else if (strcmp(action->valuestring, "STOP_CALL") == 0) {
+    handle_stop_call_forward(clients, client, json, max_clients);
   } else if (strcmp(action->valuestring, "UNBLOCK_USER") == 0) {
     // Handle unblocking a user
   } else if (strcmp(action->valuestring, "REACT_TO_MESSAGE") == 0) {

@@ -148,8 +148,8 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 
       // Start periodic reconnection attempts if not already started
       if (reconnect_timer_id == 0) {
-        reconnect_timer_id = g_timeout_add_seconds(
-            main_retry_timeout, periodic_reconnection_attempt, app_data);
+        reconnect_timer_id =
+            g_timeout_add_seconds(1, periodic_reconnection_attempt, app_data);
       }
     }
   }
@@ -173,8 +173,8 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 
     // Start periodic reconnection attempts
     if (reconnect_timer_id == 0) {
-      reconnect_timer_id = g_timeout_add_seconds(
-          main_retry_timeout, periodic_reconnection_attempt, app_data);
+      reconnect_timer_id =
+          g_timeout_add_seconds(1, periodic_reconnection_attempt, app_data);
     }
   }
 

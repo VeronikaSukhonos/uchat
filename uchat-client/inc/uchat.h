@@ -41,6 +41,10 @@ extern guint main_retry_timeout;
 extern guint reconnect_timer_id;
 extern GIOChannel *gio_channel;
 extern char username[64];
+extern int in_call;
+extern int receive_port;
+extern int is_calling;
+extern int incoming;
 
 typedef enum { TEXT, VOICE } ContentType;
 
@@ -148,9 +152,11 @@ typedef struct s_main_page_data {
   GtkWidget *mic_button;
   GtkWidget *chat_nickname;
   GtkWidget *voice_call_window;
+  GtkWidget *voice_call_window_label;
   // Add fields for page switching
   const char *current_page;
   const char *previous_page;
+  char accept_call[120];
 } t_main_page_data;
 
 typedef struct s_form_data {
@@ -375,7 +381,16 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
 
 void show_profile_from_icon(GtkWidget *profile_icon, gpointer data);
 void show_participant_profile(GtkWidget *profile_icon, gpointer data);
-void create_voice_call_window(GtkWidget *voice_call_button, t_main_page_data *main_page);
-void close_voice_call_window(GtkWidget *voice_call_window, t_main_page_data *main_page);
+void create_voice_call_window(GtkWidget *voice_call_button,
+                              t_main_page_data *main_page, char *caller);
+void close_voice_call_window(GtkWidget *voice_call_window,
+                             t_main_page_data *main_page);
 void stop_voice_call(GtkWidget *reject_button, t_main_page_data *main_page);
 
+void start_receive_pipeline();
+void start_send_pipeline(const char *host, int port);
+void stop_send_pipeline();
+void stop_receive_pipeline();
+void process_voice_call_start(cJSON *response, AppData *app_data);
+void process_voice_call_stop(cJSON *response, AppData *app_data);
+void process_voice_call_accept(cJSON *response, AppData *app_data);

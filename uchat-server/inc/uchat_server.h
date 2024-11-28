@@ -26,6 +26,7 @@ typedef struct {
   char username[50];
   char ip_address[IP_LENGTH];             // Store the client's IP address
   char serial_number[FINGERPRINT_LENGTH]; // Store the username for the
+  char in_call_with[50];
 } Client;
 
 // network
@@ -69,3 +70,9 @@ int handle_check_session(sqlite3 *db, cJSON *json, char *session_token,
 void save_decoded_file(const char *encoded_data, const char *output_file);
 unsigned char *base64_decode(const char *data, size_t input_length,
                              size_t *output_length);
+void handle_call_forward(Client clients[], Client *client, cJSON *json,
+                         int max_clients);
+void handle_accept_call_forward(Client clients[], Client *client, cJSON *json,
+                                int max_clients);
+void handle_stop_call_forward(Client clients[], Client *client, cJSON *json,
+                              int max_clients);
