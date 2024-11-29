@@ -194,15 +194,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
   } else if (strcmp(action->valuestring, "LOGOUT") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("LOGOUT successful\n");
-      delete_cache_directory();
-      remove_buttons(app_data->main_page);
-      remove_all_chat_buttons(app_data->main_page);
-      free_message_list(app_data->main_page->messages);
-      app_data->main_page->messages = NULL;
-      g_print("Message head set to null\n");
-      gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "login");
-      delete_session();
+      handle_logout(app_data);
     } else {
       g_print("Error: LOGOUT error.\n");
     }

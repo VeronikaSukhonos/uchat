@@ -80,16 +80,6 @@ void set_selected_button(GtkWidget **selected_button,
 void log_out(GtkWidget *log_out_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
 
-  if (main_page->voice_call_window)
-    close_voice_call_window(main_page->voice_call_window, main_page);
-
-  stop_recording();
-  GtkWidget *mic_button_img_start =
-      gtk_image_new_from_file("uchat-client/src/gui/resources/voice-start.png");
-  gtk_button_set_image(GTK_BUTTON(main_page->mic_button), mic_button_img_start);
-  main_page->opened_chat->is_mic_active = FALSE;
-  main_page->opened_chat = NULL;
-
   cJSON *json = cJSON_CreateObject();
   cJSON_AddStringToObject(json, "action", "LOGOUT");
   char *json_str = cJSON_Print(json);

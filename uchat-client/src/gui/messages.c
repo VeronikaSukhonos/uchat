@@ -10,8 +10,14 @@ static GstElement *current_pipeline = NULL; // Track the current pipeline
 // Function to handle dynamically linking pads
 void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
   GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
+  GstPadLinkReturn ret;
   if (!gst_pad_is_linked(sinkpad)) {
-    gst_pad_link(pad, sinkpad);
+    ret = gst_pad_link(pad, sinkpad);
+    if (GST_PAD_LINK_FAILED(ret)) {
+      g_printerr("Failed to link decodebin pad to sink pad.\n");
+    } else {
+      g_print("Pad linked successfully.\n");
+    }
     g_print("Pad linked dynamically.\n");
   } else {
     g_print("Pad was already linked.\n");
@@ -22,8 +28,8 @@ void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
 // This is the function that will be run in a new thread to play the audio
 void *play_audio_thread(void *data) {
   MessageNode *temp_node = (MessageNode *)data;
-  const char *file_path =
-      temp_node->message->voice_path; // The path to the audio file
+  char file_path[50];
+  strcpy(file_path, temp_node->message->voice_path);
 
   g_print("The message is being played: %s\n", file_path);
 

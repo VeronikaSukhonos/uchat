@@ -193,26 +193,50 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
                                        id_str);
 
       // Get chat data from cache to find the other member's username
+      // Get chat data from cache to find the other member's username or group
+      // name
       char file_path[256];
       snprintf(file_path, sizeof(file_path), "cache/chat_%d.json", i->chat.id);
       char *decrypted_json = decrypt_json_from_file(file_path);
+
       if (decrypted_json) {
         cJSON *json = cJSON_Parse(decrypted_json);
         g_free(decrypted_json);
+
         if (json) {
-          cJSON *members = cJSON_GetObjectItem(json, "members");
-          if (cJSON_IsArray(members)) {
-            cJSON *member;
-            cJSON_ArrayForEach(member, members) {
-              cJSON *username_json = cJSON_GetObjectItem(member, "username");
-              if (username_json &&
-                  strcmp(username_json->valuestring, username) != 0) {
-                // Found the other member's username
+          // Check if it's a group chat or private chat
+          cJSON *chat_type_json = cJSON_GetObjectItem(json, "type");
+          if (chat_type_json && cJSON_IsString(chat_type_json)) {
+            const char *chat_type = chat_type_json->valuestring;
+
+            // If it's a group chat, set the nickname to the group name
+            if (strcmp(chat_type, "private") != 0) {
+              cJSON *group_name_json = cJSON_GetObjectItem(json, "name");
+              if (group_name_json && cJSON_IsString(group_name_json)) {
                 if (main_page->chat_nickname) {
                   gtk_label_set_text(GTK_LABEL(main_page->chat_nickname),
-                                     username_json->valuestring);
+                                     group_name_json->valuestring);
                 }
-                break;
+              }
+            } else {
+              // Otherwise, it's a private chat, find the other member's
+              // username
+              cJSON *members = cJSON_GetObjectItem(json, "members");
+              if (cJSON_IsArray(members)) {
+                cJSON *member;
+                cJSON_ArrayForEach(member, members) {
+                  cJSON *username_json =
+                      cJSON_GetObjectItem(member, "username");
+                  if (username_json &&
+                      strcmp(username_json->valuestring, username) != 0) {
+                    // Found the other member's username
+                    if (main_page->chat_nickname) {
+                      gtk_label_set_text(GTK_LABEL(main_page->chat_nickname),
+                                         username_json->valuestring);
+                    }
+                    break;
+                  }
+                }
               }
             }
           }

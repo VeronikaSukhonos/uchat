@@ -394,3 +394,4 @@ void stop_receive_pipeline();
 void process_voice_call_start(cJSON *response, AppData *app_data);
 void process_voice_call_stop(cJSON *response, AppData *app_data);
 void process_voice_call_accept(cJSON *response, AppData *app_data);
+void handle_logout(AppData *app_data);

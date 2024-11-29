@@ -1,6 +1,11 @@
 #include <uchat.h>
 
 void process_voice_call_start(cJSON *response, AppData *app_data) {
+  MessageNode *temp_node = g_malloc(sizeof(MessageNode *));
+  temp_node->message = g_malloc(sizeof(MessageCache *));
+  strcpy(temp_node->message->voice_path, "uchat-client/sounds/ringing.wav");
+  g_print("%s\n", temp_node->message->voice_path);
+  play_voice(NULL, (gpointer)temp_node);
   cJSON *caller_name_json = cJSON_GetObjectItem(response, "caller_name");
   cJSON *caller_port_json = cJSON_GetObjectItem(response, "caller_port");
   cJSON *caller_ip_json = cJSON_GetObjectItem(response, "caller_ip");

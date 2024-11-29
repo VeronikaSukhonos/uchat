@@ -128,6 +128,9 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
       // Successfully received data, do nothing further
       return TRUE;
     } else {
+      if (app_data->main_page->voice_call_window)
+        close_voice_call_window(app_data->main_page->voice_call_window,
+                                app_data->main_page);
       gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
       gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
                                            app_data->reconnect->box, FALSE);
@@ -155,6 +158,9 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
   }
 
   if (condition & (G_IO_HUP | G_IO_ERR)) {
+    if (app_data->main_page->voice_call_window)
+      close_voice_call_window(app_data->main_page->voice_call_window,
+                              app_data->main_page);
     gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
     gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
                                          app_data->reconnect->box, FALSE);

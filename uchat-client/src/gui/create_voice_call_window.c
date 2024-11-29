@@ -9,6 +9,7 @@ void close_voice_call_window(GtkWidget *voice_call_window,
 }
 
 void stop_voice_call(GtkWidget *reject_button, t_main_page_data *main_page) {
+
   cJSON *response = cJSON_CreateObject();
   cJSON_AddStringToObject(response, "action", "STOP_CALL");
 

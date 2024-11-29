@@ -46,7 +46,26 @@ int attempt_main_reconnection(AppData *app_data) {
 
     char serial_number[64] = {0};
     get_serial_number(serial_number, sizeof(serial_number));
+    if (app_data->main_page->voice_call_window)
+      close_voice_call_window(app_data->main_page->voice_call_window,
+                              app_data->main_page);
 
+    if (app_data->main_page->opened_chat != NULL &&
+        app_data->main_page->opened_chat->is_mic_active == TRUE) {
+      stop_recording();
+      GtkWidget *mic_button_img_start = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/voice-start.png");
+      gtk_button_set_image(GTK_BUTTON(app_data->main_page->mic_button),
+                           mic_button_img_start);
+      app_data->main_page->opened_chat->is_mic_active = FALSE;
+    }
+    app_data->main_page->opened_chat = NULL;
+    delete_cache_directory();
+    remove_buttons(app_data->main_page);
+    remove_all_chat_buttons(app_data->main_page);
+    free_message_list(app_data->main_page->messages);
+    app_data->main_page->messages = NULL;
+    g_print("Message head set to null\n");
     if (load_session(username, sizeof(username), session_token,
                      sizeof(session_token)) == 0) {
       g_print("Loaded session for %s. Checking session status...\n", username);
