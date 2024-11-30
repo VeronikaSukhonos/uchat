@@ -31,6 +31,9 @@ void read_and_create_chat_button(const char *file_path,
       // Set this chat as the currently opened chat
       main_page->opened_chat = &current_chat->chat;
       g_print("Chat ID %d is now set as opened_chat.\n", chat_id);
+      
+      // Simulate a click on the chat button to update the top bar
+      show_chat(current_chat->chat.button, main_page);
       return;
     }
     current_chat = current_chat->next;

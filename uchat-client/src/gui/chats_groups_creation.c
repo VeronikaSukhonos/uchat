@@ -102,12 +102,12 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
 
   // If chat_id does not exist, create a new chat button
   g_print("Chat ID %d not found, creating a new button...\n", chat_id);
-  new_chat_button_from_json(main_page, chat_id, name, (char *)chat_type,
+  new_chat_button_from_json(main_page, chat_id, name, chat_type,
                             last_message, last_sender, last_time, unread);
 }
 
 void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
-                               const char *name, char *chat_type,
+                               const char *name, const char *chat_type,
                                const char *last_message,
                                const char *last_sender, const char *last_time,
                                const char *unread) {
@@ -132,6 +132,8 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
                      FALSE, FALSE, 0);
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*temp_node).chat.button), "menu-button");
+  // Store chat type in the widget name
+  gtk_widget_set_name((*temp_node).chat.button, chat_type);
   g_signal_connect((*temp_node).chat.button, "clicked", G_CALLBACK(show_chat),
                    main_page);
 

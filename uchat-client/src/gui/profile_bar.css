@@ -4,23 +4,16 @@
     padding: 10px;
     margin: 0;
     min-height: 50px;
-    box-sizing: border-box;
-    width: 100%;
 }
 
 .profile-bar-name {
     color: white;
     font-weight: bold;
     font-size: 20px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: calc(100% - 60px);
-    overflow: hidden;
 }
 
 frame {
     border-radius: 20px;
-    overflow: hidden;
     background-color: transparent;
     border: none;
     margin: 0;

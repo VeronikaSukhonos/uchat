@@ -153,6 +153,7 @@ typedef struct s_main_page_data {
   GtkWidget *chat_nickname;
   GtkWidget *voice_call_window;
   GtkWidget *voice_call_window_label;
+  GtkWidget *profile_window;  // Add this line to track profile window
   // Add fields for page switching
   const char *current_page;
   const char *previous_page;
@@ -231,7 +232,7 @@ void process_voice_message_and_store(const char *json_response,
 void load_css(const gchar *file);
 
 void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
-                               const char *name, char *chat_type,
+                               const char *name, const char *chat_type,
                                const char *last_message,
                                const char *last_sender, const char *last_time,
                                const char *unread);

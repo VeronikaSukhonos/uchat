@@ -181,7 +181,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_size_request(avatar, 40, 40);
 
   // Add nickname
-  GtkWidget *nickname_label = gtk_label_new("");
+  GtkWidget *nickname_label = gtk_label_new("Nickname");
   gtk_box_pack_start(GTK_BOX(profile_bar), nickname_label, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(nickname_label), "profile-bar-name");
   (*main_page).chat_nickname = nickname_label;
@@ -192,12 +192,15 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
 
   // Add voice call icon button
   GtkWidget *voice_call_button = gtk_button_new();
+  gtk_widget_set_name(voice_call_button, "voice_call_button");
   GtkWidget *voice_call_icon = gtk_image_new_from_file("uchat-client/src/gui/resources/voice-call-start.png");
   gtk_button_set_image(GTK_BUTTON(voice_call_button), voice_call_icon);
   gtk_box_pack_start(GTK_BOX(profile_bar), voice_call_button, FALSE, FALSE, 5);
   gtk_style_context_add_class(gtk_widget_get_style_context(voice_call_button), "icon-button");
   g_signal_connect(voice_call_button, "clicked", G_CALLBACK(create_voice_call_window), main_page);
   main_page->voice_call_window = NULL;
+  main_page->voice_call_window_label = NULL;
+  main_page->profile_window = NULL;
 
   // Add user icon button
   GtkWidget *user_button = gtk_button_new();

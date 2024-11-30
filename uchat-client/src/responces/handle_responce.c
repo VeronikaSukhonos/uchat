@@ -73,6 +73,7 @@ char *receive_large_json(int socket_fd) {
   buffer[received] = '\0'; // Null-terminate the JSON data
   return buffer;
 }
+
 // Function to read and handle server responses
 int handle_response(int sock, int *logged_in, AppData *app_data) {
   char *buffer = receive_large_json(sock);
@@ -271,7 +272,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
     create_msg_buttons_from_cache(app_data->main_page, "cache");
   }
-  // Clean up JSON objec
+  // Clean up JSON object
   cJSON_Delete(response);
   return 0;
 }
