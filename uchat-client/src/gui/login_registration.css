@@ -11,6 +11,10 @@ button, button:hover {
 	outline: none;
 }
 
+button label:backdrop {
+	color: white;
+}
+
 entry, entry:focus {
 	box-shadow: none;
 }
@@ -56,6 +60,21 @@ spinner {
 	border: none;
 	border-radius: 8px;
 	padding: 5px;
+}
+
+.uf-retry-button label:backdrop,
+.reconnect-message-button label:backdrop,
+.profile-link label:backdrop,
+.chat-button-light:backdrop,
+.settings-link:backdrop * {
+	color: #7F7F7F;
+}
+
+.uf-retry-button:hover label:backdrop,
+.reconnect-message-button:hover label:backdrop,
+.profile-link:hover label:backdrop,
+.settings-link:hover:backdrop * {
+	color: #AFAFAF;
 }
 
 .uf-retry-button:hover,
@@ -181,6 +200,14 @@ spinner {
     background-image: none; 
 }
 
+.form-link label:backdrop {
+	color: #5BCD91;
+}
+
+.form-link:hover label:backdrop {
+	color: #70F7B5;
+}
+
 .form-link:hover, .form-link:active {
 	color: #70F7B5;
 	transition: 0.3s;
@@ -204,7 +231,7 @@ spinner {
     color: white;
     font-weight: bold;
     border: none;
-    padding: 7px 12px;
+    padding: 7px 15px;
 }
 
 .menu-button:hover, .menu-button:active {
@@ -279,6 +306,7 @@ spinner {
     font-weight: bold;
     border: none;
     margin-left: 15px;
+    padding: 0;
 }
 
 .dots:hover {
@@ -349,14 +377,13 @@ spinner {
 }
 
 .img-edit {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-radius: 100%;
-	min-width: 300px;
-    min-height: 150px;
 }
 
 .profile-name {
     font-weight: bold;
+    font-size: 24px;
     margin-top: 5px;
 	margin-bottom: 10px;
 }
@@ -388,6 +415,7 @@ spinner {
 	border: solid 2px transparent;
 	border-radius: 8px;
 	margin: 5px 0;
+	padding-left: 2px;
 	transition: 0.2s;
 }
 
@@ -482,12 +510,16 @@ textview text selection, entry selection {
 
 /* ... */
 
+.before-combo {
+	margin-bottom: 10px;
+}
+
 combobox.form-role, combobox.form-role * {
-    background-color:  #1A1A1D;
+    background-color: #1A1A1D;
     background-image: none;
     color: white;
     border: none;
-	padding: 2px 0;
+	padding: 1px 0;
     margin: 0;
     box-shadow: none;
 	border-radius: 8px;
@@ -516,14 +548,16 @@ combobox.form-role button {
     border: none;
     box-shadow: none;
 	color: white;
-	padding: 2px 5px;
+	padding: 2px 10px;
 }
 
 /* Style for selected item */
-combobox.form-role .popup {
+combobox.form-role .popup,
+combobox.form-role .popup * {
     background-color: #1A1A1D;
     color: white;
     border-radius: 8px;
+    padding: 1px;
 }
 
 /* Hover state for items */
@@ -538,7 +572,7 @@ combobox.form-role .popup .menu-item {
     color: white;
     border: none;
     border-radius: 15px;
-    margin: 5px;
+    margin: 5px 10px;
 }
 
 .outgoing-messages:hover {
@@ -559,7 +593,7 @@ combobox.form-role .popup .menu-item {
     color: white;
     border: none;
     border-radius: 15px;
-    margin: 5px;
+    margin: 5px 10px;
 }
 
 .ingoing-messages:hover {
@@ -585,7 +619,6 @@ combobox.form-role .popup .menu-item {
     font-weight: bold;
     margin-bottom: 5px;
 }
-
 
 .settings-link {
     background: rgba(0, 0, 0, 0); 

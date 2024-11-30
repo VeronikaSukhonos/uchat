@@ -8,8 +8,9 @@
     width: 100%;
 }
 
-.profile-name {
+.profile-bar-name {
     color: white;
+    font-weight: bold;
     font-size: 20px;
     text-overflow: ellipsis;
     white-space: nowrap;

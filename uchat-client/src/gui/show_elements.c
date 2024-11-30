@@ -35,6 +35,7 @@ void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_chat_button);
+  gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message), "");
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "create_chat");
   (*main_page).opened_chat = NULL;
@@ -44,6 +45,7 @@ void show_new_group(GtkWidget *new_group_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_group_button);
+  gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message), "");
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                    "create_group");
   (*main_page).opened_chat = NULL;

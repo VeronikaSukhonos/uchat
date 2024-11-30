@@ -77,7 +77,7 @@ void create_voice_call_window(GtkWidget *voice_call_button,
   gtk_widget_set_valign(profile_container, GTK_ALIGN_CENTER);
 
   GdkPixbuf *original_ava = gdk_pixbuf_new_from_file(
-      "uchat-client/src/gui/resources/rabbit_profile.png", NULL);
+      "uchat-client/src/gui/resources/rabbit_big.png", NULL);
   GdkPixbuf *resized_ava =
       gdk_pixbuf_scale_simple(original_ava, 200, 200, GDK_INTERP_BILINEAR);
   GtkWidget *avatar = gtk_image_new_from_pixbuf(resized_ava);

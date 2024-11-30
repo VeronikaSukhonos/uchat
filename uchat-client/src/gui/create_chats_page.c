@@ -63,9 +63,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_stack_add_named(GTK_STACK((*main_page).menu_stack), menu_box, "menu");
 
   GtkWidget *new_chat_button = gtk_button_new();
+  GtkWidget *new_chat_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_container_add(GTK_CONTAINER(new_chat_button), new_chat_button_box);
+  GtkWidget *new_chat_button_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/new-chat-icon.png");
+  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_image, FALSE, FALSE, 0);
   GtkWidget *new_chat_button_label = gtk_label_new("New chat");
-  gtk_container_add(GTK_CONTAINER(new_chat_button), new_chat_button_label);
-  gtk_widget_set_halign(new_chat_button_label, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_label, FALSE, FALSE, 15);
   gtk_box_pack_start(GTK_BOX(menu_box), new_chat_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(new_chat_button),
                               "menu-button");
@@ -73,9 +77,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    main_page);
 
   GtkWidget *new_group_button = gtk_button_new();
+  GtkWidget *new_group_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_container_add(GTK_CONTAINER(new_group_button), new_group_button_box);
+  GtkWidget *new_group_button_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/new-group-icon.png");
+  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_image, FALSE, FALSE, 0);
   GtkWidget *new_group_button_label = gtk_label_new("New group");
-  gtk_container_add(GTK_CONTAINER(new_group_button), new_group_button_label);
-  gtk_widget_set_halign(new_group_button_label, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_label, FALSE, FALSE, 15);
   gtk_box_pack_start(GTK_BOX(menu_box), new_group_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(new_group_button),
                               "menu-button");
@@ -83,18 +91,27 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                    main_page);
 
   GtkWidget *profile_button = gtk_button_new();
+  GtkWidget *profile_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_container_add(GTK_CONTAINER(profile_button), profile_button_box);
+  GtkWidget *profile_button_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/profile-icon.png");
+  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_image, FALSE, FALSE, 0);
   GtkWidget *profile_button_label = gtk_label_new("Profile");
-  gtk_container_add(GTK_CONTAINER(profile_button), profile_button_label);
-  gtk_widget_set_halign(profile_button_label, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_label, FALSE, FALSE, 15);
   gtk_box_pack_start(GTK_BOX(menu_box), profile_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(profile_button),
                               "menu-button");
   g_signal_connect(profile_button, "clicked", G_CALLBACK(show_profile),
                    main_page);
+
   GtkWidget *settings_button = gtk_button_new();
+  GtkWidget *settings_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_container_add(GTK_CONTAINER(settings_button), settings_button_box);
+  GtkWidget *settings_button_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/settings-icon.png");
+  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_image, FALSE, FALSE, 0);
   GtkWidget *settings_button_label = gtk_label_new("Settings");
-  gtk_container_add(GTK_CONTAINER(settings_button), settings_button_label);
-  gtk_widget_set_halign(settings_button_label, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_label, FALSE, FALSE, 15);
   gtk_box_pack_start(GTK_BOX(menu_box), settings_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(settings_button),
                               "menu-button");
@@ -166,7 +183,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   // Add nickname
   GtkWidget *nickname_label = gtk_label_new("");
   gtk_box_pack_start(GTK_BOX(profile_bar), nickname_label, FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(nickname_label), "profile-name");
+  gtk_style_context_add_class(gtk_widget_get_style_context(nickname_label), "profile-bar-name");
   (*main_page).chat_nickname = nickname_label;
 
   // Add spacer to push icons to the right
@@ -204,11 +221,19 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(gtk_widget_get_style_context(input_box),
                               "input-box");
 
-  // box to hold the message entry, smile button and microphone button
+  // box to hold attach button, message entry, smile button and microphone button
   GtkWidget *message_entry_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_box_pack_start(GTK_BOX(input_box), message_entry_box, TRUE, TRUE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry_box),
                               "message-entry-box");
+
+  GtkWidget *attach_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(message_entry_box), attach_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(attach_button),
+                              "input-button");
+  GtkWidget *attach_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file.png");
+  gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
 
   GtkWidget *message_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll, TRUE, TRUE, 0);
@@ -461,8 +486,11 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *create_chat_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
                       create_chat_scroll, "create_chat");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(create_chat_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   create_chat = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(create_chat_scroll), create_chat);
+  
   gtk_style_context_add_class(gtk_widget_get_style_context(create_chat),
                               "main_page_form");
 
@@ -521,6 +549,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *create_group_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
                       create_group_scroll, "create_group");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(create_group_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   create_group = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(create_group_scroll), create_group);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_group),
@@ -608,6 +638,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *user_info_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
                       user_info_scroll, "user_info");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(user_info_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   user_info = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(user_info_scroll), user_info);
   gtk_style_context_add_class(gtk_widget_get_style_context(user_info),
@@ -621,10 +653,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).profile_data.form), 450,
                               -1);
   // avatar
-  img_profile = gtk_image_new_from_file(
-      "uchat-client/src/gui/resources/rabbit_profile.png");
+  GdkPixbuf *original_ava = gdk_pixbuf_new_from_file(
+      "uchat-client/src/gui/resources/rabbit_big.png", NULL);
+  GdkPixbuf *resized_ava =
+      gdk_pixbuf_scale_simple(original_ava, 150, 150, GDK_INTERP_BILINEAR);
+  img_profile = gtk_image_new_from_pixbuf(resized_ava);
   gtk_style_context_add_class(gtk_widget_get_style_context(img_profile),
-                              "img-profile");
+                              "img-edit");
   gtk_box_pack_start(GTK_BOX((*main_page).profile_data.form), img_profile,
                      FALSE, FALSE, 0);
   gtk_widget_set_halign(img_profile, GTK_ALIGN_CENTER);
@@ -680,6 +715,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *edit_profile_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
                       edit_profile_scroll, "edit_profile");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(create_group_scroll),
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   edit_profile = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(edit_profile_scroll), edit_profile);
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_profile),
@@ -692,19 +729,18 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
   // label
-  GtkWidget *edit_label = gtk_label_new("Change profile details");
+  GtkWidget *edit_label = gtk_label_new("My profile details");
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_label),
                               "form-name-label");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), edit_label, FALSE,
                      FALSE, 0);
   gtk_widget_set_halign(edit_label, GTK_ALIGN_CENTER);
   // avatar
-  img_profile = gtk_image_new_from_file(
-      "uchat-client/src/gui/resources/rabbit_profile.png");
-  gtk_style_context_add_class(gtk_widget_get_style_context(img_profile),
-                              "img-edit");
+  img_profile = gtk_image_new_from_pixbuf(resized_ava);
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), img_profile, FALSE,
                      FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(img_profile),
+                              "img-edit");
   gtk_widget_set_halign(img_profile, GTK_ALIGN_CENTER);
   // username
   (*main_page).edit_data.username = gtk_entry_new();
@@ -725,6 +761,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).edit_data.student_group),
       "form-entry");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).edit_data.student_group),
+      "before-combo");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.student_group, FALSE, FALSE, 0);
 
@@ -734,18 +773,18 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       gtk_widget_get_style_context((*main_page).edit_data.role_combo),
       "form-role");
   gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Reading PDF");
-  gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Devastated");
-  gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Assesment");
-  gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "In progress");
-  gtk_combo_box_text_append_text(
-      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), "Genius");
-  gtk_combo_box_text_append_text(
       GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo),
-      "No status");
+      " ❔  No status");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), " 📖  Reading PDF");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), " 🧑‍💻  In progress");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), " 💯  Assesment");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), " 😫  Devastated");
+  gtk_combo_box_text_append_text(
+      GTK_COMBO_BOX_TEXT((*main_page).edit_data.role_combo), " 🧠  Genius");
 
   gtk_combo_box_set_active(GTK_COMBO_BOX((*main_page).edit_data.role_combo), 0);
 
@@ -768,6 +807,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *settings_page = gtk_scrolled_window_new(NULL, NULL);
   gtk_stack_add_named(GTK_STACK((*main_page).central_area_stack),
                       settings_page, "settings");
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(settings_page),
+                                 GTK_POLICY_NEVER, GTK_POLICY_NEVER);
   settings = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(settings_page), settings);
   gtk_style_context_add_class(gtk_widget_get_style_context(settings),
