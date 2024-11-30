@@ -196,32 +196,35 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
 
       // Set the nickname in the profile bar
       if (main_page->chat_nickname) {
-        const gchar *chat_name = i->chat.name ? 
-          gtk_label_get_text(GTK_LABEL(i->chat.name)) : "Unknown";
-        
+        const gchar *chat_name =
+            i->chat.name ? gtk_label_get_text(GTK_LABEL(i->chat.name))
+                         : "Unknown";
+
         // Get the chat type from the button's name
         const gchar *chat_type = gtk_widget_get_name(i->chat.button);
         gboolean is_group = (chat_type && strcmp(chat_type, "private") != 0);
-        
+
         // Update avatar based on chat type
-        GtkWidget *profile_bar = gtk_widget_get_parent(main_page->chat_nickname);
-        GList *children = gtk_container_get_children(GTK_CONTAINER(profile_bar));
+        GtkWidget *profile_bar =
+            gtk_widget_get_parent(main_page->chat_nickname);
+        GList *children =
+            gtk_container_get_children(GTK_CONTAINER(profile_bar));
         GtkWidget *avatar_frame = g_list_first(children)->data;
         GtkWidget *avatar = gtk_bin_get_child(GTK_BIN(avatar_frame));
-        
+
         // Set appropriate avatar image
-        const char *avatar_path = is_group ?
-          "uchat-client/src/gui/resources/rabbits_chats.png" :
-          "uchat-client/src/gui/resources/rabbit_chats.png";
-        
+        const char *avatar_path =
+            is_group ? "uchat-client/src/gui/resources/rabbits_chats.png"
+                     : "uchat-client/src/gui/resources/rabbit_chats.png";
+
         GtkWidget *new_avatar = gtk_image_new_from_file(avatar_path);
         gtk_widget_set_size_request(new_avatar, 40, 40);
-        
+
         // Remove old avatar and add new one
         gtk_container_remove(GTK_CONTAINER(avatar_frame), avatar);
         gtk_container_add(GTK_CONTAINER(avatar_frame), new_avatar);
         gtk_widget_show(new_avatar);
-        
+
         // Show/hide voice call button based on chat type
         GList *l;
         for (l = children; l != NULL; l = l->next) {
@@ -239,9 +242,9 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
             }
           }
         }
-        
+
         g_list_free(children);
-        
+
         if (is_group) {
           // For group chats, show the group name directly
           gtk_label_set_text(GTK_LABEL(main_page->chat_nickname), chat_name);
@@ -253,9 +256,10 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
             if (dash) {
               size_t first_len = dash - chat_name;
               size_t second_len = strlen(dash + 1);
-              
+
               // Compare first part with current username
-              if (strncmp(chat_name, username, first_len) == 0 && strlen(username) == first_len) {
+              if (strncmp(chat_name, username, first_len) == 0 &&
+                  strlen(username) == first_len) {
                 // Current user is the first part, so take the second part
                 participant = g_strndup(dash + 1, second_len);
               } else {
@@ -264,13 +268,14 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
               }
             }
           }
-          
+
           // Set the participant's username or fallback to "Unknown"
-          gtk_label_set_text(GTK_LABEL(main_page->chat_nickname), 
-                            participant ? participant : "Unknown");
-          
+          gtk_label_set_text(GTK_LABEL(main_page->chat_nickname),
+                             participant ? participant : "Unknown");
+
           // Free allocated memory
-          if (participant) g_free(participant);
+          if (participant)
+            g_free(participant);
         }
       }
 
@@ -350,7 +355,7 @@ void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
 
 void on_profile_window_destroy(GtkWidget *window, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  main_page->profile_window = NULL;  // Clear the window reference
+  main_page->profile_window = NULL; // Clear the window reference
 }
 
 void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
@@ -364,8 +369,8 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
 
   // Create a new dialog window
   GtkWidget *dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  main_page->profile_window = dialog;  // Store the window reference
-  
+  main_page->profile_window = dialog; // Store the window reference
+
   // Check if this is a group chat
   const gchar *chat_type = NULL;
   if (main_page->opened_chat && main_page->opened_chat->button) {
@@ -374,7 +379,8 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
   gboolean is_group = (chat_type && strcmp(chat_type, "private") != 0);
 
   // Set title based on chat type
-  gtk_window_set_title(GTK_WINDOW(dialog), is_group ? "Group Profile" : "User Profile");
+  gtk_window_set_title(GTK_WINDOW(dialog),
+                       is_group ? "Group Profile" : "User Profile");
   gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 500);
   gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
   gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
@@ -384,12 +390,12 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
   GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
   gtk_container_add(GTK_CONTAINER(dialog), content_box);
   gtk_style_context_add_class(gtk_widget_get_style_context(content_box),
-                             "profile-content");
+                              "profile-content");
 
   // Profile picture - different for group and user
-  const char *avatar_path = is_group ?
-    "uchat-client/src/gui/resources/rabbits_group.png" :
-    "uchat-client/src/gui/resources/rabbit_profile.png";
+  const char *avatar_path =
+      is_group ? "uchat-client/src/gui/resources/rabbits_group.png"
+               : "uchat-client/src/gui/resources/rabbit_profile.png";
   GtkWidget *avatar = gtk_image_new_from_file(avatar_path);
   gtk_box_pack_start(GTK_BOX(content_box), avatar, FALSE, FALSE, 0);
   gtk_widget_set_size_request(avatar, 150, 150);
@@ -403,14 +409,14 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
   }
   gtk_box_pack_start(GTK_BOX(content_box), username_label, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(username_label),
-                             "profile-username");
+                              "profile-username");
 
   // Status (only show for users, not groups)
   if (!is_group) {
     GtkWidget *status_label = gtk_label_new("online");
     gtk_box_pack_start(GTK_BOX(content_box), status_label, FALSE, FALSE, 0);
     gtk_style_context_add_class(gtk_widget_get_style_context(status_label),
-                             "profile-status");
+                                "profile-status");
   }
 
   // Info grid
@@ -423,5 +429,6 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
   gtk_widget_show_all(dialog);
 
   // Connect destroy signal with custom handler
-  g_signal_connect(dialog, "destroy", G_CALLBACK(on_profile_window_destroy), main_page);
+  g_signal_connect(dialog, "destroy", G_CALLBACK(on_profile_window_destroy),
+                   main_page);
 }

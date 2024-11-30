@@ -1,9 +1,18 @@
 #include "uchat.h"
 
+void play_audio(char *filepath) {
+  MessageNode *temp = g_malloc(sizeof(MessageNode));
+  temp->message = g_malloc(sizeof(MessageCache));
+  strcpy(temp->message->voice_path, filepath);
+  play_voice(NULL, temp);
+}
+
 int incoming = 0;
 
 void close_voice_call_window(GtkWidget *voice_call_window,
                              t_main_page_data *main_page) {
+  stop_audio();
+  play_audio("uchat-client/sounds/hangup.wav");
   gtk_widget_destroy(voice_call_window);
   main_page->voice_call_window = NULL;
 }
@@ -47,6 +56,7 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
   close_voice_call_window(main_page->voice_call_window, main_page);
   create_voice_call_window(NULL, main_page, caller_name->valuestring);
   gtk_label_set_text(GTK_LABEL(main_page->voice_call_window_label), "In call");
+  play_audio("uchat-client/sounds/accept.wav");
 }
 
 void create_voice_call_window(GtkWidget *voice_call_button,
@@ -141,6 +151,7 @@ void create_voice_call_window(GtkWidget *voice_call_button,
 
   gtk_widget_show_all(main_page->voice_call_window);
   if (in_call == 0 && incoming == 0) {
+    play_audio("uchat-client/sounds/ring.wav");
     const gchar *callee_name = gtk_label_get_text(GTK_LABEL(username_label));
 
     cJSON *response = cJSON_CreateObject();

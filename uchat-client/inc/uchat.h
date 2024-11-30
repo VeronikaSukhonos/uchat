@@ -153,7 +153,7 @@ typedef struct s_main_page_data {
   GtkWidget *chat_nickname;
   GtkWidget *voice_call_window;
   GtkWidget *voice_call_window_label;
-  GtkWidget *profile_window;  // Add this line to track profile window
+  GtkWidget *profile_window; // Add this line to track profile window
   // Add fields for page switching
   const char *current_page;
   const char *previous_page;
@@ -403,3 +403,5 @@ void send_get_new_data_request(int sock, cJSON *cached_chats);
 void handle_new_data_response(const char *response_data, const char *cache_dir);
 void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
                                  int chat_id);
+void play_audio(char *filepath);
+void stop_audio();
