@@ -35,6 +35,7 @@ int check_session_on_server(int sock, const char *username,
   } else if (valread == 0) {
     g_print("Server disconnected\n");
   }
+  delete_cache_directory();
   return 0;
 }
 

@@ -33,7 +33,7 @@ int create_session(sqlite3 *db, int user_id, char *session_token,
   // delete_user_tokens(db, user_id);
   const char *sql =
       "INSERT INTO sessions (user_id, token, created_at, expires_at) VALUES "
-      "(?, ?, CURRENT_TIMESTAMP, datetime(CURRENT_TIMESTAMP, '+1 hour'));";
+      "(?, ?, CURRENT_TIMESTAMP, datetime(CURRENT_TIMESTAMP, '+24 hour'));";
 
   // Generate a random session token (use secure generation in production)
   generate_insecure_token(session_token, token_size);
