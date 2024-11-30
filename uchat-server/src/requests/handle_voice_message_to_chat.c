@@ -99,6 +99,16 @@ int handle_voice_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
           perror("Failed to send voice message to client");
         } else {
           printf("Voice message sent to %s\n", username);
+          const char *delete_sql =
+              "DELETE FROM notifications WHERE user_id = ? AND message_id = ?;";
+          sqlite3_stmt *update_stmt;
+          if (sqlite3_prepare_v2(db, delete_sql, -1, &update_stmt, NULL) ==
+              SQLITE_OK) {
+            sqlite3_bind_int(update_stmt, 1, recipient_id);
+            sqlite3_bind_int(update_stmt, 2, message_id);
+            sqlite3_step(update_stmt);
+            sqlite3_finalize(update_stmt);
+          }
         }
       }
     }

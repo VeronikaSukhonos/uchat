@@ -395,3 +395,10 @@ void process_voice_call_start(cJSON *response, AppData *app_data);
 void process_voice_call_stop(cJSON *response, AppData *app_data);
 void process_voice_call_accept(cJSON *response, AppData *app_data);
 void handle_logout(AppData *app_data);
+void get_cached_chat_ids(const char *cache_dir, cJSON *cached_chats);
+void sync_chat_list_with_server(int sock, const char *cache_dir);
+void send_get_chat_list_request(int sock);
+void send_get_new_data_request(int sock, cJSON *cached_chats);
+void handle_new_data_response(const char *response_data, const char *cache_dir);
+void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
+                                 int chat_id);

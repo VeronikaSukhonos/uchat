@@ -60,7 +60,6 @@ int attempt_main_reconnection(AppData *app_data) {
       app_data->main_page->opened_chat->is_mic_active = FALSE;
     }
     app_data->main_page->opened_chat = NULL;
-    delete_cache_directory();
     remove_buttons(app_data->main_page);
     remove_all_chat_buttons(app_data->main_page);
     free_message_list(app_data->main_page->messages);

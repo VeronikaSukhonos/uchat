@@ -42,3 +42,5 @@ cJSON *get_message_details(sqlite3 *db, int message_id);
 int store_voice_message(sqlite3 *db, int chat_id, int sender_id,
                         const unsigned char *voice_data, size_t voice_size);
 char *base64_encode(const unsigned char *data, size_t input_length);
+cJSON *retrieve_undelivered_messages(sqlite3 *db, int user_id, int chat_id);
+cJSON *retrieve_chat_members(sqlite3 *db, int chat_id);

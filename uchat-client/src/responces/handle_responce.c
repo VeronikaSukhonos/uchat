@@ -105,14 +105,8 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       *logged_in = 1;
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");
 
-      // Send CHAT_LIST request to server
-      cJSON *chat_list_request = cJSON_CreateObject();
-      cJSON_AddStringToObject(chat_list_request, "action", "GET_CHAT_LIST");
-      char *chat_list_request_str = cJSON_Print(chat_list_request);
-      send(sock, chat_list_request_str, strlen(chat_list_request_str), 0);
-      g_print("Sent: %s\n", chat_list_request_str);
-      g_free(chat_list_request_str);
-      cJSON_Delete(chat_list_request);
+      // Sync chat list after login
+      sync_chat_list_with_server(sock, "cache");
     } else {
       g_print("Error: Login Error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->login_data->message),
@@ -271,6 +265,11 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
                        "Offline");
   } else if (strcmp(action->valuestring, "STOP_CALL") == 0) {
     process_voice_call_stop(response, app_data);
+  } else if (strcmp(action->valuestring, "GET_NEW_DATA") == 0) {
+    const char *json_str = cJSON_Print(response);
+    handle_new_data_response(json_str, CACHE_DIR);
+    create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
+    create_msg_buttons_from_cache(app_data->main_page, "cache");
   }
   // Clean up JSON objec
   cJSON_Delete(response);

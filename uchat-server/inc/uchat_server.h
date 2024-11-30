@@ -76,3 +76,5 @@ void handle_accept_call_forward(Client clients[], Client *client, cJSON *json,
                                 int max_clients);
 void handle_stop_call_forward(Client clients[], Client *client, cJSON *json,
                               int max_clients);
+void handle_get_new_data_request(sqlite3 *db, Client *client,
+                                 cJSON *client_request);

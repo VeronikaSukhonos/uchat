@@ -81,10 +81,10 @@ int handle_send_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
         } else {
           printf("sended to %s\n", username);
           // Update the notification as delivered
-          const char *update_sql = "UPDATE notifications SET is_delivered = 1 "
-                                   "WHERE user_id = ? AND message_id = ?;";
+          const char *delete_sql =
+              "DELETE FROM notifications WHERE user_id = ? AND message_id = ?;";
           sqlite3_stmt *update_stmt;
-          if (sqlite3_prepare_v2(db, update_sql, -1, &update_stmt, NULL) ==
+          if (sqlite3_prepare_v2(db, delete_sql, -1, &update_stmt, NULL) ==
               SQLITE_OK) {
             sqlite3_bind_int(update_stmt, 1, recipient_id);
             sqlite3_bind_int(update_stmt, 2, message_id);

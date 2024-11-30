@@ -469,3 +469,96 @@ void free_message_list(MessageNode *head) {
   }
   head = NULL;
 }
+void get_cached_chat_ids(const char *cache_dir, cJSON *cached_chats) {
+  DIR *dir = opendir(cache_dir);
+  if (!dir) {
+    perror("Failed to open cache directory");
+    return;
+  }
+
+  struct dirent *entry;
+  while ((entry = readdir(dir)) != NULL) {
+    if (strstr(entry->d_name, ".json") != NULL) {
+      // Extract chat ID from the file name (assuming "chat_<chat_id>.json")
+      int chat_id;
+      sscanf(entry->d_name, "chat_%d.json", &chat_id);
+
+      // Add chat ID to the list
+      cJSON_AddItemToArray(cached_chats, cJSON_CreateNumber(chat_id));
+    }
+  }
+
+  closedir(dir);
+}
+
+void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
+                                 int chat_id) {
+  // Step 1: Decrypt the chat file
+  char *decrypted_json = decrypt_json_from_file(file_path);
+  if (!decrypted_json) {
+    fprintf(stderr, "Failed to decrypt chat file: %s\n", file_path);
+    return;
+  }
+
+  // Step 2: Parse the decrypted JSON
+  cJSON *chat_data = cJSON_Parse(decrypted_json);
+  g_free(decrypted_json);
+  if (!chat_data) {
+    fprintf(stderr, "Failed to parse decrypted JSON.\n");
+    return;
+  }
+
+  // Step 3: Get the existing messages array
+  cJSON *existing_messages = cJSON_GetObjectItem(chat_data, "messages");
+  if (!cJSON_IsArray(existing_messages)) {
+    fprintf(stderr, "Messages array not found or invalid in chat file: %s\n",
+            file_path);
+    cJSON_Delete(chat_data);
+    return;
+  }
+
+  // Step 4: Create a map of existing message IDs for quick lookup
+  cJSON *message;
+  cJSON *existing_ids = cJSON_CreateObject();
+  cJSON_ArrayForEach(message, existing_messages) {
+    int existing_message_id =
+        cJSON_GetObjectItem(message, "message_id")->valueint;
+    char key[32];
+    snprintf(key, sizeof(key), "%d", existing_message_id);
+    cJSON_AddNumberToObject(existing_ids, key, 1);
+  }
+
+  // Step 5: Create a new array for merged messages
+  cJSON *merged_messages = cJSON_CreateArray();
+
+  // Add new messages that are not already in the cache, to the beginning
+  cJSON *new_message;
+  cJSON_ArrayForEach(new_message, new_messages) {
+    int new_message_id =
+        cJSON_GetObjectItem(new_message, "message_id")->valueint;
+    char key[32];
+    snprintf(key, sizeof(key), "%d", new_message_id);
+
+    if (!cJSON_HasObjectItem(existing_ids, key)) {
+      cJSON_AddItemToArray(merged_messages, cJSON_Duplicate(new_message, 1));
+    }
+  }
+
+  // Add existing messages next
+  cJSON_ArrayForEach(message, existing_messages) {
+    cJSON_AddItemToArray(merged_messages, cJSON_Duplicate(message, 1));
+  }
+
+  // Step 6: Replace the messages array in the chat data
+  cJSON_ReplaceItemInObject(chat_data, "messages", merged_messages);
+
+  // Step 7: Encrypt and save the updated JSON back to the file
+  save_encrypted_chat_to_cache(file_path, chat_data);
+
+  // Cleanup
+  cJSON_Delete(existing_ids);
+  cJSON_Delete(chat_data);
+
+  printf("Chat data merged and updated successfully for chat_id: %d\n",
+         chat_id);
+}

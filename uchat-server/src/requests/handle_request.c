@@ -189,8 +189,12 @@ void handle_request(Client *client, char *buffer, Client clients[],
     handle_stop_call_forward(clients, client, json, max_clients);
   } else if (strcmp(action->valuestring, "UNBLOCK_USER") == 0) {
     // Handle unblocking a user
-  } else if (strcmp(action->valuestring, "REACT_TO_MESSAGE") == 0) {
-    // Handle reacting to a message
+  } else if (strcmp(action->valuestring, "GET_NEW_DATA") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_get_new_data_request(db, client, json);
+    sqlite3_close(db);
   } else {
     printf("Unknown action received: %s\n", action->valuestring);
   }

@@ -40,7 +40,6 @@ gboolean periodic_reconnection_attempt(gpointer data) {
 int main(int argc, char *argv[]) {
   gtk_init(&argc, &argv);
   gst_init(&argc, &argv); // Initialize GStreamer
-  delete_cache_directory();
   receive_port =
       5000 + (getpid() % 1000); // Generates unique ports like 5001, 5002, etc.
   // Attempt initial connection to the server
