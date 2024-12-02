@@ -215,6 +215,8 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(dialog_scroll), (*temp_node).chat.box);
 
+  (*temp_node).chat.changing_message = NULL;
+
   // Highlight unread chats
   if (strlen(unread) > 0)
     gtk_style_context_add_class(

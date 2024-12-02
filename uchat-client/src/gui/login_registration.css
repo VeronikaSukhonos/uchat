@@ -658,3 +658,11 @@ combobox.form-role .popup .menu-item {
     border-radius: 8px;
     padding: 10px;
 }
+
+.popover-buttons {
+    background: transparent;
+    color: white;
+    border: none;
+    margin: 2px;
+}
+

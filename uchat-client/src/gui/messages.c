@@ -166,6 +166,66 @@ void play_voice(GtkWidget *button, gpointer data) {
   g_print("New audio thread detached.\n");
 }
 
+void show_message_menu(GtkWidget *message_button, gpointer data) {
+  MessageNode *temp_node = (MessageNode *)data;
+  if ((*temp_node).message->menu != NULL) {
+    gtk_popover_popup(GTK_POPOVER((*temp_node).message->menu));
+    gtk_widget_show_all((*temp_node).message->menu);
+  }
+}
+
+void start_change_message(GtkWidget *change_message_button, gpointer data) {
+  t_main_page_data *main_page = (t_main_page_data *)data;
+  GtkWidget *message_menu = gtk_widget_get_parent(gtk_widget_get_parent(change_message_button));
+  MessageNode *changing_message;
+  for (changing_message = (*main_page).messages;
+       changing_message != NULL && (*changing_message).message->menu != message_menu;
+       changing_message = changing_message->next)
+    ;
+  if (changing_message == NULL) {
+    g_print("Changing message does not found\n");
+    return;
+  }
+  main_page->opened_chat->changing_message = changing_message;
+  g_print("changing message \"%s\"\n", main_page->opened_chat->changing_message->message->content);
+  // тут сообщение должно было копироваться в поле ввода сообщений, но выдаёт ошибку
+  //gtk_text_buffer_set_text((*main_page).message_buffer, (*changing_message).message.content, sizeof((*changing_message).message.content));
+}
+
+void change_message(t_main_page_data *main_page, const gchar *message_text) {
+  main_page->opened_chat->changing_message->message->status = MODIFIED;
+  gtk_label_set_text(GTK_LABEL(main_page->opened_chat->changing_message->message->changed_label), "Changed");
+  g_print("message changed from \"%s\" to \"%s\"\n", main_page->opened_chat->changing_message->message->content, message_text);
+  main_page->opened_chat->changing_message = NULL;
+}
+
+void delete_message(GtkWidget *delete_message_button, gpointer data) {
+  t_main_page_data *main_page = (t_main_page_data *)data;
+  GtkWidget *message_menu = gtk_widget_get_parent(gtk_widget_get_parent(delete_message_button));
+  MessageNode *delete_message;
+  for (delete_message = (*main_page).messages;
+       delete_message != NULL && (*delete_message).message->menu != message_menu;
+       delete_message = delete_message->next)
+    ;
+  if (delete_message == NULL) {
+    g_print("Deleting message does not found\n");
+    return;
+  }
+  (*delete_message).message->status = DELETED;
+  gtk_widget_destroy((*delete_message).message->time_label);
+  gtk_widget_destroy((*delete_message).message->changed_label);
+  gtk_widget_destroy((*delete_message).message->seen_label);
+  if ((*delete_message).message->content_type == VOICE) {
+    gtk_widget_destroy((*delete_message).message->voice_message_button);
+    gtk_widget_set_visible((*delete_message).message->message_label, 1);
+  }
+  gtk_label_set_text(GTK_LABEL((*delete_message).message->message_label), "Deleted");
+  gtk_widget_destroy((*delete_message).message->menu);
+  (*delete_message).message->menu = NULL;
+  if (main_page->opened_chat->changing_message == delete_message)
+    main_page->opened_chat->changing_message = NULL;
+}
+
 void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window) {
   GtkWidget *smile_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/smile-close.png");
@@ -403,7 +463,7 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   return temp_node;
 }
 
-void test(gpointer *ptr) { g_print("test\n"); }
+// void test(gpointer *ptr) { g_print("test\n"); }
 
 void create_message_button(t_main_page_data *main_page,
                            MessageNode *temp_node) {
@@ -421,8 +481,8 @@ void create_message_button(t_main_page_data *main_page,
                    (*temp_node).message->button, FALSE, FALSE, 0);
   gtk_box_reorder_child(GTK_BOX(chat_with_new_message->chat.box),
                         (*temp_node).message->button, 0);
-  g_signal_connect(temp_node->message->button, "clicked", G_CALLBACK(test),
-                   (gpointer)temp_node);
+  // g_signal_connect(temp_node->message->button, "clicked", G_CALLBACK(test),
+  //                  (gpointer)temp_node);
 
   // Compare with the message sender
   if (strcmp(temp_node->message->sender, username) == 0) {
@@ -489,7 +549,46 @@ void create_message_button(t_main_page_data *main_page,
     // Make sure the signal handler is connected to the voice button
     g_signal_connect(temp_node->message->voice_message_button, "clicked",
                      G_CALLBACK(play_voice), (gpointer)temp_node);
+    (*temp_node).message->message_label =
+        gtk_label_new("");
+    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
+                       TRUE, FALSE, 0);
+    gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
+    gtk_label_set_justify(GTK_LABEL((*temp_node).message->message_label),
+                          GTK_JUSTIFY_LEFT);
+    gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                            TRUE);
+    gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message->message_label),
+                                 PANGO_WRAP_WORD_CHAR);
   }
+
+  // Message menu
+  if (strcmp(temp_node->message->sender, username) == 0) {
+    (*temp_node).message->menu = gtk_popover_new((*temp_node).message->button);
+    gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).message->menu), "smile-window");
+    GtkWidget *message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER((*temp_node).message->menu), message_menu_box);
+    g_signal_connect((*temp_node).message->button, "clicked", G_CALLBACK(show_message_menu),
+                     temp_node);
+
+    if ((*temp_node).message->content_type == TEXT) {
+      GtkWidget *change_message_button = gtk_button_new_with_label("Change");
+      gtk_style_context_add_class(gtk_widget_get_style_context(change_message_button), "popover-buttons");
+      gtk_box_pack_start(GTK_BOX(message_menu_box), change_message_button,
+                         TRUE, FALSE, 0);
+      g_signal_connect(change_message_button, "clicked", G_CALLBACK(start_change_message),
+                       main_page);
+    }
+
+    GtkWidget *delete_message_button = gtk_button_new_with_label("Delete");
+    gtk_style_context_add_class(gtk_widget_get_style_context(delete_message_button), "popover-buttons");
+    gtk_box_pack_start(GTK_BOX(message_menu_box), delete_message_button,
+                       TRUE, FALSE, 0);
+    g_signal_connect(delete_message_button, "clicked", G_CALLBACK(delete_message),
+                     main_page);
+  }
+  else
+    (*temp_node).message->menu = NULL;
 
   // Add the bottom box for labels (time, seen, changes)
   GtkWidget *bottom_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
@@ -558,9 +657,12 @@ void send_message_f(GtkWidget *widget, gpointer data) {
   int chat_id = main_page->opened_chat->id;
 
   if (message_text != NULL && g_strcmp0(message_text, "") != 0) {
-    send_message_to_server(chat_id, message_text);
-    // MessageNode *new_message = create_message_node(main_page, TEXT, chat_id);
-    // create_message_button(main_page, new_message);
+    if (main_page->opened_chat->changing_message != NULL)
+      change_message(main_page, message_text);
+    else
+      send_message_to_server(chat_id, message_text);
+      // MessageNode *new_message = create_message_node(main_page, TEXT, chat_id);
+      // create_message_button(main_page, new_message);
   } else {
     g_print("Cannot send an empty message.\n");
   }
