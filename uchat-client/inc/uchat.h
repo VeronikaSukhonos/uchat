@@ -67,6 +67,7 @@ typedef struct {
   GtkWidget *time_label;
   GtkWidget *changed_label;
   GtkWidget *seen_label;
+  GtkWidget *menu;
 } MessageCache;
 
 // Linked list node for MessageCache
@@ -112,6 +113,7 @@ typedef struct s_chat_data {
   GtkWidget *last_sender;
   GtkWidget *last_message;
   GtkWidget *unread;
+  MessageNode *changing_message;
   GtkWidget *box;
   gboolean is_mic_active;
   int id;
