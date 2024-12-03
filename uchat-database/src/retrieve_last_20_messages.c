@@ -11,7 +11,7 @@ cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id) {
       "SELECT id, sender_id, "
       "(SELECT username FROM users WHERE id = sender_id) AS username, "
       "content, type, created_at, is_read, "
-      "voice_message "
+      "voice_message, status "
       "FROM messages "
       "WHERE chat_id = ? "
       "ORDER BY created_at DESC "
@@ -37,6 +37,7 @@ cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id) {
     const char *type = (const char *)sqlite3_column_text(stmt, 4);
     const char *created_at = (const char *)sqlite3_column_text(stmt, 5);
     int is_read = sqlite3_column_int(stmt, 6);
+    const char *status = (const char *)sqlite3_column_text(stmt, 8);
 
     // Add basic message fields
     cJSON_AddNumberToObject(message, "message_id", message_id);
@@ -46,6 +47,7 @@ cJSON *retrieve_last_20_messages(sqlite3 *db, int chat_id) {
     cJSON_AddStringToObject(message, "type", type);
     cJSON_AddStringToObject(message, "timestamp", created_at);
     cJSON_AddBoolToObject(message, "read", is_read);
+    cJSON_AddStringToObject(message, "status", status);
 
     // Handle voice messages
     const void *voice_message_blob = sqlite3_column_blob(stmt, 7);

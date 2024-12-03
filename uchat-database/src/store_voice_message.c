@@ -7,8 +7,8 @@
 int store_voice_message(sqlite3 *db, int chat_id, int sender_id,
                         const unsigned char *voice_data, size_t voice_size) {
   const char *sql = "INSERT INTO messages (chat_id, sender_id, type, "
-                    "created_at, voice_message) "
-                    "VALUES (?, ?, 'voice', ?, ?);";
+                    "created_at, voice_message, status) "
+                    "VALUES (?, ?, 'voice', ?, ?, 'new');";
   sqlite3_stmt *stmt;
   int message_id = -1;
 

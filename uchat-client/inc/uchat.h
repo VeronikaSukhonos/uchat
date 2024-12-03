@@ -407,3 +407,11 @@ void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
                                  int chat_id);
 void play_audio(char *filepath);
 void stop_audio();
+void process_message_update(const char *json_response, AppData *app_data);
+int update_message_in_chat(const char *file_path, int message_id,
+                           const char *new_content);
+void process_message_update_from_chat(const char *json_response,
+                                      AppData *app_data);
+void process_message_delete(const char *json_response, AppData *app_data);
+int update_message_status_in_json(const char *file_path, int message_id,
+                                  const char *new_status);

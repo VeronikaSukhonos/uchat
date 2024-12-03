@@ -5,10 +5,10 @@
 
 cJSON *get_message_details(sqlite3 *db, int message_id) {
   const char *sql =
-      "SELECT id, chat_id, sender_id, "
-      "(SELECT username FROM users WHERE id = sender_id) AS username, "
-      "content, type, created_at, is_read, voice_message "
-      "FROM messages WHERE id = ?;";
+      "SELECT m.id, m.chat_id, sender_id, "
+      "(SELECT username FROM users WHERE users.id = sender_id) AS username, "
+      "m.content, m.type, m.created_at, m.is_read, m.voice_message, m.status "
+      "FROM messages m WHERE m.id = ?;";
   sqlite3_stmt *stmt;
 
   // Prepare the SQL statement
@@ -37,6 +37,8 @@ cJSON *get_message_details(sqlite3 *db, int message_id) {
     cJSON_AddStringToObject(message, "timestamp",
                             (const char *)sqlite3_column_text(stmt, 6));
     cJSON_AddBoolToObject(message, "read", sqlite3_column_int(stmt, 7));
+    cJSON_AddStringToObject(message, "status",
+                            (const char *)sqlite3_column_text(stmt, 9));
 
     // If the content type is "voice", retrieve the voice_message
     if (strcmp((const char *)sqlite3_column_text(stmt, 5), "voice") == 0) {

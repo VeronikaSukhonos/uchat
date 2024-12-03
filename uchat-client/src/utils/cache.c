@@ -152,6 +152,24 @@ void copy_until_newline_or_max_len(const char *input, char *output,
   output[i] = '\0'; // Ensure the string is null-terminated
 }
 
+void clean_name(char *name) {
+  char *read_ptr = name;  // Pointer to read characters
+  char *write_ptr = name; // Pointer to write cleaned characters
+  size_t username_len = strlen(username);
+
+  while (*read_ptr) {
+    // Check if `username` is at the current position
+    if (strncmp(read_ptr, username, username_len) == 0) {
+      read_ptr += username_len; // Skip the username
+    } else if (*read_ptr == '-') {
+      read_ptr++; // Skip the `-` character
+    } else {
+      *write_ptr++ = *read_ptr++; // Copy valid character
+    }
+  }
+  *write_ptr = '\0'; // Null-terminate the cleaned string
+}
+
 int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
                                        char *name, char *chat_type,
                                        char *last_message, char *last_sender,
@@ -188,6 +206,9 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
   *chat_id = id_json->valueint;
   strcpy(name, name_json->valuestring);
   strcpy(chat_type, type_json->valuestring);
+
+  if (strcmp(chat_type, "private") == 0)
+    clean_name(name);
 
   // Check if there are any messages
   if (cJSON_IsArray(messages) && cJSON_GetArraySize(messages) > 0) {
@@ -535,6 +556,12 @@ void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
         cJSON *new_type = cJSON_GetObjectItem(new_message, "type");
         cJSON *new_timestamp = cJSON_GetObjectItem(new_message, "timestamp");
         cJSON *new_read = cJSON_GetObjectItem(new_message, "read");
+        cJSON *new_status = cJSON_GetObjectItem(new_message, "status");
+
+        if (new_status) {
+          cJSON_ReplaceItemInObject(existing_message, "status",
+                                    cJSON_Duplicate(new_status, 1));
+        }
 
         if (new_content) {
           cJSON_ReplaceItemInObject(existing_message, "content",
@@ -572,4 +599,144 @@ void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
 
   printf("Chat data merged and updated successfully for chat_id: %d\n",
          chat_id);
+}
+
+int update_message_in_chat(const char *file_path, int message_id,
+                           const char *new_content) {
+  // Step 1: Decrypt the chat file
+  char *decrypted_json = decrypt_json_from_file(file_path);
+  if (!decrypted_json) {
+    fprintf(stderr, "Failed to decrypt chat file: %s\n", file_path);
+    return -1;
+  }
+
+  // Step 2: Parse the decrypted JSON
+  cJSON *chat_data = cJSON_Parse(decrypted_json);
+  g_free(decrypted_json);
+  if (!chat_data) {
+    fprintf(stderr, "Failed to parse decrypted JSON.\n");
+    return -1;
+  }
+
+  // Debug: Print the initial chat_data
+  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Step 3: Get the messages array
+  cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
+  if (!cJSON_IsArray(messages)) {
+    fprintf(stderr, "Messages array not found or invalid.\n");
+    cJSON_Delete(chat_data);
+    return -1;
+  }
+
+  // Step 4: Find the message to update
+  cJSON *message;
+  int message_found = 0;
+  cJSON_ArrayForEach(message, messages) {
+    cJSON *msg_id = cJSON_GetObjectItem(message, "message_id");
+    if (cJSON_IsNumber(msg_id) && msg_id->valueint == message_id) {
+      // Update content and status
+      cJSON_ReplaceItemInObject(message, "content",
+                                cJSON_CreateString(new_content));
+      cJSON_ReplaceItemInObject(message, "status",
+                                cJSON_CreateString("modified"));
+      message_found = 1;
+      break;
+    }
+  }
+
+  if (!message_found) {
+    fprintf(stderr, "Message with ID %d not found in chat file: %s\n",
+            message_id, file_path);
+    cJSON_Delete(chat_data);
+    return -1;
+  }
+
+  // Debug: Print the updated chat_data
+  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Ensure the "members" array is preserved
+  cJSON *members = cJSON_GetObjectItem(chat_data, "members");
+  if (!cJSON_IsArray(members) || cJSON_GetArraySize(members) == 0) {
+    fprintf(stderr,
+            "WARNING: Members array is missing or empty for chat_id: %d\n",
+            cJSON_GetObjectItem(chat_data, "chat_id")->valueint);
+  } else {
+    g_print("Members array preserved with %d members.\n",
+            cJSON_GetArraySize(members));
+  }
+
+  // Step 5: Encrypt and save the updated JSON back to the file
+  save_encrypted_chat_to_cache(file_path, chat_data);
+
+  // Step 6: Clean up
+  cJSON_Delete(chat_data);
+
+  printf("Message with ID %d updated successfully in chat file: %s\n",
+         message_id, file_path);
+  return 0;
+}
+
+int update_message_status_in_json(const char *file_path, int message_id,
+                                  const char *new_status) {
+  // Step 1: Decrypt the chat file
+  char *decrypted_json = decrypt_json_from_file(file_path);
+  if (!decrypted_json) {
+    fprintf(stderr, "Failed to decrypt JSON from file: %s\n", file_path);
+    return -1;
+  }
+
+  // Step 2: Parse the decrypted JSON
+  cJSON *chat_data = cJSON_Parse(decrypted_json);
+  g_free(decrypted_json);
+  if (!chat_data) {
+    fprintf(stderr, "Failed to parse JSON file: %s\n", file_path);
+    return -1;
+  }
+
+  // Debug: Print the initial chat_data
+  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Step 3: Get the messages array
+  cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
+  if (!cJSON_IsArray(messages)) {
+    fprintf(stderr, "Messages array not found or invalid in file: %s\n",
+            file_path);
+    cJSON_Delete(chat_data);
+    return -1;
+  }
+
+  // Step 4: Find the message and update its status
+  cJSON *message;
+  int message_found = 0;
+  cJSON_ArrayForEach(message, messages) {
+    cJSON *msg_id = cJSON_GetObjectItem(message, "message_id");
+    if (cJSON_IsNumber(msg_id) && msg_id->valueint == message_id) {
+      // Update the status field
+      cJSON_ReplaceItemInObject(message, "status",
+                                cJSON_CreateString(new_status));
+      message_found = 1;
+      break;
+    }
+  }
+
+  if (!message_found) {
+    fprintf(stderr, "Message with ID %d not found in chat file: %s\n",
+            message_id, file_path);
+    cJSON_Delete(chat_data);
+    return -1;
+  }
+
+  // Debug: Print the updated chat_data
+  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+
+  // Step 5: Encrypt and save the updated JSON back to the file
+  save_encrypted_chat_to_cache(file_path, chat_data);
+
+  // Step 6: Clean up
+  cJSON_Delete(chat_data);
+
+  printf("Message status updated successfully for ID %d in file: %s\n",
+         message_id, file_path);
+  return 0;
 }

@@ -5,7 +5,7 @@ cJSON *retrieve_undelivered_messages(sqlite3 *db, int user_id, int chat_id) {
       "SELECT m.id, m.sender_id, "
       "(SELECT username FROM users WHERE id = m.sender_id) AS username, "
       " m.content, m.type, m.created_at, m.is_read, "
-      "m.voice_message "
+      "m.voice_message, m.status "
       "FROM messages m "
       "JOIN notifications n ON m.id = n.message_id "
       "WHERE m.chat_id = ? AND n.user_id = ? "
@@ -49,6 +49,7 @@ cJSON *retrieve_undelivered_messages(sqlite3 *db, int user_id, int chat_id) {
     const char *type = (const char *)sqlite3_column_text(stmt, 4);
     const char *created_at = (const char *)sqlite3_column_text(stmt, 5);
     int is_read = sqlite3_column_int(stmt, 6);
+    const char *status = (const char *)sqlite3_column_text(stmt, 8);
 
     // Add basic message fields
     cJSON_AddNumberToObject(message, "message_id", message_id);
@@ -58,6 +59,7 @@ cJSON *retrieve_undelivered_messages(sqlite3 *db, int user_id, int chat_id) {
     cJSON_AddStringToObject(message, "type", type);
     cJSON_AddStringToObject(message, "timestamp", created_at);
     cJSON_AddBoolToObject(message, "read", is_read);
+    cJSON_AddStringToObject(message, "status", status);
 
     // Handle voice messages
     const void *voice_message_blob = sqlite3_column_blob(stmt, 7);

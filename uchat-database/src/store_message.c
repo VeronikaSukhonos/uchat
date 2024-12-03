@@ -26,8 +26,8 @@ int store_message(sqlite3 *db, int chat_id, int sender_id,
                   const char *content) {
   sqlite3_stmt *stmt;
   const char *sql =
-      "INSERT INTO messages (chat_id, sender_id, content, is_read) "
-      "VALUES (?, ?, ?, 0);";
+      "INSERT INTO messages (chat_id, sender_id, content, is_read, status) "
+      "VALUES (?, ?, ?, 0, 'new');";
 
   if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
     fprintf(stderr, "Failed to prepare message insert statement: %s\n",

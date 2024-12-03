@@ -245,38 +245,7 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
 
         g_list_free(children);
 
-        if (is_group) {
-          // For group chats, show the group name directly
-          gtk_label_set_text(GTK_LABEL(main_page->chat_nickname), chat_name);
-        } else {
-          // For private chats, extract participant's username
-          char *participant = NULL;
-          if (chat_name && chat_name[0] != '\0') {
-            char *dash = strchr(chat_name, '-');
-            if (dash) {
-              size_t first_len = dash - chat_name;
-              size_t second_len = strlen(dash + 1);
-
-              // Compare first part with current username
-              if (strncmp(chat_name, username, first_len) == 0 &&
-                  strlen(username) == first_len) {
-                // Current user is the first part, so take the second part
-                participant = g_strndup(dash + 1, second_len);
-              } else {
-                // Current user is the second part, so take the first part
-                participant = g_strndup(chat_name, first_len);
-              }
-            }
-          }
-
-          // Set the participant's username or fallback to "Unknown"
-          gtk_label_set_text(GTK_LABEL(main_page->chat_nickname),
-                             participant ? participant : "Unknown");
-
-          // Free allocated memory
-          if (participant)
-            g_free(participant);
-        }
+        gtk_label_set_text(GTK_LABEL(main_page->chat_nickname), chat_name);
       }
 
       // Create new message buttons for this chat

@@ -78,3 +78,7 @@ void handle_stop_call_forward(Client clients[], Client *client, cJSON *json,
                               int max_clients);
 void handle_get_new_data_request(sqlite3 *db, Client *client,
                                  cJSON *client_request);
+int handle_update_message(sqlite3 *db, Client *client, cJSON *json,
+                          Client clients[], int max_clients);
+int handle_delete_message(sqlite3 *db, Client *client, cJSON *json,
+                          Client clients[], int max_clients);

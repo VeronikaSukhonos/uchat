@@ -271,6 +271,26 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     handle_new_data_response(json_str, CACHE_DIR);
     create_chat_buttons_from_encrypted_cache(app_data->main_page, "cache");
     create_msg_buttons_from_cache(app_data->main_page, "cache");
+  } else if (strcmp(action->valuestring, "UPDATE_MESSAGE_STATUS") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Updating  successful\n");
+      process_message_update(cJSON_Print(response), app_data);
+    } else {
+      g_print("Error: Sending error.\n");
+    }
+  } else if (strcmp(action->valuestring, "UPDATE_MESSAGE_FROM_CHAT") == 0) {
+    process_message_update_from_chat(cJSON_Print(response), app_data);
+  } else if (strcmp(action->valuestring, "DELETE_MESSAGE_STATUS") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Updating  successful\n");
+      process_message_delete(cJSON_Print(response), app_data);
+    } else {
+      g_print("Error: Sending error.\n");
+    }
+  } else if (strcmp(action->valuestring, "DELETE_MESSAGE_FROM_CHAT") == 0) {
+    process_message_delete(cJSON_Print(response), app_data);
   }
   // Clean up JSON object
   cJSON_Delete(response);

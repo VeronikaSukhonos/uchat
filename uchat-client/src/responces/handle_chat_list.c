@@ -63,6 +63,7 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
         cJSON *content_type_json = cJSON_GetObjectItem(message, "type");
         cJSON *read_json = cJSON_GetObjectItem(message, "read");
         cJSON *sender_id_json = cJSON_GetObjectItem(message, "sender_id");
+        cJSON *status_json = cJSON_GetObjectItem(message, "status");
 
         if (!cJSON_IsNumber(message_id_json) ||
             !cJSON_IsString(username_json) || !cJSON_IsString(content_json) ||
@@ -88,6 +89,8 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
         cJSON_AddStringToObject(json_message, "timestamp",
                                 timestamp_json->valuestring);
         cJSON_AddBoolToObject(json_message, "read", cJSON_IsTrue(read_json));
+        cJSON_AddStringToObject(json_message, "status",
+                                status_json->valuestring);
 
         // Handle voice messages
         if (strcmp(content_type_json->valuestring, "voice") == 0) {

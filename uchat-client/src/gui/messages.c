@@ -119,6 +119,13 @@ void *play_audio_thread(void *data) {
   // Unlock the mutex to indicate the thread is done
   pthread_mutex_unlock(&play_mutex);
   g_print("Mutex unlocked after playback.\n");
+  if (audio_thread != 0) {
+    g_print("Cancelling and joining the previous audio thread.\n");
+    pthread_cancel(audio_thread);     // Cancel the previous thread
+    pthread_join(audio_thread, NULL); // Wait for the thread to finish
+    audio_thread = 0;
+    g_print("Previous audio thread stopped successfully.\n");
+  }
 
   return NULL;
 }
@@ -132,6 +139,13 @@ void stop_audio() {
     gst_element_set_state(current_pipeline, GST_STATE_NULL);
     gst_object_unref(current_pipeline);
     current_pipeline = NULL;
+    if (audio_thread != 0) {
+      g_print("Cancelling and joining the previous audio thread.\n");
+      pthread_cancel(audio_thread);     // Cancel the previous thread
+      pthread_join(audio_thread, NULL); // Wait for the thread to finish
+      audio_thread = 0;
+      g_print("Previous audio thread stopped successfully.\n");
+    }
     g_print("Current audio pipeline stopped and cleared successfully.\n");
   } else {
     g_print("No active audio pipeline to stop.\n");
@@ -147,6 +161,7 @@ void play_voice(GtkWidget *button, gpointer data) {
     g_print("Cancelling and joining the previous audio thread.\n");
     pthread_cancel(audio_thread);     // Cancel the previous thread
     pthread_join(audio_thread, NULL); // Wait for the thread to finish
+    audio_thread = 0;
     g_print("Previous audio thread stopped successfully.\n");
   }
 
@@ -176,52 +191,92 @@ void show_message_menu(GtkWidget *message_button, gpointer data) {
 
 void start_change_message(GtkWidget *change_message_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  GtkWidget *message_menu = gtk_widget_get_parent(gtk_widget_get_parent(change_message_button));
+  GtkWidget *message_menu =
+      gtk_widget_get_parent(gtk_widget_get_parent(change_message_button));
   MessageNode *changing_message;
+
+  // Find the corresponding message node
   for (changing_message = (*main_page).messages;
-       changing_message != NULL && (*changing_message).message->menu != message_menu;
+       changing_message != NULL &&
+       (*changing_message).message->menu != message_menu;
        changing_message = changing_message->next)
     ;
+
   if (changing_message == NULL) {
-    g_print("Changing message does not found\n");
+    g_print("Changing message not found.\n");
     return;
   }
+
   main_page->opened_chat->changing_message = changing_message;
-  g_print("changing message \"%s\"\n", main_page->opened_chat->changing_message->message->content);
-  // тут сообщение должно было копироваться в поле ввода сообщений, но выдаёт ошибку
-  //gtk_text_buffer_set_text((*main_page).message_buffer, (*changing_message).message.content, sizeof((*changing_message).message.content));
+  g_print("Changing message \"%s\"\n",
+          main_page->opened_chat->changing_message->message->content);
+
+  // Ensure valid UTF-8 and set the message content
+  const char *message_content = changing_message->message->content;
+  if (!message_content) {
+    message_content = ""; // Default to an empty string
+  } else if (!g_utf8_validate(message_content, -1, NULL)) {
+    g_print("Error: Message content is not valid UTF-8.\n");
+    message_content = ""; // Default to empty if invalid
+  }
+
+  gtk_text_buffer_set_text(main_page->message_buffer, message_content, -1);
 }
 
 void change_message(t_main_page_data *main_page, const gchar *message_text) {
+
+  cJSON *json_message = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_message, "action", "UPDATE_MESSAGE");
+  cJSON_AddNumberToObject(
+      json_message, "message_id",
+      main_page->opened_chat->changing_message->message->message_id);
+  cJSON_AddNumberToObject(json_message, "chat_id", main_page->opened_chat->id);
+  cJSON_AddStringToObject(json_message, "message", message_text);
   main_page->opened_chat->changing_message->message->status = MODIFIED;
-  gtk_label_set_text(GTK_LABEL(main_page->opened_chat->changing_message->message->changed_label), "Changed");
-  g_print("message changed from \"%s\" to \"%s\"\n", main_page->opened_chat->changing_message->message->content, message_text);
-  main_page->opened_chat->changing_message = NULL;
+
+  char *json_str = cJSON_Print(json_message);
+  g_print("Sending message to server: %s\n", json_str);
+  send(sock, json_str, strlen(json_str), 0);
+
+  free(json_str);
+  cJSON_free(json_message);
+  // gtk_label_set_text(
+  //     GTK_LABEL(
+  //         main_page->opened_chat->changing_message->message->changed_label),
+  //     "Modified");
+  // g_print("message changed from \"%s\" to \"%s\"\n",
+  //         main_page->opened_chat->changing_message->message->content,
+  //         message_text);
+  // main_page->opened_chat->changing_message = NULL;
 }
 
 void delete_message(GtkWidget *delete_message_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  GtkWidget *message_menu = gtk_widget_get_parent(gtk_widget_get_parent(delete_message_button));
+  GtkWidget *message_menu =
+      gtk_widget_get_parent(gtk_widget_get_parent(delete_message_button));
   MessageNode *delete_message;
   for (delete_message = (*main_page).messages;
-       delete_message != NULL && (*delete_message).message->menu != message_menu;
+       delete_message != NULL &&
+       (*delete_message).message->menu != message_menu;
        delete_message = delete_message->next)
     ;
   if (delete_message == NULL) {
     g_print("Deleting message does not found\n");
     return;
   }
+  cJSON *json_message = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_message, "action", "DELETE_MESSAGE");
+  cJSON_AddNumberToObject(json_message, "message_id",
+                          delete_message->message->message_id);
+  cJSON_AddNumberToObject(json_message, "chat_id", main_page->opened_chat->id);
+  char *json_str = cJSON_Print(json_message);
+  g_print("Sending message to server: %s\n", json_str);
+  send(sock, json_str, strlen(json_str), 0);
+
+  free(json_str);
+  cJSON_free(json_message);
   (*delete_message).message->status = DELETED;
-  gtk_widget_destroy((*delete_message).message->time_label);
-  gtk_widget_destroy((*delete_message).message->changed_label);
-  gtk_widget_destroy((*delete_message).message->seen_label);
-  if ((*delete_message).message->content_type == VOICE) {
-    gtk_widget_destroy((*delete_message).message->voice_message_button);
-    gtk_widget_set_visible((*delete_message).message->message_label, 1);
-  }
-  gtk_label_set_text(GTK_LABEL((*delete_message).message->message_label), "Deleted");
-  gtk_widget_destroy((*delete_message).message->menu);
-  (*delete_message).message->menu = NULL;
+  strcpy(delete_message->message->content, "Deleted");
   if (main_page->opened_chat->changing_message == delete_message)
     main_page->opened_chat->changing_message = NULL;
 }
@@ -395,10 +450,21 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   cJSON *sender_json = cJSON_GetObjectItem(message_json, "username");
   cJSON *timestamp_json = cJSON_GetObjectItem(message_json, "timestamp");
   cJSON *read_json = cJSON_GetObjectItem(message_json, "read");
+  cJSON *status_json = cJSON_GetObjectItem(message_json, "status");
   cJSON *voice_path_json = cJSON_GetObjectItem(
       message_json, "voice_file_path"); // Extract voice file path
 
   // Populate message fields
+
+  if (cJSON_IsString(status_json)) {
+    if (strcmp(status_json->valuestring, "new") == 0) {
+      temp_node->message->status = NEW;
+    } else if (strcmp(status_json->valuestring, "modified") == 0) {
+      temp_node->message->status = MODIFIED;
+    } else if (strcmp(status_json->valuestring, "deleted") == 0) {
+      temp_node->message->status = DELETED;
+    }
+  }
   if (cJSON_IsString(content_json)) {
     strncpy(temp_node->message->content, content_json->valuestring,
             sizeof(temp_node->message->content) - 1);
@@ -474,52 +540,28 @@ void create_message_button(t_main_page_data *main_page,
        chat_with_new_message->chat.id != (*temp_node).message->chat_id;
        chat_with_new_message = chat_with_new_message->next)
     ;
-
-  // Create a new button for the message
-  (*temp_node).message->button = gtk_button_new();
-  gtk_box_pack_end(GTK_BOX(chat_with_new_message->chat.box),
-                   (*temp_node).message->button, FALSE, FALSE, 0);
-  gtk_box_reorder_child(GTK_BOX(chat_with_new_message->chat.box),
-                        (*temp_node).message->button, 0);
-  // g_signal_connect(temp_node->message->button, "clicked", G_CALLBACK(test),
-  //                  (gpointer)temp_node);
-
-  // Compare with the message sender
-  if (strcmp(temp_node->message->sender, username) == 0) {
-    // If the sender is the current user, it's an outgoing message
-    gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_END);
-    gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message->button),
-        "outgoing-messages");
-  } else {
-    // If the sender is not the current user, it's an incoming message
-    gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_START);
-    gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message->button),
-        "ingoing-messages");
-  }
-
-  // Create the main box to hold the message content
-  GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add(GTK_CONTAINER((*temp_node).message->button), main_box);
-
-  // Add a label with the sender's username
-  if (strcmp(temp_node->message->sender, username) != 0) {
-    (*temp_node).message->username_label =
-        gtk_label_new((*temp_node).message->sender);
-    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->username_label,
-                       FALSE, FALSE, 0);
-    gtk_style_context_add_class(
-        gtk_widget_get_style_context((*temp_node).message->username_label),
-        "sender-name");
-    gtk_widget_set_halign((*temp_node).message->username_label,
-                          GTK_ALIGN_START);
-  }
-
-  // If it's a text message, show the content
-  if ((*temp_node).message->content_type == TEXT) {
-    (*temp_node).message->message_label =
-        gtk_label_new((*temp_node).message->content);
+  if (temp_node->message->status == DELETED) {
+    (*temp_node).message->button = gtk_button_new();
+    gtk_box_pack_end(GTK_BOX(chat_with_new_message->chat.box),
+                     (*temp_node).message->button, FALSE, FALSE, 0);
+    gtk_box_reorder_child(GTK_BOX(chat_with_new_message->chat.box),
+                          (*temp_node).message->button, 0);
+    if (strcmp(temp_node->message->sender, username) == 0) {
+      // If the sender is the current user, it's an outgoing message
+      gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_END);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->button),
+          "outgoing-messages");
+    } else {
+      // If the sender is not the current user, it's an incoming message
+      gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_START);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->button),
+          "ingoing-messages");
+    }
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER((*temp_node).message->button), main_box);
+    (*temp_node).message->message_label = gtk_label_new("Deleted");
     gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
                        TRUE, FALSE, 0);
     gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
@@ -529,119 +571,190 @@ void create_message_button(t_main_page_data *main_page,
                             TRUE);
     gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message->message_label),
                                  PANGO_WRAP_WORD_CHAR);
+
+    gtk_widget_set_visible((*temp_node).message->button, 1);
+    gtk_widget_set_visible(main_box, 1);
+    gtk_widget_set_visible((*temp_node).message->message_label, 1);
   } else {
-    // If it's a voice message, show a button to play the voice message
-    GtkWidget *play_button = gtk_image_new_from_file(
-        "uchat-client/src/gui/resources/play_button.png");
-    (*temp_node).message->voice_message_button = gtk_button_new();
-    gtk_button_set_image(GTK_BUTTON((*temp_node).message->voice_message_button),
-                         play_button);
-    gtk_box_pack_start(GTK_BOX(main_box),
-                       (*temp_node).message->voice_message_button, FALSE, FALSE,
-                       0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(
-                                    (*temp_node).message->voice_message_button),
-                                "play-button");
-    gtk_widget_set_halign((*temp_node).message->voice_message_button,
-                          GTK_ALIGN_START);
-    // g_print("Connecting signal to play voice for message: %s\n",
-    //         temp_node->message.voice_path);
-    // Make sure the signal handler is connected to the voice button
-    g_signal_connect(temp_node->message->voice_message_button, "clicked",
-                     G_CALLBACK(play_voice), (gpointer)temp_node);
-    (*temp_node).message->message_label =
-        gtk_label_new("");
-    gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
-                       TRUE, FALSE, 0);
-    gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
-    gtk_label_set_justify(GTK_LABEL((*temp_node).message->message_label),
-                          GTK_JUSTIFY_LEFT);
-    gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
-                            TRUE);
-    gtk_label_set_line_wrap_mode(GTK_LABEL((*temp_node).message->message_label),
-                                 PANGO_WRAP_WORD_CHAR);
-  }
+    // Create a new button for the message
+    (*temp_node).message->button = gtk_button_new();
+    gtk_box_pack_end(GTK_BOX(chat_with_new_message->chat.box),
+                     (*temp_node).message->button, FALSE, FALSE, 0);
+    gtk_box_reorder_child(GTK_BOX(chat_with_new_message->chat.box),
+                          (*temp_node).message->button, 0);
 
-  // Message menu
-  if (strcmp(temp_node->message->sender, username) == 0) {
-    (*temp_node).message->menu = gtk_popover_new((*temp_node).message->button);
-    gtk_style_context_add_class(gtk_widget_get_style_context((*temp_node).message->menu), "smile-window");
-    GtkWidget *message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER((*temp_node).message->menu), message_menu_box);
-    g_signal_connect((*temp_node).message->button, "clicked", G_CALLBACK(show_message_menu),
-                     temp_node);
+    // g_signal_connect(temp_node->message->button, "clicked", G_CALLBACK(test),
+    //                  (gpointer)temp_node);
 
-    if ((*temp_node).message->content_type == TEXT) {
-      GtkWidget *change_message_button = gtk_button_new_with_label("Change");
-      gtk_style_context_add_class(gtk_widget_get_style_context(change_message_button), "popover-buttons");
-      gtk_box_pack_start(GTK_BOX(message_menu_box), change_message_button,
-                         TRUE, FALSE, 0);
-      g_signal_connect(change_message_button, "clicked", G_CALLBACK(start_change_message),
-                       main_page);
+    // Compare with the message sender
+    if (strcmp(temp_node->message->sender, username) == 0) {
+      // If the sender is the current user, it's an outgoing message
+      gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_END);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->button),
+          "outgoing-messages");
+    } else {
+      // If the sender is not the current user, it's an incoming message
+      gtk_widget_set_halign((*temp_node).message->button, GTK_ALIGN_START);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->button),
+          "ingoing-messages");
     }
 
-    GtkWidget *delete_message_button = gtk_button_new_with_label("Delete");
-    gtk_style_context_add_class(gtk_widget_get_style_context(delete_message_button), "popover-buttons");
-    gtk_box_pack_start(GTK_BOX(message_menu_box), delete_message_button,
-                       TRUE, FALSE, 0);
-    g_signal_connect(delete_message_button, "clicked", G_CALLBACK(delete_message),
-                     main_page);
+    // Create the main box to hold the message content
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER((*temp_node).message->button), main_box);
+
+    // Add a label with the sender's username
+    if (strcmp(temp_node->message->sender, username) != 0) {
+      (*temp_node).message->username_label =
+          gtk_label_new((*temp_node).message->sender);
+      gtk_box_pack_start(GTK_BOX(main_box),
+                         (*temp_node).message->username_label, FALSE, FALSE, 0);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->username_label),
+          "sender-name");
+      gtk_widget_set_halign((*temp_node).message->username_label,
+                            GTK_ALIGN_START);
+    }
+
+    // If it's a text message, show the content
+    if ((*temp_node).message->content_type == TEXT) {
+      (*temp_node).message->message_label =
+          gtk_label_new((*temp_node).message->content);
+      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
+                         TRUE, FALSE, 0);
+      gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
+      gtk_label_set_justify(GTK_LABEL((*temp_node).message->message_label),
+                            GTK_JUSTIFY_LEFT);
+      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                              TRUE);
+      gtk_label_set_line_wrap_mode(
+          GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
+    } else {
+      // If it's a voice message, show a button to play the voice message
+      GtkWidget *play_button = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/play_button.png");
+      (*temp_node).message->voice_message_button = gtk_button_new();
+      gtk_button_set_image(
+          GTK_BUTTON((*temp_node).message->voice_message_button), play_button);
+      gtk_box_pack_start(GTK_BOX(main_box),
+                         (*temp_node).message->voice_message_button, FALSE,
+                         FALSE, 0);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context(
+              (*temp_node).message->voice_message_button),
+          "play-button");
+      gtk_widget_set_halign((*temp_node).message->voice_message_button,
+                            GTK_ALIGN_START);
+      // g_print("Connecting signal to play voice for message: %s\n",
+      //         temp_node->message.voice_path);
+      // Make sure the signal handler is connected to the voice button
+      g_signal_connect(temp_node->message->voice_message_button, "clicked",
+                       G_CALLBACK(play_voice), (gpointer)temp_node);
+      (*temp_node).message->message_label = gtk_label_new("");
+      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
+                         TRUE, FALSE, 0);
+      gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
+      gtk_label_set_justify(GTK_LABEL((*temp_node).message->message_label),
+                            GTK_JUSTIFY_LEFT);
+      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                              TRUE);
+      gtk_label_set_line_wrap_mode(
+          GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
+    }
+
+    // Message menu
+    if (strcmp(temp_node->message->sender, username) == 0) {
+      (*temp_node).message->menu =
+          gtk_popover_new((*temp_node).message->button);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->menu),
+          "smile-window");
+      GtkWidget *message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+      gtk_container_add(GTK_CONTAINER((*temp_node).message->menu),
+                        message_menu_box);
+      g_signal_connect((*temp_node).message->button, "clicked",
+                       G_CALLBACK(show_message_menu), temp_node);
+      if ((*temp_node).message->content_type == TEXT) {
+        GtkWidget *change_message_button = gtk_button_new_with_label("Change");
+        gtk_style_context_add_class(
+            gtk_widget_get_style_context(change_message_button),
+            "popover-buttons");
+        gtk_box_pack_start(GTK_BOX(message_menu_box), change_message_button,
+                           TRUE, FALSE, 0);
+        g_signal_connect(change_message_button, "clicked",
+                         G_CALLBACK(start_change_message), main_page);
+      }
+
+      GtkWidget *delete_message_button = gtk_button_new_with_label("Delete");
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context(delete_message_button),
+          "popover-buttons");
+      gtk_box_pack_start(GTK_BOX(message_menu_box), delete_message_button, TRUE,
+                         FALSE, 0);
+      g_signal_connect(delete_message_button, "clicked",
+                       G_CALLBACK(delete_message), main_page);
+
+    } else
+      (*temp_node).message->menu = NULL;
+
+    // Add the bottom box for labels (time, seen, changes)
+    GtkWidget *bottom_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    gtk_box_pack_start(GTK_BOX(main_box), bottom_box, TRUE, TRUE, 0);
+    gtk_style_context_add_class(gtk_widget_get_style_context(bottom_box),
+                                "chat-button-bottom-box");
+
+    // Time label
+    (*temp_node).message->time_label = gtk_label_new("00:00");
+    char *time_str =
+        ctime(&(*temp_node).message->date); // Convert time_t to string
+    if (time_str) {
+      time_str[strlen(time_str) - 1] = '\0'; // Remove the newline character
+      gtk_label_set_text(GTK_LABEL((*temp_node).message->time_label), time_str);
+    }
+    gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->time_label,
+                     FALSE, FALSE, 0);
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).message->time_label),
+        "small-inscriptions");
+    gtk_widget_set_halign((*temp_node).message->time_label, GTK_ALIGN_END);
+
+    // Changed label
+    if (temp_node->message->status == MODIFIED)
+      (*temp_node).message->changed_label = gtk_label_new("Modified");
+    else
+      (*temp_node).message->changed_label = gtk_label_new("");
+    gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->changed_label,
+                     FALSE, FALSE, 0);
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).message->changed_label),
+        "small-inscriptions");
+    gtk_widget_set_halign((*temp_node).message->changed_label, GTK_ALIGN_END);
+
+    // Seen label
+    (*temp_node).message->seen_label = gtk_label_new("");
+    gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->seen_label,
+                     FALSE, FALSE, 0);
+    gtk_style_context_add_class(
+        gtk_widget_get_style_context((*temp_node).message->seen_label),
+        "small-inscriptions");
+    gtk_widget_set_halign((*temp_node).message->seen_label, GTK_ALIGN_END);
+
+    // Set visibility for all elements
+    gtk_widget_set_visible((*temp_node).message->button, 1);
+    gtk_widget_set_visible(main_box, 1);
+    if (strcmp(temp_node->message->sender, username) != 0)
+      gtk_widget_set_visible((*temp_node).message->username_label, 1);
+    gtk_widget_set_visible(bottom_box, 1);
+    if ((*temp_node).message->content_type == TEXT)
+      gtk_widget_set_visible((*temp_node).message->message_label, 1);
+    else
+      gtk_widget_set_visible((*temp_node).message->voice_message_button, 1);
+    gtk_widget_set_visible((*temp_node).message->changed_label, 1);
+    gtk_widget_set_visible((*temp_node).message->time_label, 1);
+    gtk_widget_set_visible((*temp_node).message->seen_label, 1);
   }
-  else
-    (*temp_node).message->menu = NULL;
-
-  // Add the bottom box for labels (time, seen, changes)
-  GtkWidget *bottom_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-  gtk_box_pack_start(GTK_BOX(main_box), bottom_box, TRUE, TRUE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(bottom_box),
-                              "chat-button-bottom-box");
-
-  // Time label
-  (*temp_node).message->time_label = gtk_label_new("00:00");
-  char *time_str =
-      ctime(&(*temp_node).message->date); // Convert time_t to string
-  if (time_str) {
-    time_str[strlen(time_str) - 1] = '\0'; // Remove the newline character
-    gtk_label_set_text(GTK_LABEL((*temp_node).message->time_label), time_str);
-  }
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->time_label, FALSE,
-                   FALSE, 0);
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message->time_label),
-      "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message->time_label, GTK_ALIGN_END);
-
-  // Changed label
-  (*temp_node).message->changed_label = gtk_label_new("");
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->changed_label,
-                   FALSE, FALSE, 0);
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message->changed_label),
-      "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message->changed_label, GTK_ALIGN_END);
-
-  // Seen label
-  (*temp_node).message->seen_label = gtk_label_new("");
-  gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->seen_label, FALSE,
-                   FALSE, 0);
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*temp_node).message->seen_label),
-      "small-inscriptions");
-  gtk_widget_set_halign((*temp_node).message->seen_label, GTK_ALIGN_END);
-
-  // Set visibility for all elements
-  gtk_widget_set_visible((*temp_node).message->button, 1);
-  gtk_widget_set_visible(main_box, 1);
-  if (strcmp(temp_node->message->sender, username) != 0)
-    gtk_widget_set_visible((*temp_node).message->username_label, 1);
-  gtk_widget_set_visible(bottom_box, 1);
-  if ((*temp_node).message->content_type == TEXT)
-    gtk_widget_set_visible((*temp_node).message->message_label, 1);
-  else
-    gtk_widget_set_visible((*temp_node).message->voice_message_button, 1);
-  gtk_widget_set_visible((*temp_node).message->changed_label, 1);
-  gtk_widget_set_visible((*temp_node).message->time_label, 1);
-  gtk_widget_set_visible((*temp_node).message->seen_label, 1);
 }
 
 void send_message_f(GtkWidget *widget, gpointer data) {
@@ -661,8 +774,8 @@ void send_message_f(GtkWidget *widget, gpointer data) {
       change_message(main_page, message_text);
     else
       send_message_to_server(chat_id, message_text);
-      // MessageNode *new_message = create_message_node(main_page, TEXT, chat_id);
-      // create_message_button(main_page, new_message);
+    // MessageNode *new_message = create_message_node(main_page, TEXT, chat_id);
+    // create_message_button(main_page, new_message);
   } else {
     g_print("Cannot send an empty message.\n");
   }

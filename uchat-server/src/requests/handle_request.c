@@ -97,10 +97,21 @@ void handle_request(Client *client, char *buffer, Client clients[],
       send_status_responce_to_client(client, "SEND_MESSAGE_TO_CHAT", "FAILURE");
     }
     sqlite3_close(db);
-  } else if (strcmp(action->valuestring, "EDIT_MESSAGE") == 0) {
+  } else if (strcmp(action->valuestring, "UPDATE_MESSAGE") == 0) {
     // Handle editing a previously sent message
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_update_message(db, client, json, clients, max_clients);
+
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE") == 0) {
-    // Handle deleting a previously sent message
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_delete_message(db, client, json, clients, max_clients);
+
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "READ_RECEIPT") == 0) {
     // Handle sending a read receipt
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {
