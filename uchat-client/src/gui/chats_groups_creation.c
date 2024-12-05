@@ -205,6 +205,13 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   gtk_widget_set_halign((*temp_node).chat.unread, GTK_ALIGN_END);
 
   GtkWidget *dialog_scroll = gtk_scrolled_window_new(NULL, NULL);
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context(dialog_scroll), "dialog-scroll");
+  GtkTargetEntry targets[] = {{"text/uri-list", GTK_TARGET_OTHER_APP, 0}};
+  gtk_drag_dest_set(dialog_scroll, GTK_DEST_DEFAULT_ALL, targets, 1,
+  					GDK_ACTION_COPY);
+  g_signal_connect(dialog_scroll, "drag-data-received",
+                   G_CALLBACK(on_drag_data_received), main_page);
 
   // Convert chat_id to string and set it as the child name
   char id_str[32];
@@ -212,8 +219,10 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   gtk_stack_add_named(GTK_STACK((*main_page).chats_stack), dialog_scroll,
                       id_str);
 
-  (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
   gtk_container_add(GTK_CONTAINER(dialog_scroll), (*temp_node).chat.box);
+  gtk_style_context_add_class(
+    gtk_widget_get_style_context((*temp_node).chat.box), "chat-box");
 
   (*temp_node).chat.changing_message = NULL;
 
@@ -295,19 +304,25 @@ void chat_creation(GtkWidget *create_chat_button, gpointer data) {
   char *username = (char *)gtk_entry_get_text(
       GTK_ENTRY((*main_page).create_chat_data.username));
 
-  cJSON *json = cJSON_CreateObject();
-  cJSON_AddStringToObject(json, "action", "CREATE_CHAT");
-  cJSON_AddStringToObject(json, "username", username);
-  char *json_str = cJSON_Print(json);
-  cJSON_Delete(json);
-  send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
-  g_free(json_str);
-  // if (получилось) {
-  // new_chat_button(main_page, username, 'c');
-  gtk_entry_set_text(GTK_ENTRY((*main_page).create_chat_data.username), "");
-  gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message), "");
-  // }
+  if (strcmp(username, "") == 0) {
+      gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message),
+                         "Username is required");
+  }
+  else {
+    cJSON *json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "action", "CREATE_CHAT");
+    cJSON_AddStringToObject(json, "username", username);
+    char *json_str = cJSON_Print(json);
+    cJSON_Delete(json);
+    send(main_page->sock, json_str, strlen(json_str), 0);
+    g_print("Sent: %s\n", json_str);
+    g_free(json_str);
+    // if (получилось) {
+    // new_chat_button(main_page, username, 'c');
+    gtk_entry_set_text(GTK_ENTRY((*main_page).create_chat_data.username), "");
+    gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message), "");
+    // }
+  }
 }
 
 void removing_user(GtkWidget *clicked_button, gpointer data) {
@@ -362,15 +377,17 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
   char *name = (char *)gtk_entry_get_text(
       GTK_ENTRY((*main_page).create_group_data.name));
 
-  if (strcmp(name, "") == 0)
+  if (strcmp(name, "") == 0) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group must have a name");
-  if (strlen(name) > 40)
+  }
+  else if (strlen(name) > 40) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group name cannot exceed 40 characters");
-  else if ((*main_page).group_users_count < 2)
+  }
+  /*else if ((*main_page).group_users_count < 2)
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
-                       "Group must have at least three members");
+                       "Group must have at least three members");*/
   else {
     g_print("Group %s with users ", name);
     char usernames[(*main_page).group_users_count][50];

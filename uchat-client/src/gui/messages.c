@@ -722,7 +722,7 @@ void create_message_button(t_main_page_data *main_page,
 
     // Changed label
     if (temp_node->message->status == MODIFIED)
-      (*temp_node).message->changed_label = gtk_label_new("Modified");
+      (*temp_node).message->changed_label = gtk_label_new("Edited");
     else
       (*temp_node).message->changed_label = gtk_label_new("");
     gtk_box_pack_end(GTK_BOX(bottom_box), (*temp_node).message->changed_label,
@@ -755,6 +755,65 @@ void create_message_button(t_main_page_data *main_page,
     gtk_widget_set_visible((*temp_node).message->time_label, 1);
     gtk_widget_set_visible((*temp_node).message->seen_label, 1);
   }
+}
+
+void filechooser_unselect(GtkWidget *choose_file_dialog) {
+	gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(choose_file_dialog));
+}
+
+void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page) {
+	GtkWidget *main_window = gtk_widget_get_parent(gtk_widget_get_parent(
+		gtk_widget_get_parent(gtk_widget_get_parent(main_page->central_area_stack))));
+	GtkWidget *choose_file_dialog =
+		gtk_file_chooser_dialog_new("Choose a file",
+									GTK_WINDOW(main_window),
+									GTK_FILE_CHOOSER_ACTION_OPEN,
+									"Open", GTK_RESPONSE_ACCEPT,
+									"Cancel", GTK_RESPONSE_CANCEL, NULL);
+	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(choose_file_dialog),
+										 TRUE);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(choose_file_dialog),
+										g_get_home_dir());
+	g_signal_connect(choose_file_dialog, "button-press-event",
+					 G_CALLBACK(filechooser_unselect), NULL);
+	GtkWidget *attach_image =
+		gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file-active.png");
+		gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
+
+	gint res = gtk_dialog_run(GTK_DIALOG(choose_file_dialog));
+	if (res == GTK_RESPONSE_ACCEPT) {
+		GSList *filelist = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(choose_file_dialog));
+		GSList *ptr = filelist;
+		while (ptr != NULL) {
+			// send each file
+			char *filepath = ptr->data;
+			g_print("Chosen file: %s\n", filepath);
+			g_free(ptr->data);
+			ptr = ptr->next;
+		}
+		g_slist_free(filelist);
+	}
+	attach_image =
+		gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file.png");
+	gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
+	gtk_widget_destroy(choose_file_dialog);
+}
+
+void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
+                           GtkSelectionData *data, guint info, guint time,
+                           t_main_page_data *main_page) {
+	gchar **uris = gtk_selection_data_get_uris(data);
+
+	if (uris != NULL) {
+		for (int i = 0; uris[i] != NULL; i++) {
+        	gchar *filepath = g_filename_from_uri(uris[i], NULL, NULL);
+        	if (filepath != NULL) {
+        		// send each file
+        		g_print("Chosen file: %s\n", filepath);
+        	}
+    	}
+	}
+	g_strfreev(uris);
 }
 
 void send_message_f(GtkWidget *widget, gpointer data) {

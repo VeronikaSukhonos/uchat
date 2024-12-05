@@ -67,9 +67,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_container_add(GTK_CONTAINER(new_chat_button), new_chat_button_box);
   GtkWidget *new_chat_button_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/new-chat-icon.png");
-  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_image, FALSE, FALSE, 6);
   GtkWidget *new_chat_button_label = gtk_label_new("New chat");
-  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_label, FALSE, FALSE, 15);
+  gtk_box_pack_start(GTK_BOX(new_chat_button_box), new_chat_button_label, FALSE, FALSE, 12);
   gtk_box_pack_start(GTK_BOX(menu_box), new_chat_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(new_chat_button),
                               "menu-button");
@@ -81,9 +81,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_container_add(GTK_CONTAINER(new_group_button), new_group_button_box);
   GtkWidget *new_group_button_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/new-group-icon.png");
-  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_image, FALSE, FALSE, 6);
   GtkWidget *new_group_button_label = gtk_label_new("New group");
-  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_label, FALSE, FALSE, 15);
+  gtk_box_pack_start(GTK_BOX(new_group_button_box), new_group_button_label, FALSE, FALSE, 12);
   gtk_box_pack_start(GTK_BOX(menu_box), new_group_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(new_group_button),
                               "menu-button");
@@ -95,9 +95,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_container_add(GTK_CONTAINER(profile_button), profile_button_box);
   GtkWidget *profile_button_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/profile-icon.png");
-  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_image, FALSE, FALSE, 6);
   GtkWidget *profile_button_label = gtk_label_new("Profile");
-  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_label, FALSE, FALSE, 15);
+  gtk_box_pack_start(GTK_BOX(profile_button_box), profile_button_label, FALSE, FALSE, 12);
   gtk_box_pack_start(GTK_BOX(menu_box), profile_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(profile_button),
                               "menu-button");
@@ -109,9 +109,9 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_container_add(GTK_CONTAINER(settings_button), settings_button_box);
   GtkWidget *settings_button_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/settings-icon.png");
-  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_image, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_image, FALSE, FALSE, 6);
   GtkWidget *settings_button_label = gtk_label_new("Settings");
-  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_label, FALSE, FALSE, 15);
+  gtk_box_pack_start(GTK_BOX(settings_button_box), settings_button_label, FALSE, FALSE, 12);
   gtk_box_pack_start(GTK_BOX(menu_box), settings_button, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(settings_button),
                               "menu-button");
@@ -237,6 +237,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   GtkWidget *attach_image =
       gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file.png");
   gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
+  g_signal_connect(attach_button, "clicked", G_CALLBACK(show_filechooser), main_page);
 
   GtkWidget *message_scroll = gtk_scrolled_window_new(NULL, NULL);
   gtk_box_pack_start(GTK_BOX(message_entry_box), message_scroll, TRUE, TRUE, 0);
@@ -448,6 +449,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   main_page->message_buffer =
       gtk_text_view_get_buffer(GTK_TEXT_VIEW(message_entry));
   gtk_container_add(GTK_CONTAINER(message_scroll), message_entry);
+  gtk_drag_dest_unset(message_entry); // causes warning
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(message_entry), GTK_WRAP_WORD_CHAR);
   gtk_widget_set_size_request(message_scroll, -1, 30);
   gtk_style_context_add_class(gtk_widget_get_style_context(message_entry),
@@ -531,7 +533,10 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX(chat_entry_and_button),
                      (*main_page).create_chat_data.username, TRUE, TRUE, 0);
 
-  GtkWidget *create_chat_button = gtk_button_new_with_label("✓");
+  GtkWidget *create_chat_button = gtk_button_new();
+  GtkWidget *create_chat_button_image = gtk_image_new_from_file(
+      "uchat-client/src/gui/resources/create-chat.png");
+  gtk_button_set_image(GTK_BUTTON(create_chat_button), create_chat_button_image);
   gtk_box_pack_start(GTK_BOX(chat_entry_and_button), create_chat_button, FALSE,
                      FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(create_chat_button),
@@ -610,7 +615,10 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX(group_entry_and_button),
                      (*main_page).create_group_data.username, TRUE, TRUE, 0);
 
-  GtkWidget *add_user_button = gtk_button_new_with_label("+");
+  GtkWidget *add_user_button = gtk_button_new();
+  GtkWidget *add_user_button_image = gtk_image_new_from_file(
+      "uchat-client/src/gui/resources/add-user.png");
+  gtk_button_set_image(GTK_BUTTON(add_user_button), add_user_button_image);
   gtk_box_pack_start(GTK_BOX(group_entry_and_button), add_user_button, FALSE,
                      FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(add_user_button),

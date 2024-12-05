@@ -89,7 +89,7 @@ spinner {
 	box-shadow: 0 0 2px 1px #1A1A1D;
 	padding: 3px;
 	border-radius: 8px;
-	margin: 2px 5px 5px 15px;
+	margin: 2px 5px 10px 10px;
 }
 
 .reconnect-message-label {
@@ -98,6 +98,7 @@ spinner {
 	color: #5BCD91;
 	margin-left: 5px;
 	padding: 0;
+	padding-right: 3px;
 }
 
 .reconnect-message-button {
@@ -231,7 +232,7 @@ spinner {
     color: white;
     font-weight: bold;
     border: none;
-    padding: 7px 15px;
+    padding: 7px 11px;
 }
 
 .menu-button:hover, .menu-button:active {
@@ -306,7 +307,7 @@ spinner {
     font-weight: bold;
     border: none;
     margin-left: 15px;
-    padding: 0;
+    padding: 2px;
 }
 
 .dots:hover {
@@ -347,6 +348,7 @@ spinner {
     color: white;
     font-weight: bold;
     border: none;
+    padding: 0;
     border-radius: 100%;
     margin-left: 5px;
 }
@@ -490,6 +492,29 @@ textview text selection, entry selection {
 	margin-left: 10px;
 }
 
+.dialog-scroll {
+	transition: 0.3s;
+}
+
+.dialog-scroll:drop(active) {
+	box-shadow: none;
+	background-color: rgba(59, 59, 62, 0.6);
+	transition: 0.3s;
+	margin: 7px;
+	border: dashed 2px #5BCD91;
+	border-radius: 10px;
+}
+
+.dialog-scroll:drop(active) .ingoing-messages {
+	background-color: rgba(69, 69, 72, 1);
+	transition: 0.3s;
+}
+
+.dialog-scroll:drop(active) .outgoing-messages {
+	background-color: rgba(116, 102, 196, 1);
+	transition: 0.3s;
+}
+
 /* VOICE CALL */
 
 .voice-call {
@@ -567,16 +592,16 @@ combobox.form-role .popup .menu-item {
     border-radius: 4px;
 }
 
-.outgoing-messages {
+.chat-box {
+	padding: 10px;
+}
+
+.outgoing-messages,
+.outgoing-messages:hover {
     background: #604BDC;
     color: white;
     border: none;
     border-radius: 15px;
-    margin: 5px 10px;
-}
-
-.outgoing-messages:hover {
-    background: #604BDC;
 }
 
 .username-label {
@@ -587,16 +612,12 @@ combobox.form-role .popup .menu-item {
     padding-left: 10px;
 }
 
-.ingoing-messages {
+.ingoing-messages,
+.ingoing-messages:hover {
     background: #29292C;
     color: white;
     border: none;
     border-radius: 15px;
-    margin: 5px 10px;
-}
-
-.ingoing-messages:hover {
-    background: #29292C;
 }
 
 .small-inscriptions {
@@ -628,6 +649,7 @@ combobox.form-role .popup .menu-item {
     font-size: 25px;
     text-decoration: none;
 }
+
 .settings-link:hover {
     color: #604BDC;
     text-decoration: underline;

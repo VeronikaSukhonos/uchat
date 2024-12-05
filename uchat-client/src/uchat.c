@@ -23,7 +23,7 @@ GIOChannel *gio_channel = NULL; // Set retry timeout ID to 0 (no timeout yet)
 gboolean periodic_reconnection_attempt(gpointer data) {
   AppData *app_data = (AppData *)data;
   char buffer[50];
-  snprintf(buffer, sizeof(buffer), "Retrying in %d seconds...",
+  snprintf(buffer, sizeof(buffer), "Reconnecting in %d sec...",
            main_retry_timeout);
   gtk_label_set_text(GTK_LABEL(app_data->reconnect->label), buffer);
 

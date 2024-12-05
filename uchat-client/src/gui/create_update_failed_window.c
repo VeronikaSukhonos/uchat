@@ -33,14 +33,15 @@ void create_update_failed_window() {
                               "uf-retry-spinner");
 
   // Countdown label
-  retry_label = gtk_label_new("Retrying in 10 seconds...");
+  retry_label = gtk_label_new("Reconnecting in 10 sec...");
   gtk_box_pack_start(GTK_BOX(container), retry_label, FALSE, FALSE, 0);
   gtk_style_context_add_class(gtk_widget_get_style_context(retry_label),
                               "uf-retry-label");
 
   // Retry button
-  GtkWidget *retry_button = gtk_button_new_with_label("Retry now");
+  GtkWidget *retry_button = gtk_button_new_with_label("Try now");
   gtk_box_pack_start(GTK_BOX(container), retry_button, FALSE, FALSE, 0);
+  gtk_widget_set_halign(retry_button, GTK_ALIGN_CENTER);
   gtk_style_context_add_class(gtk_widget_get_style_context(retry_button),
                               "uf-retry-button");
   g_signal_connect(retry_button, "clicked", G_CALLBACK(on_retry_clicked), NULL);
@@ -66,7 +67,7 @@ void on_retry_clicked(GtkButton *button, gpointer data) {
 
 gboolean retry_connection(gpointer data) {
   char buffer[50];
-  snprintf(buffer, sizeof(buffer), "Retrying in %d seconds...", retry_timeout);
+  snprintf(buffer, sizeof(buffer), "Reconnecting in %d sec...", retry_timeout);
   gtk_label_set_text(GTK_LABEL(retry_label), buffer);
 
   if (retry_timeout == 0) {

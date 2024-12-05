@@ -311,6 +311,10 @@ void add_message(GtkWidget *messages_container, const gchar *message_text,
                  gboolean is_my_message);
 void on_message_send(GtkWidget *send_button, gpointer user_data);
 void on_message_received(const gchar *message_text);
+void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page);
+void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
+                           GtkSelectionData *data, guint info, guint time,
+                           t_main_page_data *main_page);
 
 // settings gui
 void show_pw(GtkWidget *edit_button, gpointer data);

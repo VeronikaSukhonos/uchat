@@ -223,7 +223,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
     if (cJSON_IsString(message_content) && cJSON_IsString(message_sender) &&
         cJSON_IsString(message_timestamp)) {
       copy_until_newline_or_max_len(message_content->valuestring, last_message,
-                                    26);
+                                    25);
       strncpy(last_sender, message_sender->valuestring, 63);
 
       if (strcmp(last_message, "") == 0) {

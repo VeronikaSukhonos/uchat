@@ -75,7 +75,7 @@ void process_message_update(const char *json_response, AppData *app_data) {
 
   gtk_label_set_text(GTK_LABEL(app_data->main_page->opened_chat
                                    ->changing_message->message->changed_label),
-                     "Modified");
+                     "Edited");
   g_print("message changed from \"%s\" to \"%s\"\n",
           app_data->main_page->opened_chat->changing_message->message->content,
           content->valuestring);
@@ -167,7 +167,7 @@ void process_message_update_from_chat(const char *json_response,
 
   //   gtk_label_set_text(GTK_LABEL(app_data->main_page->opened_chat
   //                                    ->changing_message->message->changed_label),
-  //                      "Modified");
+  //                      "Edited");
   //   g_print("message changed from \"%s\" to \"%s\"\n",
   //           app_data->main_page->opened_chat->changing_message->message->content,
   //           content->valuestring);
@@ -197,7 +197,7 @@ void process_message_update_from_chat(const char *json_response,
 
         if (msg_node->message->changed_label) {
           gtk_label_set_text(GTK_LABEL(msg_node->message->changed_label),
-                             "Modified");
+                             "Edited");
         }
       }
 
