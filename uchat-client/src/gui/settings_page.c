@@ -1,38 +1,5 @@
 #include <uchat.h>
-void change_password(GtkWidget *change_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  char *old_pw =
-      (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).change_pw.old_pw));
-  char *new_pw =
-      (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).change_pw.new_pw));
-  char *new_pw_again = (char *)gtk_entry_get_text(
-      GTK_ENTRY((*main_page).change_pw.new_pw_again));
-  if (strcmp(new_pw, new_pw_again) != 0) {
-    gtk_label_set_text(GTK_LABEL((*main_page).change_pw.message),
-                       "Passwords do not match.");
-    return;
-  }
 
-  if (check_password(new_pw, (*main_page).change_pw.message)) {
-    cJSON *json = cJSON_CreateObject();
-    cJSON_AddStringToObject(json, "action", "CHANGE_PASSWORD_DATA");
-    cJSON_AddStringToObject(json, "new_pass", new_pw ? new_pw : "");
-    char *json_str = cJSON_Print(json);
-    cJSON_Delete(json);
-    send(main_page->sock, json_str, strlen(json_str), 0);
-    g_print("Sent: %s\n", json_str);
-    g_free(json_str);
-    if (send(main_page->sock, json_str, strlen(json_str), 0) == -1) {
-      success_or_error_msg(main_page->change_pw.message,
-                           "Failed to change password. Please try again.",
-                           FALSE);
-      g_free(json_str);
-      return;
-    }
-    success_or_error_msg(main_page->change_pw.message,
-                         "Password changed successfully!", TRUE);
-  }
-}
 void change_email(GtkWidget *change_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
 
@@ -65,28 +32,7 @@ void change_email(GtkWidget *change_button, gpointer data) {
     }
   }
 }
-void show_pw(GtkWidget *edit_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).change_pw.old_pw),
-      gtk_label_get_label(GTK_LABEL((*main_page).change_pw.old_pw)));
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).change_pw.new_pw),
-      gtk_label_get_label(GTK_LABEL((*main_page).change_pw.new_pw)));
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).change_pw.new_pw_again),
-      gtk_label_get_label(GTK_LABEL((*main_page).change_pw.new_pw_again)));
-  gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).change_pw.old_pw),
-                                 "Old password");
-  gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).change_pw.new_pw),
-                                 "New password");
-  gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).change_pw.new_pw_again),
-                                 "Repeat new password");
-  gtk_label_set_label(GTK_LABEL((*main_page).change_pw.message), "");
 
-  gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
-                                   "edit_password");
-}
 void show_email(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   gtk_entry_set_text(

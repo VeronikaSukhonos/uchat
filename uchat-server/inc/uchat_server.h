@@ -82,3 +82,4 @@ int handle_update_message(sqlite3 *db, Client *client, cJSON *json,
                           Client clients[], int max_clients);
 int handle_delete_message(sqlite3 *db, Client *client, cJSON *json,
                           Client clients[], int max_clients);
+int handle_update_password(sqlite3 *db, Client *client, cJSON *json);

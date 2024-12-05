@@ -291,8 +291,38 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     }
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE_FROM_CHAT") == 0) {
     process_message_delete(cJSON_Print(response), app_data);
+  } else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
+      cJSON *status = cJSON_GetObjectItem(response, "status");
+      if (status && strcmp(status->valuestring, "SUCCESS") == 0) {
+          g_print("Password updated successfully.\n");
+
+          // Show success message to the user
+          gtk_style_context_add_class(
+              gtk_widget_get_style_context(app_data->main_page->change_pw.message),
+              "form-message-success");
+          gtk_label_set_text(GTK_LABEL(app_data->main_page->change_pw.message),
+                             "Password changed successfully!");
+
+          // Reset password fields
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.old_pw), "");
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw), "");
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw_again), "");
+      } else {
+          g_print("Error: Failed to update password.\n");
+
+          // Show error message to the user
+          gtk_style_context_remove_class(
+              gtk_widget_get_style_context(app_data->main_page->change_pw.message),
+              "form-message-success");
+          gtk_label_set_text(GTK_LABEL(app_data->main_page->change_pw.message),
+                             "Failed to update password. Please try again.");
+          // Reset password fields
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.old_pw), "");
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw), "");
+          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw_again), "");
+      }
+    }
+      // Clean up JSON object
+      cJSON_Delete(response);
+      return 0;
   }
-  // Clean up JSON object
-  cJSON_Delete(response);
-  return 0;
-}

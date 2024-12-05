@@ -155,8 +155,7 @@ typedef struct s_main_page_data {
   GtkWidget *chat_nickname;
   GtkWidget *voice_call_window;
   GtkWidget *voice_call_window_label;
-  GtkWidget *profile_window; // Add this line to track profile window
-  // Add fields for page switching
+  GtkWidget *profile_window;
   const char *current_page;
   const char *previous_page;
   char accept_call[120];
@@ -227,6 +226,7 @@ void get_serial_number(char *serial, size_t len);
 
 void handle_not_logged_in_choice(int sock);
 void handle_logged_in_choice(int sock, const char *username);
+void handle_update_password_response(cJSON *response, t_main_page_data *main_page);
 void process_voice_message_and_store(const char *json_response,
                                      AppData *app_data);
 
@@ -318,7 +318,6 @@ void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, 
 
 // settings gui
 void show_pw(GtkWidget *edit_button, gpointer data);
-void change_password(GtkWidget *change_button, gpointer data);
 void show_settings(GtkWidget *settings_button, gpointer data);
 void show_support(GtkWidget *edit_button, gpointer data);
 void send_support_request(GtkWidget *support_button, gpointer data);
@@ -329,6 +328,7 @@ gboolean check_email(const char *email, GtkWidget *message_label);
 int check_username(char *username, GtkWidget *message);
 int check_password(char *password, GtkWidget *message);
 void change_email(GtkWidget *change_button, gpointer data);
+void send_pw_change_req(GtkWidget *button, gpointer data);
 
 // menu gui
 void change_mic_image(GtkWidget *mic_button, gpointer data);

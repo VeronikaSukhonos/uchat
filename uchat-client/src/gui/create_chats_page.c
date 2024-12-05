@@ -839,12 +839,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                      FALSE, 0);
   gtk_widget_set_halign(settings_label, GTK_ALIGN_CENTER);
 
-//   GtkWidget *link_pw_change = gtk_button_new_with_label("Change password");
-//   gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_pw_change, FALSE,
-//                      FALSE, 0);
-//   gtk_style_context_add_class(gtk_widget_get_style_context(link_pw_change),
-//                               "settings-link");
-//   g_signal_connect(link_pw_change, "clicked", G_CALLBACK(show_pw), main_page);
+  GtkWidget *link_pw_change = gtk_button_new_with_label("Change password");
+  gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_pw_change, FALSE,
+                     FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(link_pw_change),
+                              "settings-link");
+  g_signal_connect(link_pw_change, "clicked", G_CALLBACK(show_pw), main_page);
 
   GtkWidget *link_email = gtk_button_new_with_label("Change email");
   gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_email, FALSE,
@@ -882,13 +882,18 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_label, FALSE,
                      FALSE, 0);
   gtk_widget_set_halign(change_pw_label, GTK_ALIGN_CENTER);
-
+  GtkWidget *old_pw_label = gtk_label_new("Enter your old password:");
+  gtk_style_context_add_class(gtk_widget_get_style_context(old_pw_label), "form-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), old_pw_label, FALSE, FALSE, 5);
   (*main_page).change_pw.old_pw = gtk_entry_new();
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).change_pw.old_pw),
       "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
                      (*main_page).change_pw.old_pw, FALSE, FALSE, 0);
+  GtkWidget *new_pw_label = gtk_label_new("Enter your new password:");
+  gtk_style_context_add_class(gtk_widget_get_style_context(new_pw_label), "form-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_label, FALSE, FALSE, 5);
   (*main_page).change_pw.new_pw = gtk_entry_new();
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).change_pw.new_pw),
@@ -901,12 +906,17 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
                      (*main_page).change_pw.new_pw_again, FALSE, FALSE, 0);
-  GtkWidget *change_pw_button = gtk_button_new_with_label("Submit");
+  GtkWidget *change_pw_button = gtk_button_new_with_label("Change");
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_button, FALSE, FALSE,
                      0);
   gtk_style_context_add_class(gtk_widget_get_style_context(change_pw_button),
                               "form-button");
-  g_signal_connect(change_pw_button, "clicked", G_CALLBACK(change_password), main_page);
+  g_signal_connect(change_pw_button, "clicked", G_CALLBACK(send_pw_change_req), main_page);
+  (*main_page).change_pw.message = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.message),
+      "form-message");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), (*main_page).change_pw.message, FALSE, FALSE, 0);
 
   // Email page setup
   GtkWidget *email_page = gtk_scrolled_window_new(NULL, NULL);
