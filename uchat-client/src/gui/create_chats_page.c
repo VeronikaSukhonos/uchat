@@ -846,12 +846,12 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
                               "settings-link");
   g_signal_connect(link_pw_change, "clicked", G_CALLBACK(show_pw), main_page);
 
-  GtkWidget *link_email = gtk_button_new_with_label("Change email");
-  gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_email, FALSE,
-                     FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(link_email),
-                              "settings-link");
-  g_signal_connect(link_email, "clicked", G_CALLBACK(show_email), main_page);
+//   GtkWidget *link_email = gtk_button_new_with_label("Change email");
+//   gtk_box_pack_start(GTK_BOX((*main_page).settings_data.form), link_email, FALSE,
+//                      FALSE, 0);
+//   gtk_style_context_add_class(gtk_widget_get_style_context(link_email),
+//                               "settings-link");
+//   g_signal_connect(link_email, "clicked", G_CALLBACK(show_email), main_page);
 
   // support
   GtkWidget *link_support = gtk_button_new_with_label("Support");
@@ -933,14 +933,14 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       gtk_widget_get_style_context((*main_page).email_change.form), "form");
   gtk_widget_set_halign((*main_page).email_change.form, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).email_change.form), 450, -1);
-  GtkWidget *email_label = gtk_label_new("Change email");
+  GtkWidget *email_label = gtk_label_new("Enter your email");
   gtk_style_context_add_class(gtk_widget_get_style_context(email_label),
                               "form-name-label");
   gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), email_label, FALSE, FALSE, 0);
   gtk_widget_set_halign(email_label, GTK_ALIGN_CENTER);
-  GtkWidget *enter_email_label = gtk_label_new("Enter new email:");
-  gtk_style_context_add_class(gtk_widget_get_style_context(enter_email_label), "form-label");
-  gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), enter_email_label, FALSE, FALSE, 5);
+//   GtkWidget *enter_email_label = gtk_label_new("Enter new email:");
+//   gtk_style_context_add_class(gtk_widget_get_style_context(enter_email_label), "form-label");
+//   gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), enter_email_label, FALSE, FALSE, 5);
   GtkWidget *email_entry = gtk_entry_new();
   gtk_style_context_add_class(gtk_widget_get_style_context(email_entry), "form-entry");
   gtk_box_pack_start(GTK_BOX((*main_page).email_change.form), email_entry, FALSE, FALSE, 5);
@@ -985,7 +985,6 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_style_context_add_class(
       gtk_widget_get_style_context((*main_page).support.subject_combo),
       "form-role");
-  gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Forgot password");
   gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Account issue");
   gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "Technical support");
   gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT((*main_page).support.subject_combo), "General inquiry");

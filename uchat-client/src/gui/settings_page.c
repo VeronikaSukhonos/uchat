@@ -24,6 +24,7 @@ void change_email(GtkWidget *change_button, gpointer data) {
     gtk_entry_set_text(GTK_ENTRY(main_page->email_change.email), email);
     success_or_error_msg(main_page->email_change.message,
                          "Email changed successfully!", TRUE);
+    switch_to_page_with_delay(main_page, "support", 1000);
   }
 }
 

@@ -63,5 +63,5 @@ void send_pw_change_req(GtkWidget *button, gpointer data) {
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.old_pw), "");
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.new_pw), "");
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.new_pw_again), "");
-    switch_to_page_with_delay(main_page, "settings", 1000);
+    switch_to_page_with_delay(main_page, "clear_area", 1000);
 }
