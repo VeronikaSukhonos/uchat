@@ -5,7 +5,7 @@ window {
 	color: white;
 }
 
-button, button:hover {
+button, button:hover, image {
 	box-shadow: none;
 	text-shadow: none;
 	outline: none;
@@ -626,13 +626,12 @@ combobox.form-role .popup .menu-item {
     margin: 3px 0;
 }
 
-.play-button {
+.play-button, .save-button {
     background: transparent;
     border: none;
-}
-
-.play-button:hover {
-    background: transparent;
+    border-radius: 50%;
+    padding: 0;
+    margin: 5px;
 }
 
 .sender-name {

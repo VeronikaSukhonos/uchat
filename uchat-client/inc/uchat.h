@@ -46,7 +46,7 @@ extern int receive_port;
 extern int is_calling;
 extern int incoming;
 
-typedef enum { TEXT, VOICE } ContentType;
+typedef enum { TEXT, VOICE, IMAGE, ANY_FILE } ContentType;
 
 typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
 
@@ -63,6 +63,8 @@ typedef struct {
   GtkWidget *username_label;
   GtkWidget *button;
   GtkWidget *voice_message_button;
+  GtkWidget *save_file_button;
+  GtkWidget *image_file;
   GtkWidget *message_label;
   GtkWidget *time_label;
   GtkWidget *changed_label;
@@ -315,6 +317,9 @@ void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page);
 void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
                            GtkSelectionData *data, guint info, guint time,
                            t_main_page_data *main_page);
+void send_file_message(int sock, char *filepath, int chat_id,
+					   t_main_page_data *main_page);
+GtkWidget *resize_image_file(char *filepath);
 
 // settings gui
 void show_pw(GtkWidget *edit_button, gpointer data);
