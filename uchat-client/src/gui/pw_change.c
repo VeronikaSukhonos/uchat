@@ -19,8 +19,6 @@ void send_pw_change_req(GtkWidget *button, gpointer data) {
     const gchar *old_pw = gtk_entry_get_text(GTK_ENTRY(main_page->change_pw.old_pw));
     const gchar *new_pw = gtk_entry_get_text(GTK_ENTRY(main_page->change_pw.new_pw));
     const gchar *new_pw_again = gtk_entry_get_text(GTK_ENTRY(main_page->change_pw.new_pw_again));
-    const gchar *username = (const gchar *)username;
-
     // Check if any fields are empty
     if (g_strcmp0(old_pw, "") == 0 || g_strcmp0(new_pw, "") == 0 || g_strcmp0(new_pw_again, "") == 0) {
         success_or_error_msg(main_page->change_pw.message,
@@ -65,4 +63,5 @@ void send_pw_change_req(GtkWidget *button, gpointer data) {
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.old_pw), "");
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.new_pw), "");
     gtk_entry_set_text(GTK_ENTRY(main_page->change_pw.new_pw_again), "");
+    switch_to_page_with_delay(main_page, "settings", 1000);
 }

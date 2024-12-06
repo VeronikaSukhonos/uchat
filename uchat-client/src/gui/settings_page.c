@@ -3,12 +3,11 @@
 void change_email(GtkWidget *change_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
 
-  char *email =
-      (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).email_change.email));
-
+  char *email = (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).email_change.email));
   if (check_email(email, (*main_page).email_change.message)) {
     cJSON *json = cJSON_CreateObject();
     cJSON_AddStringToObject(json, "action", "CHANGE_EMAIL_DATA");
+    cJSON_AddStringToObject(json, "username", username);
     cJSON_AddStringToObject(json, "new_email", email ? email : "");
     char *json_str = cJSON_Print(json);
     cJSON_Delete(json);
@@ -25,19 +24,12 @@ void change_email(GtkWidget *change_button, gpointer data) {
     gtk_entry_set_text(GTK_ENTRY(main_page->email_change.email), email);
     success_or_error_msg(main_page->email_change.message,
                          "Email changed successfully!", TRUE);
-
-    // If was "support", return to it
-    if (g_strcmp0(main_page->previous_page, "support") == 0) {
-      switch_to_page_with_delay(main_page, "support", 1000);
-    }
   }
 }
 
 void show_email(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_entry_set_text(
-      GTK_ENTRY((*main_page).email_change.email),
-      gtk_label_get_label(GTK_LABEL((*main_page).email_change.email)));
+  gtk_entry_set_text(GTK_ENTRY((*main_page).email_change.email), "");
   gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).email_change.email),
                                  "your_email@stud.khpi.ucode-connect.study");
   gtk_label_set_label(GTK_LABEL((*main_page).email_change.message), "");
@@ -46,7 +38,7 @@ void show_email(GtkWidget *support_button, gpointer data) {
 }
 void show_support(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_entry_set_text(GTK_ENTRY((*main_page).support.subject_combo), "");
+  //gtk_entry_set_text(GTK_ENTRY((*main_page).support.subject_combo), "");
   gtk_entry_set_text(GTK_ENTRY((*main_page).support.support_request), "");
   gtk_label_set_label(GTK_LABEL((*main_page).support.message), "");
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
@@ -70,21 +62,28 @@ void show_settings(GtkWidget *settings_button, gpointer data) {
 }
 // Page Switch with delay
 gboolean delayed_page_switch(gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
-  gtk_label_set_text(GTK_LABEL(main_page->support.message), "");
-  main_page->previous_page = main_page->current_page;
-  gtk_stack_set_visible_child_name(GTK_STACK(main_page->central_area_stack),
-                                   main_page->current_page);
-  main_page->current_page = main_page->current_page;
+    t_main_page_data *main_page = (t_main_page_data *)data;
 
-  return FALSE;
+    // Clear any previous message or state
+    gtk_label_set_text(GTK_LABEL(main_page->support.message), "");
+    gtk_label_set_text(GTK_LABEL(main_page->change_pw.message), "");
+    main_page->previous_page = main_page->current_page;
+    // Switch to the new page
+    gtk_stack_set_visible_child_name(GTK_STACK(main_page->central_area_stack),
+                                     main_page->current_page);
+    main_page->current_page = main_page->current_page;
+
+    return FALSE;
 }
 
-void switch_to_page_with_delay(t_main_page_data *main_page,
-                               const char *page_name, guint delay_ms) {
-  main_page->previous_page = main_page->current_page;
-  main_page->current_page = page_name;
-  g_timeout_add(delay_ms, delayed_page_switch, main_page);
+// Function to switch to the page after a delay
+void switch_to_page_with_delay(t_main_page_data *main_page, const char *page_name, guint delay_ms) {
+    // Store the new page name
+    main_page->previous_page = main_page->current_page;
+    main_page->current_page = page_name;
+
+    // Schedule the delayed page switch
+    g_timeout_add(delay_ms, delayed_page_switch, main_page);
 }
 void send_support_request(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
@@ -108,7 +107,8 @@ void send_support_request(GtkWidget *support_button, gpointer data) {
   }
 
   cJSON *support_data = cJSON_CreateObject();
-  cJSON_AddStringToObject(support_data, "action", "SEND_SUPPORT_REQUEST");
+  cJSON_AddStringToObject(support_data, "action", "SUPPORT_REQUEST");
+  cJSON_AddStringToObject(support_data, "username", username);
   cJSON_AddStringToObject(support_data, "email", email);
   cJSON_AddStringToObject(support_data, "title",
                           support_title ? support_title : "");

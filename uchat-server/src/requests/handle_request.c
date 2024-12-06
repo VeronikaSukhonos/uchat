@@ -189,8 +189,12 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     handle_update_password(db, client, json);
     sqlite3_close(db);
-  } else if (strcmp(action->valuestring, "RESET_PASSWORD") == 0) {
-    // Handle password reset
+  } else if (strcmp(action->valuestring, "GET_SETTINGS_DATA") == 0) {
+     if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_get_settings(db,client);
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "PIN_MESSAGE") == 0) {
     // Handle pinning a message
   } else if (strcmp(action->valuestring, "MUTE_CHAT") == 0) {
@@ -211,8 +215,14 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     handle_get_new_data_request(db, client, json);
     sqlite3_close(db);
+  } else if (strcmp(action->valuestring, "SUPPORT_REQUEST") == 0) {
+      if (open_database(&db) != 0) {
+          fprintf(stderr, "Failed to open database.\n");
+      }
+      handle_support_request(client, json);
+      sqlite3_close(db);
   } else {
-    printf("Unknown action received: %s\n", action->valuestring);
+          printf("Unknown action received: %s\n", action->valuestring);
   }
 
   cJSON_Delete(json); // Free the JSON object

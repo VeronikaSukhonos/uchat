@@ -220,13 +220,13 @@ int handle_get_profile_response(cJSON *response, AppData *app_data);
 
 int handle_response(int sock, int *logged_in, AppData *app_data);
 int handle_login_response(cJSON *response);
-
 int connect_to_server(const char *server_ip, int port);
 void get_serial_number(char *serial, size_t len);
-
+void update_username_label(AppData *app_data, const char *username);
+int handle_get_settings_response(cJSON *response, AppData *app_data);
+void handle_up_pw_response(cJSON *response, AppData *app_data);
 void handle_not_logged_in_choice(int sock);
 void handle_logged_in_choice(int sock, const char *username);
-void handle_update_password_response(cJSON *response, t_main_page_data *main_page);
 void process_voice_message_and_store(const char *json_response,
                                      AppData *app_data);
 
