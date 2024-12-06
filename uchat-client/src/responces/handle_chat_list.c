@@ -130,6 +130,37 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
                     message_id_json->valueint);
           }
         }
+        if (strcmp(content_type_json->valuestring, "file") == 0) {
+          cJSON *file_path_json = cJSON_GetObjectItem(message, "file_path");
+          cJSON *file_type_json = cJSON_GetObjectItem(message, "file_type");
+          cJSON *file_data_json = cJSON_GetObjectItem(message, "file_data");
+
+          size_t decoded_size;
+          unsigned char *decoded_data =
+              base64_decode(file_data_json->valuestring,
+                            strlen(file_data_json->valuestring), &decoded_size);
+
+          char file_path[256];
+          snprintf(file_path, sizeof(file_path), "%s/chat_%d_%d.%s", cache_dir,
+                   chat_id, message_id_json->valueint,
+                   file_type_json->valuestring);
+          char *file_name = g_path_get_basename(file_path_json->valuestring);
+
+          // Write the decoded voice message to a file
+          FILE *file = fopen(file_path, "wb");
+          if (file) {
+            fwrite(decoded_data, 1, decoded_size, file);
+            fclose(file);
+
+            // Add the file path to the JSON message object
+            cJSON_AddStringToObject(json_message, "file_path", file_path);
+            cJSON_AddStringToObject(json_message, "file_name", file_name);
+            g_print("success to write voice message to file: %s\n", file_path);
+          } else {
+            fprintf(stderr, "Failed to write voice message to file: %s\n",
+                    file_path);
+          }
+        }
 
         // Remove the voice_message field after processing
         cJSON_DeleteItemFromObject(message, "voice_message");

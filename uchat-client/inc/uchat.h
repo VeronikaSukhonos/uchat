@@ -314,11 +314,11 @@ void add_message(GtkWidget *messages_container, const gchar *message_text,
 void on_message_send(GtkWidget *send_button, gpointer user_data);
 void on_message_received(const gchar *message_text);
 void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page);
-void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
-                           GtkSelectionData *data, guint info, guint time,
-                           t_main_page_data *main_page);
-void send_file_message(int sock, char *filepath, int chat_id,
-					   t_main_page_data *main_page);
+void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x,
+                           gint y, GtkSelectionData *data, guint info,
+                           guint time, t_main_page_data *main_page);
+void send_file_message(int sock, char *file_path, int chat_id,
+                       t_main_page_data *main_page);
 GtkWidget *resize_image_file(char *filepath);
 
 // settings gui
@@ -424,3 +424,8 @@ void process_message_update_from_chat(const char *json_response,
 void process_message_delete(const char *json_response, AppData *app_data);
 int update_message_status_in_json(const char *file_path, int message_id,
                                   const char *new_status);
+void process_file_message_and_store(const char *json_response,
+                                    AppData *app_data);
+int is_image(char *file_path);
+int process_individual_response(cJSON *response, int *logged_in,
+                                AppData *app_data);

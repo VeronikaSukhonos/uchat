@@ -454,6 +454,9 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   cJSON *voice_path_json = cJSON_GetObjectItem(
       message_json, "voice_file_path"); // Extract voice file path
 
+  cJSON *file_path_json =
+      cJSON_GetObjectItem(message_json, "file_path"); // Extract voice file path
+
   // Populate message fields
 
   if (cJSON_IsString(status_json)) {
@@ -521,6 +524,15 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   if (message_type == VOICE && cJSON_IsString(voice_path_json)) {
     strncpy(temp_node->message->voice_path, voice_path_json->valuestring,
             sizeof(temp_node->message->voice_path) - 1);
+    g_print("filepath set to %s\n", temp_node->message->voice_path);
+  }
+
+  if ((message_type == ANY_FILE || message_type == IMAGE) &&
+      cJSON_IsString(file_path_json)) {
+    strcpy(temp_node->message->voice_path, file_path_json->valuestring);
+    char *filename =
+        cJSON_GetObjectItem(message_json, "file_name")->valuestring;
+    strcpy(temp_node->message->content, filename);
     g_print("filepath set to %s\n", temp_node->message->voice_path);
   }
 
@@ -618,7 +630,7 @@ void create_message_button(t_main_page_data *main_page,
                             GTK_ALIGN_START);
     }
 
-	GtkWidget *container;
+    GtkWidget *container;
     // If it's a text message, show the content
     if ((*temp_node).message->content_type == TEXT) {
       (*temp_node).message->message_label =
@@ -670,20 +682,22 @@ void create_message_button(t_main_page_data *main_page,
       (*temp_node).message->save_file_button = gtk_button_new();
       GtkWidget *save_file_button_image = gtk_image_new_from_file(
           "uchat-client/src/gui/resources/file-icon.png");
-      gtk_button_set_image(
-          GTK_BUTTON((*temp_node).message->save_file_button), save_file_button_image);
+      gtk_button_set_image(GTK_BUTTON((*temp_node).message->save_file_button),
+                           save_file_button_image);
       gtk_box_pack_start(GTK_BOX(container),
-                         (*temp_node).message->save_file_button,
-                         FALSE, FALSE, 0);
+                         (*temp_node).message->save_file_button, FALSE, FALSE,
+                         0);
       gtk_style_context_add_class(
-          gtk_widget_get_style_context(
-              (*temp_node).message->save_file_button), "save-button");
-      //g_signal_connect(temp_node->message->save_file_button, "clicked",
-      //                 G_CALLBACK(save_file), (gpointer)temp_node);
-      (*temp_node).message->message_label = gtk_label_new((*temp_node).message->content);
-      gtk_box_pack_start(GTK_BOX(container), (*temp_node).message->message_label,
-                         TRUE, TRUE, 0);
-      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label), TRUE);
+          gtk_widget_get_style_context((*temp_node).message->save_file_button),
+          "save-button");
+      // g_signal_connect(temp_node->message->save_file_button, "clicked",
+      //                  G_CALLBACK(save_file), (gpointer)temp_node);
+      (*temp_node).message->message_label =
+          gtk_label_new((*temp_node).message->content);
+      gtk_box_pack_start(GTK_BOX(container),
+                         (*temp_node).message->message_label, TRUE, TRUE, 0);
+      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                              TRUE);
       gtk_label_set_line_wrap_mode(
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     } else if ((*temp_node).message->content_type == IMAGE) {
@@ -692,9 +706,12 @@ void create_message_button(t_main_page_data *main_page,
       gtk_box_pack_start(GTK_BOX(main_box), container, FALSE, FALSE, 5);
 
       // Change to image filepath
-      (*temp_node).message->image_file = resize_image_file((*temp_node).message->voice_path);
-      gtk_box_pack_start(GTK_BOX(container),
-                         (*temp_node).message->image_file, FALSE, FALSE, 0);
+
+      (*temp_node).message->image_file =
+          resize_image_file((*temp_node).message->voice_path);
+      g_print("Path: %s\n", (*temp_node).message->voice_path);
+      gtk_box_pack_start(GTK_BOX(container), (*temp_node).message->image_file,
+                         FALSE, FALSE, 0);
     }
 
     // Message menu
@@ -788,8 +805,7 @@ void create_message_button(t_main_page_data *main_page,
       gtk_widget_set_visible(container, 1);
       gtk_widget_set_visible((*temp_node).message->message_label, 1);
       gtk_widget_set_visible((*temp_node).message->save_file_button, 1);
-    }
-    else if ((*temp_node).message->content_type == IMAGE) {
+    } else if ((*temp_node).message->content_type == IMAGE) {
       gtk_widget_set_visible(container, 1);
       gtk_widget_set_visible((*temp_node).message->image_file, 1);
     }
