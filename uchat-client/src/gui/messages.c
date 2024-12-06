@@ -454,6 +454,9 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   cJSON *voice_path_json = cJSON_GetObjectItem(
       message_json, "voice_file_path"); // Extract voice file path
 
+  cJSON *file_path_json =
+      cJSON_GetObjectItem(message_json, "file_path"); // Extract voice file path
+
   // Populate message fields
 
   if (cJSON_IsString(status_json)) {
@@ -521,6 +524,15 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   if (message_type == VOICE && cJSON_IsString(voice_path_json)) {
     strncpy(temp_node->message->voice_path, voice_path_json->valuestring,
             sizeof(temp_node->message->voice_path) - 1);
+    g_print("filepath set to %s\n", temp_node->message->voice_path);
+  }
+
+  if ((message_type == ANY_FILE || message_type == IMAGE) &&
+      cJSON_IsString(file_path_json)) {
+    strcpy(temp_node->message->voice_path, file_path_json->valuestring);
+    char *filename =
+        cJSON_GetObjectItem(message_json, "file_name")->valuestring;
+    strcpy(temp_node->message->content, filename);
     g_print("filepath set to %s\n", temp_node->message->voice_path);
   }
 
@@ -618,6 +630,7 @@ void create_message_button(t_main_page_data *main_page,
                             GTK_ALIGN_START);
     }
 
+    GtkWidget *container;
     // If it's a text message, show the content
     if ((*temp_node).message->content_type == TEXT) {
       (*temp_node).message->message_label =
@@ -631,10 +644,10 @@ void create_message_button(t_main_page_data *main_page,
                               TRUE);
       gtk_label_set_line_wrap_mode(
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
-    } else {
+    } else if ((*temp_node).message->content_type == VOICE) {
       // If it's a voice message, show a button to play the voice message
       GtkWidget *play_button = gtk_image_new_from_file(
-          "uchat-client/src/gui/resources/play_button.png");
+          "uchat-client/src/gui/resources/play-button.png");
       (*temp_node).message->voice_message_button = gtk_button_new();
       gtk_button_set_image(
           GTK_BUTTON((*temp_node).message->voice_message_button), play_button);
@@ -662,6 +675,43 @@ void create_message_button(t_main_page_data *main_page,
                               TRUE);
       gtk_label_set_line_wrap_mode(
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
+    } else if ((*temp_node).message->content_type == ANY_FILE) {
+      // If it is file message, show save button and filename
+      container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box), container, FALSE, FALSE, 5);
+      (*temp_node).message->save_file_button = gtk_button_new();
+      GtkWidget *save_file_button_image = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/file-icon.png");
+      gtk_button_set_image(GTK_BUTTON((*temp_node).message->save_file_button),
+                           save_file_button_image);
+      gtk_box_pack_start(GTK_BOX(container),
+                         (*temp_node).message->save_file_button, FALSE, FALSE,
+                         0);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->save_file_button),
+          "save-button");
+      // g_signal_connect(temp_node->message->save_file_button, "clicked",
+      //                  G_CALLBACK(save_file), (gpointer)temp_node);
+      (*temp_node).message->message_label =
+          gtk_label_new((*temp_node).message->content);
+      gtk_box_pack_start(GTK_BOX(container),
+                         (*temp_node).message->message_label, TRUE, TRUE, 0);
+      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                              TRUE);
+      gtk_label_set_line_wrap_mode(
+          GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
+    } else if ((*temp_node).message->content_type == IMAGE) {
+      // If it is image message, show image
+      container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box), container, FALSE, FALSE, 5);
+
+      // Change to image filepath
+
+      (*temp_node).message->image_file =
+          resize_image_file((*temp_node).message->voice_path);
+      g_print("Path: %s\n", (*temp_node).message->voice_path);
+      gtk_box_pack_start(GTK_BOX(container), (*temp_node).message->image_file,
+                         FALSE, FALSE, 0);
     }
 
     // Message menu
@@ -749,71 +799,20 @@ void create_message_button(t_main_page_data *main_page,
     gtk_widget_set_visible(bottom_box, 1);
     if ((*temp_node).message->content_type == TEXT)
       gtk_widget_set_visible((*temp_node).message->message_label, 1);
-    else
+    else if ((*temp_node).message->content_type == VOICE)
       gtk_widget_set_visible((*temp_node).message->voice_message_button, 1);
+    else if ((*temp_node).message->content_type == ANY_FILE) {
+      gtk_widget_set_visible(container, 1);
+      gtk_widget_set_visible((*temp_node).message->message_label, 1);
+      gtk_widget_set_visible((*temp_node).message->save_file_button, 1);
+    } else if ((*temp_node).message->content_type == IMAGE) {
+      gtk_widget_set_visible(container, 1);
+      gtk_widget_set_visible((*temp_node).message->image_file, 1);
+    }
     gtk_widget_set_visible((*temp_node).message->changed_label, 1);
     gtk_widget_set_visible((*temp_node).message->time_label, 1);
     gtk_widget_set_visible((*temp_node).message->seen_label, 1);
   }
-}
-
-void filechooser_unselect(GtkWidget *choose_file_dialog) {
-	gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(choose_file_dialog));
-}
-
-void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page) {
-	GtkWidget *main_window = gtk_widget_get_parent(gtk_widget_get_parent(
-		gtk_widget_get_parent(gtk_widget_get_parent(main_page->central_area_stack))));
-	GtkWidget *choose_file_dialog =
-		gtk_file_chooser_dialog_new("Choose a file",
-									GTK_WINDOW(main_window),
-									GTK_FILE_CHOOSER_ACTION_OPEN,
-									"Open", GTK_RESPONSE_ACCEPT,
-									"Cancel", GTK_RESPONSE_CANCEL, NULL);
-	gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(choose_file_dialog),
-										 TRUE);
-	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(choose_file_dialog),
-										g_get_home_dir());
-	g_signal_connect(choose_file_dialog, "button-press-event",
-					 G_CALLBACK(filechooser_unselect), NULL);
-	GtkWidget *attach_image =
-		gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file-active.png");
-		gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
-
-	gint res = gtk_dialog_run(GTK_DIALOG(choose_file_dialog));
-	if (res == GTK_RESPONSE_ACCEPT) {
-		GSList *filelist = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(choose_file_dialog));
-		GSList *ptr = filelist;
-		while (ptr != NULL) {
-			// send each file
-			char *filepath = ptr->data;
-			g_print("Chosen file: %s\n", filepath);
-			g_free(ptr->data);
-			ptr = ptr->next;
-		}
-		g_slist_free(filelist);
-	}
-	attach_image =
-		gtk_image_new_from_file("uchat-client/src/gui/resources/attach-file.png");
-	gtk_button_set_image(GTK_BUTTON(attach_button), attach_image);
-	gtk_widget_destroy(choose_file_dialog);
-}
-
-void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
-                           GtkSelectionData *data, guint info, guint time,
-                           t_main_page_data *main_page) {
-	gchar **uris = gtk_selection_data_get_uris(data);
-
-	if (uris != NULL) {
-		for (int i = 0; uris[i] != NULL; i++) {
-        	gchar *filepath = g_filename_from_uri(uris[i], NULL, NULL);
-        	if (filepath != NULL) {
-        		// send each file
-        		g_print("Chosen file: %s\n", filepath);
-        	}
-    	}
-	}
-	g_strfreev(uris);
 }
 
 void send_message_f(GtkWidget *widget, gpointer data) {

@@ -85,3 +85,5 @@ int handle_delete_message(sqlite3 *db, Client *client, cJSON *json,
 int handle_update_password(sqlite3 *db, Client *client, cJSON *json);
 int handle_support_request(Client *client, cJSON *json);
 int handle_get_settings(sqlite3 *db, Client *client);
+int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
+                                Client clients[], int max_clients);

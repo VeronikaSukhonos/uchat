@@ -44,11 +44,8 @@ void handle_new_data_response(const char *response_data,
       cJSON_AddStringToObject(new_chat, "type",
                               chat_type ? chat_type : "unknown");
       cJSON_AddItemToObject(new_chat, "members", cJSON_Duplicate(members, 1));
-      cJSON_AddItemToObject(
-          new_chat, "messages",
-          cJSON_CreateArray()); // Start with an empty messages array
+      cJSON_AddItemToObject(new_chat, "messages", cJSON_CreateArray());
 
-      // Save the new chat to the cache
       save_encrypted_chat_to_cache(file_path, new_chat);
       cJSON_Delete(new_chat);
 
@@ -62,7 +59,6 @@ void handle_new_data_response(const char *response_data,
   cJSON *message_group;
   for (message_group = undelivered_messages->child; message_group != NULL;
        message_group = message_group->next) {
-    // Extract the chat ID from the key
     int chat_id = atoi(message_group->string);
     cJSON *messages = message_group;
 
@@ -76,71 +72,101 @@ void handle_new_data_response(const char *response_data,
       continue;
     }
 
-    // Process each message to handle voice message decoding
+    // Process each message
     cJSON *message;
     cJSON_ArrayForEach(message, messages) {
-      // Extract `file_name` and `voice_message`
-      cJSON *file_name_json = cJSON_GetObjectItem(message, "file_name");
-      cJSON *voice_message_json = cJSON_GetObjectItem(message, "voice_message");
+      const char *type = cJSON_GetObjectItem(message, "type")->valuestring;
 
-      if (!file_name_json || !cJSON_IsString(file_name_json)) {
-        fprintf(stderr, "Failed to find `file_name` in message.\n");
-        continue;
+      if (strcmp(type, "voice") == 0) {
+        // Process voice message
+        cJSON *voice_message_json =
+            cJSON_GetObjectItem(message, "voice_message");
+        const char *file_name =
+            cJSON_GetObjectItem(message, "file_name")->valuestring;
+
+        if (voice_message_json && file_name) {
+          size_t decoded_size;
+          unsigned char *decoded_voice = base64_decode(
+              voice_message_json->valuestring,
+              strlen(voice_message_json->valuestring), &decoded_size);
+
+          if (decoded_voice) {
+            char voice_file_path[256];
+            snprintf(voice_file_path, sizeof(voice_file_path), "%s/%s",
+                     cache_dir, file_name);
+
+            FILE *voice_file = fopen(voice_file_path, "wb");
+            if (voice_file) {
+              fwrite(decoded_voice, 1, decoded_size, voice_file);
+              fclose(voice_file);
+
+              cJSON_AddStringToObject(message, "voice_file_path",
+                                      voice_file_path);
+              g_print("Voice message saved to: %s\n", voice_file_path);
+            } else {
+              perror("Failed to create voice file");
+            }
+
+            g_free(decoded_voice);
+          } else {
+            fprintf(stderr, "Failed to decode voice message for chat_id: %d\n",
+                    chat_id);
+          }
+        }
+      } else if (strcmp(type, "file") == 0) {
+        // Process file message
+        cJSON *message_id_json = cJSON_GetObjectItem(message, "message_id");
+        cJSON *file_type_json = cJSON_GetObjectItem(message, "file_type");
+        cJSON *file_path_json = cJSON_GetObjectItem(message, "file_path");
+        cJSON *file_data_json = cJSON_GetObjectItem(message, "file_data");
+
+        if (file_path_json && file_data_json) {
+          size_t decoded_size;
+          unsigned char *decoded_file =
+              base64_decode(file_data_json->valuestring,
+                            strlen(file_data_json->valuestring), &decoded_size);
+
+          if (decoded_file) {
+            char file_path[256];
+            snprintf(file_path, sizeof(file_path), "%s/chat_%d_%d.%s",
+                     cache_dir, chat_id, message_id_json->valueint,
+                     file_type_json->valuestring);
+
+            // char file_path[256];
+            // snprintf(file_path, sizeof(file_path), "%s/chat_%d_%d.%s",
+            //          cache_dir, chat_id, message_id_json->valueint,
+            //          file_type_json->valuestring);
+            char *file_name = g_path_get_basename(file_path_json->valuestring);
+
+            FILE *file = fopen(file_path, "wb");
+            if (file) {
+              fwrite(decoded_file, 1, decoded_size, file);
+              fclose(file);
+
+              cJSON_DeleteItemFromObject(message, "file_path");
+              cJSON_DeleteItemFromObject(message, "file_type");
+              cJSON_DeleteItemFromObject(message, "file_data");
+
+              cJSON_AddStringToObject(message, "file_path", file_path);
+              cJSON_AddStringToObject(message, "file_name", file_name);
+              g_print("File saved to: %s\n", file_path);
+            } else {
+              perror("Failed to create file");
+            }
+
+            g_free(decoded_file);
+          } else {
+            fprintf(stderr, "Failed to decode file for chat_id: %d\n", chat_id);
+          }
+        }
       }
-
-      if (!voice_message_json || !cJSON_IsString(voice_message_json)) {
-        fprintf(stderr, "Failed to find `voice_message` in message.\n");
-        continue;
-      }
-
-      const char *file_name = file_name_json->valuestring;
-      const char *encoded_voice = voice_message_json->valuestring;
-
-      // Decode the Base64 voice message
-      size_t decoded_size;
-      unsigned char *decoded_voice =
-          base64_decode(encoded_voice, strlen(encoded_voice), &decoded_size);
-
-      if (!decoded_voice) {
-        fprintf(stderr, "Failed to decode the voice message.\n");
-        continue;
-      }
-
-      // Construct the file path
-      char voice_file_path[256];
-      snprintf(voice_file_path, sizeof(voice_file_path), "%s/%s", cache_dir,
-               file_name);
-
-      // Save the decoded voice data to a .wav file
-      FILE *voice_file = fopen(voice_file_path, "wb");
-      if (!voice_file) {
-        perror("Failed to create voice file");
-        g_free(decoded_voice);
-        continue;
-      }
-
-      fwrite(decoded_voice, 1, decoded_size, voice_file);
-      fclose(voice_file);
-      g_free(decoded_voice);
-
-      printf("Voice message saved to file: %s\n", voice_file_path);
-
-      // Add the file path to the message object
-      cJSON_AddStringToObject(message, "voice_file_path", voice_file_path);
-      cJSON_AddStringToObject(message, "content", "");
-
-      // Remove the `voice_message` and `file_name` fields from the message
-      cJSON_DeleteItemFromObject(message, "voice_message");
-      cJSON_DeleteItemFromObject(message, "file_name");
     }
 
-    // Construct the file path for the cache
-    char file_path[256];
-    snprintf(file_path, sizeof(file_path), "%s/chat_%d.json", cache_dir,
-             chat_id);
-
-    // Merge undelivered messages into the cache
-    merge_chat_data_with_server(file_path, messages, chat_id);
+    // Save updated messages to cache
+    char chat_file_path[256];
+    snprintf(chat_file_path, sizeof(chat_file_path), "%s/chat_%d.json",
+             cache_dir, chat_id);
+    merge_chat_data_with_server(chat_file_path, messages, chat_id);
   }
 
   cJSON_Delete(response);
