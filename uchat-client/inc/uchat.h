@@ -63,6 +63,7 @@ typedef struct {
   GtkWidget *username_label;
   GtkWidget *button;
   GtkWidget *voice_message_button;
+  GtkWidget *file_container;
   GtkWidget *save_file_button;
   GtkWidget *image_file;
   GtkWidget *message_label;

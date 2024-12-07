@@ -10,7 +10,7 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
 
   if (!cJSON_IsNumber(chat_id_json) || !cJSON_IsString(file_json) ||
       !cJSON_IsString(file_type_json)) {
-    fprintf(stderr, "Invalid JSON format for sending voice message.\n");
+    fprintf(stderr, "Invalid JSON format for sending file message.\n");
     return 1;
   }
 
@@ -33,7 +33,7 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
     return 1;
   }
 
-  // Store the voice message in the database and retrieve the message_id
+  // Store the file message in the database and retrieve the message_id
   int message_id =
       store_file_message(db, chat_id, sender_id, file_type_json->valuestring,
                          decoded_file, decoded_size, file_path);
@@ -42,7 +42,7 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
   free(decoded_file); // Clean up decoded file memory
 
   if (message_id == -1) {
-    fprintf(stderr, "Failed to store voice message for chat ID %d\n", chat_id);
+    fprintf(stderr, "Failed to store file message for chat ID %d\n", chat_id);
     return 1;
   }
 
@@ -71,7 +71,7 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
 
   char *response_str = cJSON_Print(response);
 
-  // Send the voice message to each online client
+  // Send the file message to each online client
   for (int i = 0; i < cJSON_GetArraySize(members); i++) {
     cJSON *username_json = cJSON_GetArrayItem(members, i);
     const char *username = cJSON_GetStringValue(username_json);
@@ -95,9 +95,9 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
           strcmp(username, client->username) != 0) {
         if (send(clients[j].socket, response_str, strlen(response_str), 0) ==
             -1) {
-          perror("Failed to send voice message to client");
+          perror("Failed to send file message to client");
         } else {
-          printf("Voice message sent to %s\n", username);
+          printf("File message sent to %s\n", username);
           const char *delete_sql =
               "DELETE FROM notifications WHERE user_id = ? AND message_id = ?;";
           sqlite3_stmt *update_stmt;
@@ -113,7 +113,7 @@ int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
     }
   }
 
-  // Notify the sender with a "SEND_VOICE_MESSAGE_TO_SERVER_STATUS" action
+  // Notify the sender with a "SEND_FILE_MESSAGE_TO_SERVER_STATUS" action
   cJSON *sender_response = cJSON_CreateObject();
   cJSON_AddStringToObject(sender_response, "action",
                           "SEND_FILE_MESSAGE_TO_SERVER_STATUS");

@@ -630,7 +630,6 @@ void create_message_button(t_main_page_data *main_page,
                             GTK_ALIGN_START);
     }
 
-    GtkWidget *container;
     // If it's a text message, show the content
     if ((*temp_node).message->content_type == TEXT) {
       (*temp_node).message->message_label =
@@ -677,24 +676,23 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     } else if ((*temp_node).message->content_type == ANY_FILE) {
       // If it is file message, show save button and filename
-      container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_box_pack_start(GTK_BOX(main_box), container, FALSE, FALSE, 5);
+      (*temp_node).message->file_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->file_container, FALSE, FALSE, 0);
       (*temp_node).message->save_file_button = gtk_button_new();
       GtkWidget *save_file_button_image = gtk_image_new_from_file(
           "uchat-client/src/gui/resources/file-icon.png");
       gtk_button_set_image(GTK_BUTTON((*temp_node).message->save_file_button),
                            save_file_button_image);
-      gtk_box_pack_start(GTK_BOX(container),
-                         (*temp_node).message->save_file_button, FALSE, FALSE,
-                         0);
+      gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
+                         (*temp_node).message->save_file_button, FALSE, FALSE, 0);
       gtk_style_context_add_class(
           gtk_widget_get_style_context((*temp_node).message->save_file_button),
           "save-button");
-      // g_signal_connect(temp_node->message->save_file_button, "clicked",
-      //                  G_CALLBACK(save_file), (gpointer)temp_node);
+      //g_signal_connect(temp_node->message->save_file_button, "clicked",
+      //                  G_CALLBACK(save_file), temp_node);
       (*temp_node).message->message_label =
           gtk_label_new((*temp_node).message->content);
-      gtk_box_pack_start(GTK_BOX(container),
+      gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
                          (*temp_node).message->message_label, TRUE, TRUE, 0);
       gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
                               TRUE);
@@ -702,16 +700,24 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     } else if ((*temp_node).message->content_type == IMAGE) {
       // If it is image message, show image
-      container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_box_pack_start(GTK_BOX(main_box), container, FALSE, FALSE, 5);
-
+      (*temp_node).message->file_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->file_container, FALSE, FALSE, 0);
       // Change to image filepath
-
       (*temp_node).message->image_file =
           resize_image_file((*temp_node).message->voice_path);
       g_print("Path: %s\n", (*temp_node).message->voice_path);
-      gtk_box_pack_start(GTK_BOX(container), (*temp_node).message->image_file,
-                         FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
+      					 (*temp_node).message->image_file, FALSE, FALSE, 0);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->image_file),
+          "image-file");
+      (*temp_node).message->message_label = gtk_label_new("");
+      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
+                         TRUE, FALSE, 0);
+      gtk_label_set_line_wrap(GTK_LABEL((*temp_node).message->message_label),
+                              TRUE);
+      gtk_label_set_line_wrap_mode(
+          GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     }
 
     // Message menu
@@ -802,11 +808,11 @@ void create_message_button(t_main_page_data *main_page,
     else if ((*temp_node).message->content_type == VOICE)
       gtk_widget_set_visible((*temp_node).message->voice_message_button, 1);
     else if ((*temp_node).message->content_type == ANY_FILE) {
-      gtk_widget_set_visible(container, 1);
+      gtk_widget_set_visible((*temp_node).message->file_container, 1);
       gtk_widget_set_visible((*temp_node).message->message_label, 1);
       gtk_widget_set_visible((*temp_node).message->save_file_button, 1);
     } else if ((*temp_node).message->content_type == IMAGE) {
-      gtk_widget_set_visible(container, 1);
+      gtk_widget_set_visible((*temp_node).message->file_container, 1);
       gtk_widget_set_visible((*temp_node).message->image_file, 1);
     }
     gtk_widget_set_visible((*temp_node).message->changed_label, 1);

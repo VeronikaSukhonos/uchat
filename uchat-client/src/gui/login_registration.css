@@ -5,7 +5,8 @@ window {
 	color: white;
 }
 
-button, button:hover, image {
+button, button:hover,
+button image, button:hover image {
 	box-shadow: none;
 	text-shadow: none;
 	outline: none;
@@ -602,6 +603,7 @@ combobox.form-role .popup .menu-item {
     color: white;
     border: none;
     border-radius: 15px;
+    padding: 6px 10px;
 }
 
 .username-label {
@@ -618,6 +620,7 @@ combobox.form-role .popup .menu-item {
     color: white;
     border: none;
     border-radius: 15px;
+    padding: 6px 10px;
 }
 
 .small-inscriptions {
@@ -631,7 +634,11 @@ combobox.form-role .popup .menu-item {
     border: none;
     border-radius: 50%;
     padding: 0;
-    margin: 5px;
+    margin: 5px 10px 5px 0;
+}
+
+.image-file {
+	margin: 5px 0;
 }
 
 .sender-name {

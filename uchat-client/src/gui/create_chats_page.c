@@ -118,8 +118,13 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(settings_button, "clicked", G_CALLBACK(show_settings), main_page);
 
   GtkWidget *log_out_button = gtk_button_new();
+  GtkWidget *log_out_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_container_add(GTK_CONTAINER(log_out_button), log_out_button_box);
+  GtkWidget *log_out_button_image =
+      gtk_image_new_from_file("uchat-client/src/gui/resources/logout-icon.png");
+  gtk_box_pack_start(GTK_BOX(log_out_button_box), log_out_button_image, FALSE, FALSE, 6);
   GtkWidget *log_out_button_label = gtk_label_new("Log out");
-  gtk_container_add(GTK_CONTAINER(log_out_button), log_out_button_label);
+  gtk_box_pack_start(GTK_BOX(log_out_button_box), log_out_button_label, FALSE, FALSE, 12);
   gtk_style_context_add_class(gtk_widget_get_style_context(log_out_button), "menu-button");
   gtk_widget_set_halign(log_out_button, GTK_ALIGN_START);
   gtk_box_pack_start(GTK_BOX(sidebar), log_out_button, FALSE, FALSE, 8); 
