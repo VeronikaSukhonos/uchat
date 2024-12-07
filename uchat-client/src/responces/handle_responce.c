@@ -230,6 +230,13 @@ int process_individual_response(cJSON *response, int *logged_in,
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
+        cJSON *json = cJSON_CreateObject();
+        cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
+        char *json_str = cJSON_Print(json);
+        cJSON_Delete(json);
+        send(app_data->main_page->sock, json_str, strlen(json_str), 0);
+        g_print("Sent: %s\n", json_str);
+        g_free(json_str);
     } else {
       g_print("Error: LOGOUT error.\n");
     }
@@ -266,17 +273,14 @@ int process_individual_response(cJSON *response, int *logged_in,
         cJSON_Delete(logout);
         send(app_data->main_page->sock, logout_str, strlen(logout_str), 0);
         g_print("Sent: %s\n", logout_str);
-        g_free(logout_str);
-        cJSON_Delete(response);
+        if (logout_str) {
+          g_free(logout_str);
+          logout_str = NULL;
+        }
+        // Caused seg fault 
+        //cJSON_Delete(response);
         return 0;
       }
-      cJSON *json = cJSON_CreateObject();
-      cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
-      char *json_str = cJSON_Print(json);
-      cJSON_Delete(json);
-      send(app_data->main_page->sock, json_str, strlen(json_str), 0);
-      g_print("Sent: %s\n", json_str);
-      g_free(json_str);
     }
   } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_SERVER_STATUS") ==
              0) {
