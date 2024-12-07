@@ -161,7 +161,7 @@ spinner {
 	border: none;
     padding: 0;
     background-image: none; 
-    margin-right: 2px;
+    margin-right: 4px;
 }
 
 .form-message {
@@ -376,7 +376,7 @@ spinner {
 
 .status {
     color: #5BCD91;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .img-edit {

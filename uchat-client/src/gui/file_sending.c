@@ -21,54 +21,6 @@ int is_image(char *file_path) {
   }
 }
 
-// remove
-MessageNode *tmp_create_message_node(t_main_page_data *main_page,
-                                     ContentType message_type, int chat_id,
-                                     char *filename, char *filepath) {
-  MessageNode *temp_node = g_malloc(sizeof(MessageNode));
-  if (!temp_node) {
-    fprintf(stderr, "Failed to allocate memory for new message node.\n");
-    return NULL;
-  }
-
-  temp_node->message = g_malloc(sizeof(MessageCache));
-  if (!temp_node->message) {
-    fprintf(stderr, "Failed to allocate memory for message.\n");
-    g_free(temp_node);
-    return NULL;
-  }
-
-  if ((*main_page).messages == NULL) {
-    (*main_page).messages = temp_node;
-  } else {
-    MessageNode *last_node = (*main_page).messages;
-    while (last_node->next != NULL) {
-      last_node = last_node->next;
-    }
-
-    last_node->next = temp_node;
-  }
-  temp_node->next = NULL;
-
-  temp_node->message->chat_id = chat_id;
-  temp_node->message->content_type = message_type;
-  temp_node->message->status = NEW;
-
-  strncpy(temp_node->message->content, filename,
-          sizeof(temp_node->message->content) - 1);
-  strncpy(temp_node->message->sender, "sender",
-          sizeof(temp_node->message->sender) - 1);
-  temp_node->message->message_id = 0;
-  temp_node->message->date = 0;
-
-  strncpy(temp_node->message->voice_path, filepath,
-          sizeof(temp_node->message->voice_path) - 1);
-  g_print("filepath set to %s\n", temp_node->message->voice_path);
-
-  temp_node->message->button = NULL;
-  return temp_node;
-}
-
 void send_file_message(int sock, char *file_path, int chat_id,
                        t_main_page_data *main_page) {
   char *filename = g_path_get_basename(file_path);

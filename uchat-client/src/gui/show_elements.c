@@ -93,6 +93,11 @@ void show_edit_page(GtkWidget *edit_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
 
+  GtkWidget *main_window =
+      gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(
+          gtk_widget_get_parent(main_page->central_area_stack))));
+  gtk_window_set_focus(GTK_WINDOW(main_window), NULL);
+
   // Set existing values in the edit fields
   gtk_entry_set_text(
       GTK_ENTRY((*main_page).edit_data.username),
@@ -299,7 +304,8 @@ void show_login(GtkWidget *login_link_button, t_form_data *data) {
   GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "login");
-  /*gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_parent(pages)), NULL);*/
+  gtk_window_set_focus(
+  	GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
   gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
@@ -314,7 +320,8 @@ void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
   GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "registration");
-  /*gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_parent(pages)), NULL);*/
+  gtk_window_set_focus(
+  	GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
   gtk_label_set_text(GTK_LABEL(data->message), "");

@@ -745,7 +745,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_widget_set_halign((*main_page).edit_data.form, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request(GTK_WIDGET((*main_page).edit_data.form), 450, -1);
   // label
-  GtkWidget *edit_label = gtk_label_new("My profile details");
+  GtkWidget *edit_label = gtk_label_new("Change profile details");
   gtk_style_context_add_class(gtk_widget_get_style_context(edit_label),
                               "form-name-label");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), edit_label, FALSE,
@@ -812,7 +812,7 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
       "form-message");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form),
                      (*main_page).edit_data.message, FALSE, FALSE, 0);
-  GtkWidget *button = gtk_button_new_with_label("Change profile details");
+  GtkWidget *button = gtk_button_new_with_label("Change");
   gtk_box_pack_start(GTK_BOX((*main_page).edit_data.form), button, FALSE, FALSE,
                      0);
   gtk_style_context_add_class(gtk_widget_get_style_context(button),
@@ -887,41 +887,128 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_label, FALSE,
                      FALSE, 0);
   gtk_widget_set_halign(change_pw_label, GTK_ALIGN_CENTER);
-  GtkWidget *old_pw_label = gtk_label_new("Enter your old password:");
+
+  GtkWidget *old_pw_label = gtk_label_new("Current password");
   gtk_style_context_add_class(gtk_widget_get_style_context(old_pw_label), "form-label");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), old_pw_label, FALSE, FALSE, 5);
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), old_pw_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(old_pw_label, GTK_ALIGN_START);
+
+  GtkWidget *old_pw_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), old_pw_container,
+  							 FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(old_pw_container),
+  							  "form-pw-container");
   (*main_page).change_pw.old_pw = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(old_pw_container), (*main_page).change_pw.old_pw,
+  					 TRUE, TRUE, 0);
+  gtk_entry_set_invisible_char(GTK_ENTRY((*main_page).change_pw.old_pw), 0x2022);
+  gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.old_pw), FALSE);
+  g_object_set((*main_page).change_pw.old_pw, "caps-lock-warning", FALSE, NULL);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).change_pw.old_pw),
-      "form-entry");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
-                     (*main_page).change_pw.old_pw, FALSE, FALSE, 0);
-  GtkWidget *new_pw_label = gtk_label_new("Enter your new password:");
+  	gtk_widget_get_style_context((*main_page).change_pw.old_pw), "form-pw-entry");
+  g_signal_connect((*main_page).change_pw.old_pw, "focus-in-event",
+				   G_CALLBACK(change_entry_box_focus), old_pw_container);
+  g_signal_connect((*main_page).change_pw.old_pw, "focus-out-event",
+				   G_CALLBACK(change_entry_box_focus), old_pw_container);
+  (*main_page).change_pw.old_pw_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(old_pw_container),
+  					 (*main_page).change_pw.old_pw_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(
+  	gtk_widget_get_style_context((*main_page).change_pw.old_pw_button),
+  								 "form-pw-button");
+  GtkWidget *show_old_pw_image =
+    gtk_image_new_from_file("uchat-client/src/gui/resources/eye-open.png");
+  gtk_button_set_image(GTK_BUTTON((*main_page).change_pw.old_pw_button),
+						 show_old_pw_image);
+  g_signal_connect((*main_page).change_pw.old_pw_button, "clicked",
+					 G_CALLBACK(change_password_visibility),
+					 (*main_page).change_pw.old_pw);
+
+  GtkWidget *new_pw_label = gtk_label_new("New password");
   gtk_style_context_add_class(gtk_widget_get_style_context(new_pw_label), "form-label");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_label, FALSE, FALSE, 5);
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(new_pw_label, GTK_ALIGN_START);
+
+  GtkWidget *new_pw_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_container,
+  							 FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(new_pw_container),
+  							  "form-pw-container");
   (*main_page).change_pw.new_pw = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(new_pw_container), (*main_page).change_pw.new_pw,
+  					 TRUE, TRUE, 0);
+  gtk_entry_set_invisible_char(GTK_ENTRY((*main_page).change_pw.new_pw), 0x2022);
+  gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.new_pw), FALSE);
+  g_object_set((*main_page).change_pw.new_pw, "caps-lock-warning", FALSE, NULL);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).change_pw.new_pw),
-      "form-entry");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
-                     (*main_page).change_pw.new_pw, FALSE, FALSE, 0);
+  	gtk_widget_get_style_context((*main_page).change_pw.new_pw), "form-pw-entry");
+  g_signal_connect((*main_page).change_pw.new_pw, "focus-in-event",
+				   G_CALLBACK(change_entry_box_focus), new_pw_container);
+  g_signal_connect((*main_page).change_pw.new_pw, "focus-out-event",
+				   G_CALLBACK(change_entry_box_focus), new_pw_container);
+  (*main_page).change_pw.new_pw_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(new_pw_container),
+  					 (*main_page).change_pw.new_pw_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(
+  	gtk_widget_get_style_context((*main_page).change_pw.new_pw_button),
+  								 "form-pw-button");
+  GtkWidget *show_new_pw_image =
+    gtk_image_new_from_file("uchat-client/src/gui/resources/eye-open.png");
+  gtk_button_set_image(GTK_BUTTON((*main_page).change_pw.new_pw_button),
+						 show_new_pw_image);
+  g_signal_connect((*main_page).change_pw.new_pw_button, "clicked",
+					 G_CALLBACK(change_password_visibility),
+					 (*main_page).change_pw.new_pw);
+
+  GtkWidget *new_pw_again_label = gtk_label_new("Repeat new password");
+  gtk_style_context_add_class(gtk_widget_get_style_context(new_pw_again_label), "form-label");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_again_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(new_pw_again_label, GTK_ALIGN_START);
+
+  GtkWidget *new_pw_again_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), new_pw_again_container,
+  							 FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(new_pw_again_container),
+  							  "form-pw-container");
   (*main_page).change_pw.new_pw_again = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(new_pw_again_container), (*main_page).change_pw.new_pw_again,
+  					 TRUE, TRUE, 0);
+  gtk_entry_set_invisible_char(GTK_ENTRY((*main_page).change_pw.new_pw_again), 0x2022);
+  gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.new_pw_again), FALSE);
+  g_object_set((*main_page).change_pw.new_pw_again, "caps-lock-warning", FALSE, NULL);
   gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).change_pw.new_pw_again),
-      "form-entry");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form),
-                     (*main_page).change_pw.new_pw_again, FALSE, FALSE, 0);
+  	gtk_widget_get_style_context((*main_page).change_pw.new_pw_again), "form-pw-entry");
+  g_signal_connect((*main_page).change_pw.new_pw_again, "focus-in-event",
+				   G_CALLBACK(change_entry_box_focus), new_pw_again_container);
+  g_signal_connect((*main_page).change_pw.new_pw_again, "focus-out-event",
+				   G_CALLBACK(change_entry_box_focus), new_pw_again_container);
+  (*main_page).change_pw.new_pw_again_button = gtk_button_new();
+  gtk_box_pack_start(GTK_BOX(new_pw_again_container),
+  					 (*main_page).change_pw.new_pw_again_button, FALSE, FALSE, 0);
+  gtk_style_context_add_class(
+  	gtk_widget_get_style_context((*main_page).change_pw.new_pw_again_button),
+  								 "form-pw-button");
+  GtkWidget *show_new_pw_again_image =
+    gtk_image_new_from_file("uchat-client/src/gui/resources/eye-open.png");
+  gtk_button_set_image(GTK_BUTTON((*main_page).change_pw.new_pw_again_button),
+						 show_new_pw_again_image);
+  g_signal_connect((*main_page).change_pw.new_pw_again_button, "clicked",
+					 G_CALLBACK(change_password_visibility),
+					 (*main_page).change_pw.new_pw_again);
+
+  (*main_page).change_pw.message = gtk_label_new("");
+  gtk_style_context_add_class(
+      gtk_widget_get_style_context((*main_page).change_pw.message),
+      "form-message");
+  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), (*main_page).change_pw.message,
+  					 FALSE, FALSE, 0);
+
   GtkWidget *change_pw_button = gtk_button_new_with_label("Change");
   gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), change_pw_button, FALSE, FALSE,
                      0);
   gtk_style_context_add_class(gtk_widget_get_style_context(change_pw_button),
                               "form-button");
   g_signal_connect(change_pw_button, "clicked", G_CALLBACK(send_pw_change_req), main_page);
-  (*main_page).change_pw.message = gtk_label_new("");
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context((*main_page).change_pw.message),
-      "form-message");
-  gtk_box_pack_start(GTK_BOX((*main_page).change_pw.form), (*main_page).change_pw.message, FALSE, FALSE, 0);
 
   // Email page setup
   GtkWidget *email_page = gtk_scrolled_window_new(NULL, NULL);

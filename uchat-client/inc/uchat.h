@@ -102,8 +102,11 @@ typedef struct s_profile_data {
   GtkWidget *message;
   GtkWidget *role_combo;
   GtkWidget *old_pw;
+  GtkWidget *old_pw_button;
   GtkWidget *new_pw;
+  GtkWidget *new_pw_button;
   GtkWidget *new_pw_again;
+  GtkWidget *new_pw_again_button;
   GtkWidget *email;
   GtkWidget *subject_combo;
   GtkWidget *support_request;
@@ -335,6 +338,7 @@ int check_username(char *username, GtkWidget *message);
 int check_password(char *password, GtkWidget *message);
 void change_email(GtkWidget *change_button, gpointer data);
 void send_pw_change_req(GtkWidget *button, gpointer data);
+void send_json(int socket, const char *action);
 
 // menu gui
 void change_mic_image(GtkWidget *mic_button, gpointer data);
