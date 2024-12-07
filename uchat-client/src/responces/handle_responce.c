@@ -230,13 +230,7 @@ int process_individual_response(cJSON *response, int *logged_in,
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
-        cJSON *json = cJSON_CreateObject();
-        cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
-        char *json_str = cJSON_Print(json);
-        cJSON_Delete(json);
-        send(app_data->main_page->sock, json_str, strlen(json_str), 0);
-        g_print("Sent: %s\n", json_str);
-        g_free(json_str);
+        send_json(app_data->main_page->sock, "UPDATE_PROFILE_DATA");
     } else {
       g_print("Error: LOGOUT error.\n");
     }
@@ -253,6 +247,7 @@ int process_individual_response(cJSON *response, int *logged_in,
   } else if (strcmp(action->valuestring, "GET_PROFILE_DATA") == 0) {
     handle_get_profile_response(response, app_data);
   } else if (strcmp(action->valuestring, "UPDATE_PROFILE_DATA") == 0) {
+    send_json(app_data->main_page->sock, "GET_PROFILE_DATA");
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       char username[64] = {0};

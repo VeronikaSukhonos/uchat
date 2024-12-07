@@ -204,3 +204,23 @@ gboolean check_email(const char *email, GtkWidget *message_label) {
   success_or_error_msg(message_label, "Email is valid.", TRUE);
   return TRUE;
 }
+void send_json(int socket, const char *action) {
+    cJSON *json = cJSON_CreateObject();
+    if (!json) {
+        g_print("Failed to create JSON object\n");
+        return;
+    }
+
+    cJSON_AddStringToObject(json, "action", action);
+    char *json_str = cJSON_Print(json);
+    cJSON_Delete(json);
+
+    if (!json_str) {
+        g_print("Failed to create JSON string\n");
+        return;
+    }
+
+    send(socket, json_str, strlen(json_str), 0);
+    g_print("Sent: %s\n", json_str);
+    g_free(json_str);
+}
