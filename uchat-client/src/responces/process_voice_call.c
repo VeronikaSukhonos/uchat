@@ -9,7 +9,10 @@ void process_voice_call_start(cJSON *response, AppData *app_data) {
   int caller_port = caller_port_json->valueint;
   char caller_ip[INET_ADDRSTRLEN];
 
-  strcpy(caller_name, caller_name_json->valuestring);
+  // Ensure caller name is valid UTF-8
+  if (!ensure_valid_utf8(caller_name_json->valuestring, caller_name, sizeof(caller_name))) {
+    g_warning("Invalid UTF-8 in caller name, using sanitized version");
+  }
   strcpy(caller_ip, caller_ip_json->valuestring);
 
   if (in_call == 1) {
@@ -22,7 +25,7 @@ void process_voice_call_start(cJSON *response, AppData *app_data) {
   cJSON_AddStringToObject(json, "action", "ACCEPT_CALL");
   cJSON_AddStringToObject(json, "callee_name", username);
   cJSON_AddStringToObject(json, "caller_name", caller_name);
-  cJSON_AddStringToObject(json, "caller_ipp", caller_ip);
+  cJSON_AddStringToObject(json, "caller_ip", caller_ip);
   cJSON_AddNumberToObject(json, "caller_port", caller_port);
   cJSON_AddNumberToObject(json, "callee_port", receive_port);
 
@@ -51,7 +54,10 @@ void process_voice_call_accept(cJSON *response, AppData *app_data) {
   int callee_port = callee_port_json->valueint;
   char callee_ip[INET_ADDRSTRLEN];
 
-  strcpy(callee_name, callee_name_json->valuestring);
+  // Ensure callee name is valid UTF-8
+  if (!ensure_valid_utf8(callee_name_json->valuestring, callee_name, sizeof(callee_name))) {
+    g_warning("Invalid UTF-8 in callee name, using sanitized version");
+  }
   strcpy(callee_ip, callee_ip_json->valuestring);
 
   if (is_calling == 1) {

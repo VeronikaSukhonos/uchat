@@ -113,6 +113,7 @@ void create_voice_call_window(GtkWidget *voice_call_button,
   gtk_widget_set_halign(buttons_container, GTK_ALIGN_CENTER);
 
   if (strcmp(caller, "") == 0) {
+    // Outgoing call - show callee name from chat nickname
     GtkWidget *reject_button = gtk_button_new();
     gtk_box_pack_start(GTK_BOX(buttons_container), reject_button, FALSE, FALSE,
                        25);
@@ -124,6 +125,8 @@ void create_voice_call_window(GtkWidget *voice_call_button,
     g_signal_connect(reject_button, "clicked", G_CALLBACK(stop_voice_call),
                      main_page);
   } else if (strcmp(caller, "") != 0 && incoming == 0) {
+    // Already in call - show caller name
+    gtk_label_set_text(GTK_LABEL(username_label), caller);
     GtkWidget *reject_button = gtk_button_new();
     gtk_box_pack_start(GTK_BOX(buttons_container), reject_button, FALSE, FALSE,
                        25);
@@ -134,8 +137,9 @@ void create_voice_call_window(GtkWidget *voice_call_button,
     gtk_button_set_image(GTK_BUTTON(reject_button), reject_image);
     g_signal_connect(reject_button, "clicked", G_CALLBACK(stop_voice_call),
                      main_page);
-    gtk_label_set_text(GTK_LABEL(username_label), caller);
   } else if (strcmp(caller, "") != 0 && incoming == 1) {
+    // Incoming call - show caller name
+    gtk_label_set_text(GTK_LABEL(username_label), caller);
     GtkWidget *accept_button = gtk_button_new();
     gtk_box_pack_start(GTK_BOX(buttons_container), accept_button, FALSE, FALSE,
                        25);
@@ -146,13 +150,13 @@ void create_voice_call_window(GtkWidget *voice_call_button,
     gtk_button_set_image(GTK_BUTTON(accept_button), accept_image);
     g_signal_connect(accept_button, "clicked", G_CALLBACK(accept_voice_call),
                      main_page);
-    gtk_label_set_text(GTK_LABEL(username_label), caller);
   }
 
   gtk_widget_show_all(main_page->voice_call_window);
   if (in_call == 0 && incoming == 0) {
     play_audio("uchat-client/sounds/ring.wav");
-    const gchar *callee_name = gtk_label_get_text(GTK_LABEL(username_label));
+    const gchar *callee_name = gtk_label_get_text(GTK_LABEL(main_page->chat_nickname));
+    gtk_label_set_text(GTK_LABEL(username_label), callee_name);
 
     cJSON *response = cJSON_CreateObject();
     cJSON_AddStringToObject(response, "action", "CALL");

@@ -419,3 +419,11 @@ void process_message_update_from_chat(const char *json_response,
 void process_message_delete(const char *json_response, AppData *app_data);
 int update_message_status_in_json(const char *file_path, int message_id,
                                   const char *new_status);
+
+// Voice call functions
+void process_voice_call_start(cJSON *response, AppData *app_data);
+void process_voice_call_accept(cJSON *response, AppData *app_data);
+void process_voice_call_stop(cJSON *response, AppData *app_data);
+
+// UTF-8 validation
+gboolean ensure_valid_utf8(const char* input, char* output, size_t output_size);
