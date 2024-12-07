@@ -74,7 +74,6 @@ char *receive_large_json(int socket_fd) {
   return buffer;
 }
 
-// Function to read and handle server responses
 int handle_response(int sock, int *logged_in, AppData *app_data) {
   char *buffer = receive_large_json(sock);
   if (!buffer) {
@@ -85,13 +84,54 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
 
   g_print("Buffer: %s\n", buffer);
 
-  cJSON *response = cJSON_Parse(buffer);
-  g_free(buffer); // Free buffer after parsing
+  // Split and process each JSON object
+  size_t len = strlen(buffer);
+  int open_braces = 0, close_braces = 0;
+  size_t start = 0;
 
-  if (response == NULL) {
-    g_print("Failed to parse server response.\n");
-    return -1;
+  for (size_t i = 0; i < len; i++) {
+    if (buffer[i] == '{') {
+      open_braces++;
+    } else if (buffer[i] == '}') {
+      close_braces++;
+    }
+
+    // Check if we've found a complete JSON object
+    if (open_braces > 0 && open_braces == close_braces) {
+      size_t json_len = i - start + 1;
+      char *json_str = g_malloc(json_len + 1);
+      strncpy(json_str, buffer + start, json_len);
+      json_str[json_len] = '\0';
+
+      // Parse and process the individual JSON object
+      cJSON *response = cJSON_Parse(json_str);
+      if (!response) {
+        g_print("Failed to parse JSON: %s\n", json_str);
+        g_free(json_str);
+        continue;
+      }
+
+      // Process the parsed JSON
+      process_individual_response(response, logged_in, app_data);
+
+      // Clean up
+      cJSON_Delete(response);
+      g_free(json_str);
+
+      // Reset counters for the next JSON object
+      open_braces = 0;
+      close_braces = 0;
+      start = i + 1;
+    }
   }
+
+  g_free(buffer); // Free the main buffer after processing
+  return 0;
+}
+
+// Function to read and handle server responses
+int process_individual_response(cJSON *response, int *logged_in,
+                                AppData *app_data) {
 
   cJSON *action = cJSON_GetObjectItem(response, "action");
   if (!cJSON_IsString(action)) {
@@ -190,6 +230,13 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
+        cJSON *json = cJSON_CreateObject();
+        cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
+        char *json_str = cJSON_Print(json);
+        cJSON_Delete(json);
+        send(app_data->main_page->sock, json_str, strlen(json_str), 0);
+        g_print("Sent: %s\n", json_str);
+        g_free(json_str);
     } else {
       g_print("Error: LOGOUT error.\n");
     }
@@ -226,17 +273,14 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
         cJSON_Delete(logout);
         send(app_data->main_page->sock, logout_str, strlen(logout_str), 0);
         g_print("Sent: %s\n", logout_str);
-        g_free(logout_str);
-        cJSON_Delete(response);
+        if (logout_str) {
+          g_free(logout_str);
+          logout_str = NULL;
+        }
+        // Caused seg fault 
+        //cJSON_Delete(response);
         return 0;
       }
-      cJSON *json = cJSON_CreateObject();
-      cJSON_AddStringToObject(json, "action", "GET_PROFILE_DATA");
-      char *json_str = cJSON_Print(json);
-      cJSON_Delete(json);
-      send(app_data->main_page->sock, json_str, strlen(json_str), 0);
-      g_print("Sent: %s\n", json_str);
-      g_free(json_str);
     }
   } else if (strcmp(action->valuestring, "SEND_MESSAGE_TO_SERVER_STATUS") ==
              0) {
@@ -292,37 +336,22 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE_FROM_CHAT") == 0) {
     process_message_delete(cJSON_Print(response), app_data);
   } else if (strcmp(action->valuestring, "UPDATE_PASSWORD") == 0) {
-      cJSON *status = cJSON_GetObjectItem(response, "status");
-      if (status && strcmp(status->valuestring, "SUCCESS") == 0) {
-          g_print("Password updated successfully.\n");
-
-          // Show success message to the user
-          gtk_style_context_add_class(
-              gtk_widget_get_style_context(app_data->main_page->change_pw.message),
-              "form-message-success");
-          gtk_label_set_text(GTK_LABEL(app_data->main_page->change_pw.message),
-                             "Password changed successfully!");
-
-          // Reset password fields
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.old_pw), "");
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw), "");
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw_again), "");
-      } else {
-          g_print("Error: Failed to update password.\n");
-
-          // Show error message to the user
-          gtk_style_context_remove_class(
-              gtk_widget_get_style_context(app_data->main_page->change_pw.message),
-              "form-message-success");
-          gtk_label_set_text(GTK_LABEL(app_data->main_page->change_pw.message),
-                             "Failed to update password. Please try again.");
-          // Reset password fields
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.old_pw), "");
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw), "");
-          gtk_entry_set_text(GTK_ENTRY(app_data->main_page->change_pw.new_pw_again), "");
-      }
+    handle_up_pw_response(response, app_data);
+  } else if (strcmp(action->valuestring, "GET_SETTINGS") == 0) {
+    handle_get_settings_response(response, app_data);
+  } else if (strcmp(action->valuestring,
+                    "SEND_FILE_MESSAGE_TO_SERVER_STATUS") == 0) {
+    cJSON *status = cJSON_GetObjectItem(response, "status");
+    if (strcmp(status->valuestring, "SUCCESS") == 0) {
+      g_print("Sending  successful\n");
+      process_file_message_and_store(cJSON_Print(response), app_data);
+    } else {
+      g_print("Error: Sending error.\n");
     }
-      // Clean up JSON object
-      cJSON_Delete(response);
-      return 0;
+  } else if (strcmp(action->valuestring, "FILE_FROM_CHAT") == 0) {
+    process_file_message_and_store(cJSON_Print(response), app_data);
   }
+  // Clean up JSON object
+  // cJSON_Delete(response);
+  return 0;
+}

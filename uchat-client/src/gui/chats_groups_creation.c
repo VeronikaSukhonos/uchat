@@ -356,14 +356,23 @@ void adding_user(GtkWidget *add_user_button, gpointer data) {
       gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                          "Maximum number of members is reached");
     } else {
-      cJSON *json = cJSON_CreateObject();
-      cJSON_AddStringToObject(json, "action", "FIND_USER");
-      cJSON_AddStringToObject(json, "username", username);
-      char *json_str = cJSON_Print(json);
-      cJSON_Delete(json);
-      send(main_page->sock, json_str, strlen(json_str), 0);
-      g_print("Sent: %s\n", json_str);
-      g_free(json_str);
+      int already_in_group = 0;
+      for (int i = 0; i < (*main_page).group_users_count; ++i) {
+        if (strcmp(username, (*main_page).group_users[i].username) == 0) {
+          already_in_group = 1;
+          break;
+        }
+      }
+      if (already_in_group == 0) {
+        cJSON *json = cJSON_CreateObject();
+        cJSON_AddStringToObject(json, "action", "FIND_USER");
+        cJSON_AddStringToObject(json, "username", username);
+        char *json_str = cJSON_Print(json);
+        cJSON_Delete(json);
+        send(main_page->sock, json_str, strlen(json_str), 0);
+        g_print("Sent: %s\n", json_str);
+        g_free(json_str);
+      }
 
       gtk_entry_set_text(GTK_ENTRY((*main_page).create_group_data.username),
                          "");

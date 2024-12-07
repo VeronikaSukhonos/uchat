@@ -46,7 +46,7 @@ extern int receive_port;
 extern int is_calling;
 extern int incoming;
 
-typedef enum { TEXT, VOICE } ContentType;
+typedef enum { TEXT, VOICE, IMAGE, ANY_FILE } ContentType;
 
 typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
 
@@ -63,6 +63,9 @@ typedef struct {
   GtkWidget *username_label;
   GtkWidget *button;
   GtkWidget *voice_message_button;
+  GtkWidget *file_container;
+  GtkWidget *save_file_button;
+  GtkWidget *image_file;
   GtkWidget *message_label;
   GtkWidget *time_label;
   GtkWidget *changed_label;
@@ -220,13 +223,13 @@ int handle_get_profile_response(cJSON *response, AppData *app_data);
 
 int handle_response(int sock, int *logged_in, AppData *app_data);
 int handle_login_response(cJSON *response);
-
 int connect_to_server(const char *server_ip, int port);
 void get_serial_number(char *serial, size_t len);
-
+void update_username_label(AppData *app_data, const char *username);
+int handle_get_settings_response(cJSON *response, AppData *app_data);
+void handle_up_pw_response(cJSON *response, AppData *app_data);
 void handle_not_logged_in_choice(int sock);
 void handle_logged_in_choice(int sock, const char *username);
-void handle_update_password_response(cJSON *response, t_main_page_data *main_page);
 void process_voice_message_and_store(const char *json_response,
                                      AppData *app_data);
 
@@ -312,9 +315,12 @@ void add_message(GtkWidget *messages_container, const gchar *message_text,
 void on_message_send(GtkWidget *send_button, gpointer user_data);
 void on_message_received(const gchar *message_text);
 void show_filechooser(GtkWidget *attach_button, t_main_page_data *main_page);
-void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x, gint y,
-                           GtkSelectionData *data, guint info, guint time,
-                           t_main_page_data *main_page);
+void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x,
+                           gint y, GtkSelectionData *data, guint info,
+                           guint time, t_main_page_data *main_page);
+void send_file_message(int sock, char *file_path, int chat_id,
+                       t_main_page_data *main_page);
+GtkWidget *resize_image_file(char *filepath);
 
 // settings gui
 void show_pw(GtkWidget *edit_button, gpointer data);
@@ -427,3 +433,8 @@ void process_voice_call_stop(cJSON *response, AppData *app_data);
 
 // UTF-8 validation
 gboolean ensure_valid_utf8(const char* input, char* output, size_t output_size);
+void process_file_message_and_store(const char *json_response,
+                                    AppData *app_data);
+int is_image(char *file_path);
+int process_individual_response(cJSON *response, int *logged_in,
+                                AppData *app_data);

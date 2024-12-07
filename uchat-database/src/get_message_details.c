@@ -40,8 +40,10 @@ cJSON *get_message_details(sqlite3 *db, int message_id) {
     cJSON_AddStringToObject(message, "status",
                             (const char *)sqlite3_column_text(stmt, 9));
 
-    // If the content type is "voice", retrieve the voice_message
-    if (strcmp((const char *)sqlite3_column_text(stmt, 5), "voice") == 0) {
+    const char *message_type = (const char *)sqlite3_column_text(stmt, 5);
+
+    // Handle "voice" type
+    if (strcmp(message_type, "voice") == 0) {
       const void *voice_message_blob = sqlite3_column_blob(stmt, 8);
       int blob_size = sqlite3_column_bytes(stmt, 8);
 
@@ -56,6 +58,55 @@ cJSON *get_message_details(sqlite3 *db, int message_id) {
         }
       } else {
         cJSON_AddStringToObject(message, "voice_message", "");
+      }
+    }
+
+    // Handle "file" type
+    if (strcmp(message_type, "file") == 0) {
+      const char *sql_file =
+          "SELECT file_path, file_type, size, uploaded_at, file "
+          "FROM files WHERE message_id = ?;";
+      sqlite3_stmt *file_stmt;
+
+      if (sqlite3_prepare_v2(db, sql_file, -1, &file_stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_int(file_stmt, 1, message_id);
+
+        if (sqlite3_step(file_stmt) == SQLITE_ROW) {
+          // Extract file details
+          const char *file_path =
+              (const char *)sqlite3_column_text(file_stmt, 0);
+          const char *file_type =
+              (const char *)sqlite3_column_text(file_stmt, 1);
+          int file_size = sqlite3_column_int(file_stmt, 2);
+          const char *uploaded_at =
+              (const char *)sqlite3_column_text(file_stmt, 3);
+          const void *file_blob = sqlite3_column_blob(file_stmt, 4);
+          int blob_size = sqlite3_column_bytes(file_stmt, 4);
+
+          cJSON_AddStringToObject(message, "file_path",
+                                  file_path ? file_path : "");
+          cJSON_AddStringToObject(message, "file_type",
+                                  file_type ? file_type : "");
+          // cJSON_AddNumberToObject(message, "file_size", file_size);
+          // cJSON_AddStringToObject(message, "uploaded_at",
+          //                         uploaded_at ? uploaded_at : "");
+
+          if (file_blob && blob_size > 0) {
+            // Encode the file data into Base64 for sending over JSON
+            char *encoded_file = base64_encode(file_blob, blob_size);
+            if (encoded_file) {
+              cJSON_AddStringToObject(message, "file_data", encoded_file);
+              free(encoded_file); // Free the encoded string after use
+            }
+          } else {
+            cJSON_AddStringToObject(message, "file_data", "");
+          }
+        }
+
+        sqlite3_finalize(file_stmt);
+      } else {
+        fprintf(stderr, "Failed to prepare statement for file details: %s\n",
+                sqlite3_errmsg(db));
       }
     }
 

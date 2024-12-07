@@ -226,7 +226,11 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
                                     25);
       strncpy(last_sender, message_sender->valuestring, 63);
 
-      if (strcmp(last_message, "") == 0) {
+      cJSON *message_type = cJSON_GetObjectItem(last_message_json, "type");
+      if (cJSON_IsString(message_type) &&
+          strcmp(message_type->valuestring, "file") == 0) {
+        strcpy(last_message, "file message");
+      } else if (strcmp(last_message, "") == 0) {
         strcpy(last_message, "voice message");
       }
 
@@ -465,6 +469,11 @@ void create_msg_buttons_from_cache(t_main_page_data *main_page,
       if (cJSON_IsString(content_type_json) &&
           strcmp(content_type_json->valuestring, "voice") == 0) {
         new_node = create_message_node(main_page, VOICE, chat_id, message_json);
+      } else if (strcmp(content_type_json->valuestring, "file") == 0) {
+        cJSON *file_path_json = cJSON_GetObjectItem(message_json, "file_path");
+        new_node = create_message_node(
+            main_page, is_image(file_path_json->valuestring) ? IMAGE : ANY_FILE,
+            chat_id, message_json);
       } else {
         new_node = create_message_node(main_page, TEXT, chat_id, message_json);
       }

@@ -46,3 +46,6 @@ cJSON *retrieve_undelivered_messages(sqlite3 *db, int user_id, int chat_id);
 cJSON *retrieve_chat_members(sqlite3 *db, int chat_id);
 int update_message(sqlite3 *db, int message_id, const char *new_content);
 int delete_message(sqlite3 *db, int message_id);
+int store_file_message(sqlite3 *db, int chat_id, int sender_id,
+                       const char *file_type, const unsigned char *file_data,
+                       size_t file_size, char *file_path);

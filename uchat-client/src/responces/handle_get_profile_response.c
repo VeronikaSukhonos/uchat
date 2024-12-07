@@ -22,14 +22,24 @@ int handle_get_profile_response(cJSON *response, AppData *app_data) {
   update_username_label(app_data, username->valuestring);
   // Build the description string dynamically
   char description[256] = {0};
-  if (group && strlen(group->valuestring) > 0) {
-    snprintf(description, sizeof(description), "%s\n@%s | %s | %s",
-             full_name->valuestring, username->valuestring, group->valuestring,
-             role->valuestring);
-  } else {
-    snprintf(description, sizeof(description), "%s\n@%s | %s",
-             full_name->valuestring, username->valuestring, role->valuestring);
-  }
+if (group && strlen(group->valuestring) > 0) {
+    if (role && strcmp(role->valuestring, " ❔  No status") != 0) {
+        snprintf(description, sizeof(description), "%s\n@%s | %s | %s",
+                 full_name->valuestring, username->valuestring, group->valuestring,
+                 role->valuestring);
+    } else {
+        snprintf(description, sizeof(description), "%s\n@%s | %s",
+                 full_name->valuestring, username->valuestring, group->valuestring);
+    }
+} else {
+    if (role && strcmp(role->valuestring, " ❔  No status") != 0) {
+        snprintf(description, sizeof(description), "%s\n@%s | %s",
+                 full_name->valuestring, username->valuestring, role->valuestring);
+    } else {
+        snprintf(description, sizeof(description), "%s\n@%s",
+                 full_name->valuestring, username->valuestring);
+    }
+}
   gtk_label_set_label(GTK_LABEL(app_data->main_page->profile_data.description),
                       description);
   gtk_label_set_label(GTK_LABEL(app_data->main_page->profile_data.username),
