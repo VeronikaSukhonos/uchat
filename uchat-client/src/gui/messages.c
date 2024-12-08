@@ -573,6 +573,17 @@ void create_message_button(t_main_page_data *main_page,
     }
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER((*temp_node).message->button), main_box);
+    if (strcmp(temp_node->message->sender, username) != 0) {
+      (*temp_node).message->username_label =
+          gtk_label_new((*temp_node).message->sender);
+      gtk_box_pack_start(GTK_BOX(main_box),
+                         (*temp_node).message->username_label, FALSE, FALSE, 0);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->username_label),
+          "sender-name");
+      gtk_widget_set_halign((*temp_node).message->username_label,
+                            GTK_ALIGN_START);
+    }
     (*temp_node).message->message_label = gtk_label_new("Deleted");
     gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
                        TRUE, FALSE, 0);
@@ -586,6 +597,8 @@ void create_message_button(t_main_page_data *main_page,
 
     gtk_widget_set_visible((*temp_node).message->button, 1);
     gtk_widget_set_visible(main_box, 1);
+    if (strcmp(temp_node->message->sender, username) != 0)
+      gtk_widget_set_visible((*temp_node).message->username_label, 1);
     gtk_widget_set_visible((*temp_node).message->message_label, 1);
   } else {
     // Create a new button for the message

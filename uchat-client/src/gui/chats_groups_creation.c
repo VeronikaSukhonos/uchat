@@ -106,6 +106,13 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                             last_message, last_sender, last_time, unread);
 }
 
+void scroll_down(GtkAdjustment *chat_vadjustment, gpointer data) {
+  t_chat_node *temp_node = (t_chat_node *)data;
+  double a_upper = gtk_adjustment_get_upper(chat_vadjustment);
+  double a_page_size = gtk_adjustment_get_page_size(chat_vadjustment);
+  gtk_adjustment_set_value(chat_vadjustment, a_upper - a_page_size);
+}
+
 void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
                                const char *name, const char *chat_type,
                                const char *last_message,
@@ -212,6 +219,9 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   					GDK_ACTION_COPY);
   g_signal_connect(dialog_scroll, "drag-data-received",
                    G_CALLBACK(on_drag_data_received), main_page);
+
+  GtkAdjustment *chat_vadjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(dialog_scroll));
+  g_signal_connect(chat_vadjustment, "changed", G_CALLBACK(scroll_down), temp_node);
 
   // Convert chat_id to string and set it as the child name
   char id_str[32];
