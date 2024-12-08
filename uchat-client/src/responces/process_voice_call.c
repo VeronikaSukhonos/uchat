@@ -25,7 +25,7 @@ void process_voice_call_start(cJSON *response, AppData *app_data) {
   cJSON_AddStringToObject(json, "action", "ACCEPT_CALL");
   cJSON_AddStringToObject(json, "callee_name", username);
   cJSON_AddStringToObject(json, "caller_name", caller_name);
-  cJSON_AddStringToObject(json, "caller_ip", caller_ip);
+  cJSON_AddStringToObject(json, "caller_ipp", caller_ip);
   cJSON_AddNumberToObject(json, "caller_port", caller_port);
   cJSON_AddNumberToObject(json, "callee_port", receive_port);
 

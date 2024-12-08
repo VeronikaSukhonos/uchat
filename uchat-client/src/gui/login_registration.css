@@ -477,6 +477,11 @@ textview text selection, entry selection {
 	transition: 0.3s;
 }
 
+.smile-window button:hover {
+	background-color: #3B3B3E;
+	transition: 0.3s;
+}
+
 .input-button, .send-button, .voice-call-button {
     background-color: transparent;
     background-image: none;

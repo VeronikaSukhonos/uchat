@@ -9,6 +9,15 @@ void show_pw(GtkWidget *edit_button, gpointer data) {
     gtk_entry_set_text(GTK_ENTRY((*main_page).change_pw.old_pw), "");
     gtk_entry_set_text(GTK_ENTRY((*main_page).change_pw.new_pw), "");
     gtk_entry_set_text(GTK_ENTRY((*main_page).change_pw.new_pw_again), "");
+    gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.old_pw), TRUE);
+    gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.new_pw), TRUE);
+    gtk_entry_set_visibility(GTK_ENTRY((*main_page).change_pw.new_pw_again), TRUE);
+    change_password_visibility((*main_page).change_pw.old_pw_button,
+    						   (*main_page).change_pw.old_pw);
+    change_password_visibility((*main_page).change_pw.new_pw_button,
+    						   (*main_page).change_pw.new_pw);
+    change_password_visibility((*main_page).change_pw.new_pw_again_button,
+    						   (*main_page).change_pw.new_pw_again);
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                      "edit_password");
 }

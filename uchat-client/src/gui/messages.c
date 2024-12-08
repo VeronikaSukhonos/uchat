@@ -440,6 +440,10 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   //     (*main_page).messages;         // Insert at the beginning of the list
   // (*main_page).messages = temp_node; // Update the head of the list
 
+  temp_node->message->main_window = 
+	gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(
+	gtk_widget_get_parent(main_page->central_area_stack))));
+
   temp_node->message->chat_id = chat_id;
   temp_node->message->content_type = message_type;
   temp_node->message->status = NEW;
@@ -701,8 +705,8 @@ void create_message_button(t_main_page_data *main_page,
       gtk_style_context_add_class(
           gtk_widget_get_style_context((*temp_node).message->save_file_button),
           "save-button");
-      //g_signal_connect(temp_node->message->save_file_button, "clicked",
-      //                  G_CALLBACK(save_file), temp_node);
+      g_signal_connect(temp_node->message->save_file_button, "clicked",
+                        G_CALLBACK(save_file), temp_node);
       (*temp_node).message->message_label =
           gtk_label_new((*temp_node).message->content);
       gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),

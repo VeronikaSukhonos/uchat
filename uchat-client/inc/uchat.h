@@ -51,6 +51,7 @@ typedef enum { TEXT, VOICE, IMAGE, ANY_FILE } ContentType;
 typedef enum { NEW, MODIFIED, DELETED } MessageStatus;
 
 typedef struct {
+  GtkWidget *main_window;
   int message_id;
   int chat_id;
   char sender[64];
@@ -324,6 +325,7 @@ void on_drag_data_received(GtkWidget *dialog_scroll, GdkDragContext *c, gint x,
 void send_file_message(int sock, char *file_path, int chat_id,
                        t_main_page_data *main_page);
 GtkWidget *resize_image_file(char *filepath);
+void save_file(GtkWidget *save_file_button, MessageNode *temp_node);
 
 // settings gui
 void show_pw(GtkWidget *edit_button, gpointer data);

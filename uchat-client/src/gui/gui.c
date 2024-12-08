@@ -83,6 +83,11 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
   char *username = (char *)gtk_entry_get_text(GTK_ENTRY(data->username));
   char *password = (char *)gtk_entry_get_text(GTK_ENTRY(data->password));
 
+  if (gtk_style_context_has_class(gtk_widget_get_style_context(data->message),
+                                  "form-message-success")) {
+    gtk_style_context_remove_class(gtk_widget_get_style_context(data->message),
+                                   "form-message-success");
+  }
   if (check_form_data(username, password, data->message) == 1) {
     // send JSON LOGIN
     char serial_number[64] = {0};

@@ -70,6 +70,27 @@ int handle_update_profile(sqlite3 *db, Client *client, cJSON *json) {
     return PROFILE_UPDATE_FAILURE;
   }
 
+  // change username in chats names
+  char *chats_update_query = "UPDATE chats SET name = REPLACE(name, ?, ?)";
+  sqlite3_stmt *chats_update_stmt;
+  if (sqlite3_prepare_v2(db, chats_update_query, -1, &chats_update_stmt, NULL) !=
+      SQLITE_OK) {
+    fprintf(stderr, "Failed to prepare chats update statement: %s\n",
+            sqlite3_errmsg(db));
+    return PROFILE_UPDATE_FAILURE;
+  }
+
+  sqlite3_bind_text(chats_update_stmt, 1, client->username, -1, SQLITE_STATIC);
+  sqlite3_bind_text(chats_update_stmt, 2, new_username, -1, SQLITE_STATIC);
+
+  update_result = sqlite3_step(chats_update_stmt);
+  sqlite3_finalize(chats_update_stmt);
+
+  if (update_result != SQLITE_DONE) {
+    fprintf(stderr, "Failed to update chats name: %s\n", sqlite3_errmsg(db));
+    return PROFILE_UPDATE_FAILURE;
+  }
+
   // Send success response
   cJSON *response = cJSON_CreateObject();
   cJSON_AddStringToObject(response, "action", "UPDATE_PROFILE_DATA");
