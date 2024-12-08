@@ -22,6 +22,7 @@ void remove_buttons(t_main_page_data *main_page) {
                                  msg_node->message->button);
             g_print("Removed button for message ID: %d\n",
                     msg_node->message->message_id);
+            msg_node->message->button = NULL;
           } else {
             g_print("Warning: button is NULL for message ID: %d\n",
                     msg_node->message->message_id);
@@ -191,6 +192,7 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
                                  msg_node->message->button);
             g_print("Removed button for message ID: %d\n",
                     msg_node->message->message_id);
+            msg_node->message->button = NULL;
           } else {
             g_print("Warning: button is NULL for message ID: %d\n",
                     msg_node->message->message_id);
