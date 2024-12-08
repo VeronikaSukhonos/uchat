@@ -30,12 +30,12 @@ char *receive_large_json(int socket_fd) {
     if (activity < 0) {
       perror("select failed");
       g_free(buffer);
-      return NULL;
+      return (char *)-1; // Return -1 to indicate error
     } else if (activity == 0) {
       // Timeout occurred
       fprintf(stderr, "recv timed out.\n");
       g_free(buffer);
-      return NULL;
+      return (char *)-1; // Return -1 for timeout
     }
 
     // If data is ready to be read
@@ -43,10 +43,12 @@ char *receive_large_json(int socket_fd) {
     if (bytes < 0) {
       perror("recv failed");
       g_free(buffer);
-      return NULL;
+      return (char *)-1; // Return -1 for recv error
     } else if (bytes == 0) {
       // Connection closed by the server
-      break;
+      fprintf(stderr, "Server disconnected.\n");
+      g_free(buffer);
+      return (char *)-1; // Return -1 for disconnection
     }
 
     received += bytes;
@@ -58,7 +60,7 @@ char *receive_large_json(int socket_fd) {
       if (!temp) {
         perror("realloc failed");
         g_free(buffer);
-        return NULL;
+        return (char *)-1; // Return -1 for memory allocation failure
       }
       buffer = temp;
     }
@@ -76,10 +78,10 @@ char *receive_large_json(int socket_fd) {
 
 int handle_response(int sock, int *logged_in, AppData *app_data) {
   char *buffer = receive_large_json(sock);
-  if (!buffer) {
-    g_print("Failed to receive server response.\n");
+  if (buffer == (char *)-1) {
+    g_print("Server disconnected or an error occurred.\n");
     *logged_in = 0;
-    return -1;
+    return -1; // Return -1 for disconnection or error
   }
 
   g_print("Buffer: %s\n", buffer);
@@ -112,7 +114,9 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       }
 
       // Process the parsed JSON
-      process_individual_response(response, logged_in, app_data);
+      if (process_individual_response(response, logged_in, app_data) != 0) {
+        return -1;
+      }
 
       // Clean up
       cJSON_Delete(response);
@@ -230,7 +234,7 @@ int process_individual_response(cJSON *response, int *logged_in,
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
-        send_json(app_data->main_page->sock, "UPDATE_PROFILE_DATA");
+      send_json(app_data->main_page->sock, "UPDATE_PROFILE_DATA");
     } else {
       g_print("Error: LOGOUT error.\n");
     }
@@ -272,8 +276,8 @@ int process_individual_response(cJSON *response, int *logged_in,
           g_free(logout_str);
           logout_str = NULL;
         }
-        // Caused seg fault 
-        //cJSON_Delete(response);
+        // Caused seg fault
+        // cJSON_Delete(response);
         return 0;
       }
     }

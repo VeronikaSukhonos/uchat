@@ -80,6 +80,7 @@ void setup_main_application() {
   AppData app_data = {pages,      registration,       login,
                       chats,      &registration_data, &login_data,
                       &main_page, main_overlay,       &reconnect};
+  app_data.main_page->opened_chat = NULL;
 
   // Monitor the socket with GIOChannel
   if (sock >= 0) {
@@ -126,6 +127,7 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 
     if (response_status == 0) {
       // Successfully received data, do nothing further
+      g_print("Success\n");
       return TRUE;
     } else {
       if (app_data->main_page->voice_call_window)

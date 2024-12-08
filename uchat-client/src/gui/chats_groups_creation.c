@@ -102,15 +102,33 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
 
   // If chat_id does not exist, create a new chat button
   g_print("Chat ID %d not found, creating a new button...\n", chat_id);
-  new_chat_button_from_json(main_page, chat_id, name, chat_type,
-                            last_message, last_sender, last_time, unread);
+  new_chat_button_from_json(main_page, chat_id, name, chat_type, last_message,
+                            last_sender, last_time, unread);
+}
+
+gboolean is_user_scrolling = FALSE;
+
+void on_scroll_changed(GtkAdjustment *chat_vadjustment, gpointer data) {
+  double a_value = gtk_adjustment_get_value(chat_vadjustment);
+  double a_upper = gtk_adjustment_get_upper(chat_vadjustment);
+  double a_page_size = gtk_adjustment_get_page_size(chat_vadjustment);
+
+  // If the user scrolls up, set the flag to TRUE
+  if (a_value + a_page_size < a_upper - 1.0) {
+    is_user_scrolling = TRUE;
+  } else {
+    // Re-enable auto-scroll when the user scrolls to the bottom
+    is_user_scrolling = FALSE;
+  }
 }
 
 void scroll_down(GtkAdjustment *chat_vadjustment, gpointer data) {
-  t_chat_node *temp_node = (t_chat_node *)data;
-  double a_upper = gtk_adjustment_get_upper(chat_vadjustment);
-  double a_page_size = gtk_adjustment_get_page_size(chat_vadjustment);
-  gtk_adjustment_set_value(chat_vadjustment, a_upper - a_page_size);
+  // Only scroll down if the user is not manually scrolling
+  if (!is_user_scrolling) {
+    double a_upper = gtk_adjustment_get_upper(chat_vadjustment);
+    double a_page_size = gtk_adjustment_get_page_size(chat_vadjustment);
+    gtk_adjustment_set_value(chat_vadjustment, a_upper - a_page_size);
+  }
 }
 
 void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
@@ -212,16 +230,24 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   gtk_widget_set_halign((*temp_node).chat.unread, GTK_ALIGN_END);
 
   GtkWidget *dialog_scroll = gtk_scrolled_window_new(NULL, NULL);
-  gtk_style_context_add_class(
-      gtk_widget_get_style_context(dialog_scroll), "dialog-scroll");
+  gtk_style_context_add_class(gtk_widget_get_style_context(dialog_scroll),
+                              "dialog-scroll");
   GtkTargetEntry targets[] = {{"text/uri-list", GTK_TARGET_OTHER_APP, 0}};
   gtk_drag_dest_set(dialog_scroll, GTK_DEST_DEFAULT_ALL, targets, 1,
-  					GDK_ACTION_COPY);
+                    GDK_ACTION_COPY);
   g_signal_connect(dialog_scroll, "drag-data-received",
                    G_CALLBACK(on_drag_data_received), main_page);
 
-  GtkAdjustment *chat_vadjustment = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(dialog_scroll));
-  g_signal_connect(chat_vadjustment, "changed", G_CALLBACK(scroll_down), temp_node);
+  GtkAdjustment *chat_vadjustment =
+      gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(dialog_scroll));
+
+  // Monitor user scrolling
+  g_signal_connect(chat_vadjustment, "value-changed",
+                   G_CALLBACK(on_scroll_changed), NULL);
+
+  // Handle new messages (scroll down only if the user is not manually
+  // scrolling)
+  g_signal_connect(chat_vadjustment, "changed", G_CALLBACK(scroll_down), NULL);
 
   // Convert chat_id to string and set it as the child name
   char id_str[32];
@@ -232,7 +258,7 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   (*temp_node).chat.box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
   gtk_container_add(GTK_CONTAINER(dialog_scroll), (*temp_node).chat.box);
   gtk_style_context_add_class(
-    gtk_widget_get_style_context((*temp_node).chat.box), "chat-box");
+      gtk_widget_get_style_context((*temp_node).chat.box), "chat-box");
 
   (*temp_node).chat.changing_message = NULL;
 
@@ -315,10 +341,9 @@ void chat_creation(GtkWidget *create_chat_button, gpointer data) {
       GTK_ENTRY((*main_page).create_chat_data.username));
 
   if (strcmp(username, "") == 0) {
-      gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message),
-                         "Username is required");
-  }
-  else {
+    gtk_label_set_text(GTK_LABEL((*main_page).create_chat_data.message),
+                       "Username is required");
+  } else {
     cJSON *json = cJSON_CreateObject();
     cJSON_AddStringToObject(json, "action", "CREATE_CHAT");
     cJSON_AddStringToObject(json, "username", username);
@@ -399,8 +424,7 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
   if (strcmp(name, "") == 0) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group must have a name");
-  }
-  else if (strlen(name) > 40) {
+  } else if (strlen(name) > 40) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group name cannot exceed 40 characters");
   }

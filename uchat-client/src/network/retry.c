@@ -50,14 +50,15 @@ int attempt_main_reconnection(AppData *app_data) {
       close_voice_call_window(app_data->main_page->voice_call_window,
                               app_data->main_page);
 
-    if (app_data->main_page->opened_chat != NULL &&
-        app_data->main_page->opened_chat->is_mic_active == TRUE) {
-      stop_recording();
-      GtkWidget *mic_button_img_start = gtk_image_new_from_file(
-          "uchat-client/src/gui/resources/voice-start.png");
-      gtk_button_set_image(GTK_BUTTON(app_data->main_page->mic_button),
-                           mic_button_img_start);
-      app_data->main_page->opened_chat->is_mic_active = FALSE;
+    if (app_data->main_page->opened_chat != NULL) {
+      if (app_data->main_page->opened_chat->is_mic_active == TRUE) {
+        stop_recording();
+        GtkWidget *mic_button_img_start = gtk_image_new_from_file(
+            "uchat-client/src/gui/resources/voice-start.png");
+        gtk_button_set_image(GTK_BUTTON(app_data->main_page->mic_button),
+                             mic_button_img_start);
+        app_data->main_page->opened_chat->is_mic_active = FALSE;
+      }
     }
     app_data->main_page->opened_chat = NULL;
     remove_buttons(app_data->main_page);

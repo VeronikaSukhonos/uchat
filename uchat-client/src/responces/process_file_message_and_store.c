@@ -116,6 +116,7 @@ void process_file_message_and_store(const char *json_response,
   } else {
     fprintf(stderr, "Failed to store voice message in cache.\n");
   }
+  is_user_scrolling = FALSE;
   MessageNode *msg_node = create_message_node(
       app_data->main_page, is_image(file_path) == 1 ? IMAGE : ANY_FILE, chat_id,
       message);

@@ -11,10 +11,12 @@ int incoming = 0;
 
 void close_voice_call_window(GtkWidget *voice_call_window,
                              t_main_page_data *main_page) {
-  stop_audio();
-  play_audio("uchat-client/sounds/hangup.wav");
-  gtk_widget_destroy(voice_call_window);
-  main_page->voice_call_window = NULL;
+  if (voice_call_window) {
+    stop_audio();
+    play_audio("uchat-client/sounds/hangup.wav");
+    gtk_widget_destroy(voice_call_window);
+    main_page->voice_call_window = NULL;
+  }
 }
 
 void stop_voice_call(GtkWidget *reject_button, t_main_page_data *main_page) {
@@ -53,7 +55,9 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
   in_call = 1;
   incoming = 0;
   cJSON_free(temp);
+  g_print(" try Closed\n");
   close_voice_call_window(main_page->voice_call_window, main_page);
+  g_print("Closed\n");
   create_voice_call_window(NULL, main_page, caller_name->valuestring);
   gtk_label_set_text(GTK_LABEL(main_page->voice_call_window_label), "In call");
   play_audio("uchat-client/sounds/accept.wav");
@@ -150,12 +154,23 @@ void create_voice_call_window(GtkWidget *voice_call_button,
     gtk_button_set_image(GTK_BUTTON(accept_button), accept_image);
     g_signal_connect(accept_button, "clicked", G_CALLBACK(accept_voice_call),
                      main_page);
+    GtkWidget *reject_button = gtk_button_new();
+    gtk_box_pack_start(GTK_BOX(buttons_container), reject_button, FALSE, FALSE,
+                       25);
+    gtk_style_context_add_class(gtk_widget_get_style_context(reject_button),
+                                "voice-call-button");
+    GtkWidget *reject_image = gtk_image_new_from_file(
+        "uchat-client/src/gui/resources/voice-call-reject.png");
+    gtk_button_set_image(GTK_BUTTON(reject_button), reject_image);
+    g_signal_connect(reject_button, "clicked", G_CALLBACK(stop_voice_call),
+                     main_page);
   }
 
   gtk_widget_show_all(main_page->voice_call_window);
   if (in_call == 0 && incoming == 0) {
     play_audio("uchat-client/sounds/ring.wav");
-    const gchar *callee_name = gtk_label_get_text(GTK_LABEL(main_page->chat_nickname));
+    const gchar *callee_name =
+        gtk_label_get_text(GTK_LABEL(main_page->chat_nickname));
     gtk_label_set_text(GTK_LABEL(username_label), callee_name);
 
     cJSON *response = cJSON_CreateObject();

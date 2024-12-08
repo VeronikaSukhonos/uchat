@@ -1,6 +1,7 @@
 #include <uchat.h>
 
 void remove_buttons(t_main_page_data *main_page) {
+  is_user_scrolling = FALSE;
   for (t_chat_node *i = main_page->chats; i != NULL; i = i->next) {
     if (main_page->opened_chat == &i->chat) {
       GtkWidget *chat_box =
@@ -32,6 +33,7 @@ void remove_buttons(t_main_page_data *main_page) {
 }
 
 void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_chat_button);
@@ -42,6 +44,7 @@ void show_new_chat(GtkWidget *new_chat_button, gpointer data) {
 }
 
 void show_new_group(GtkWidget *new_group_button, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &new_group_button);
@@ -52,6 +55,7 @@ void show_new_group(GtkWidget *new_group_button, gpointer data) {
 }
 
 void show_profile(GtkWidget *settings_button, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
   set_selected_button(&(*main_page).menu_button_selected, &settings_button);
@@ -90,6 +94,7 @@ void show_profile(GtkWidget *settings_button, gpointer data) {
 }
 
 void show_edit_page(GtkWidget *edit_button, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
   remove_buttons(main_page);
 
@@ -124,6 +129,7 @@ void show_edit_page(GtkWidget *edit_button, gpointer data) {
 }
 
 void show_chat(GtkWidget *chat_button, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
 
   // Set the selected button for the menu
@@ -157,6 +163,12 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
       // You can add a log or other actions as needed
       stop_recording();
       g_print("Recording stopped for chat: %d\n", i->chat.id);
+    }
+    if (i->chat.changing_message) {
+      i->chat.changing_message = NULL;
+      GtkTextBuffer *message_buffer =
+          GTK_TEXT_BUFFER(main_page->message_buffer);
+      gtk_text_buffer_set_text(message_buffer, "", -1);
     }
   }
 
@@ -278,6 +290,7 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
 }
 
 void show_profile_from_icon(GtkWidget *profile_icon, gpointer data) {
+  is_user_scrolling = FALSE;
   t_main_page_data *main_page = (t_main_page_data *)data;
 
   // Remove any selected buttons from the menu
@@ -301,11 +314,12 @@ void show_profile_from_icon(GtkWidget *profile_icon, gpointer data) {
 }
 
 void show_login(GtkWidget *login_link_button, t_form_data *data) {
+  is_user_scrolling = FALSE;
   GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "login");
   gtk_window_set_focus(
-  	GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
+      GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
   gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
@@ -317,11 +331,12 @@ void show_login(GtkWidget *login_link_button, t_form_data *data) {
 }
 
 void show_registration(GtkWidget *registration_link_button, t_form_data *data) {
+  is_user_scrolling = FALSE;
   GtkWidget *pages = gtk_widget_get_parent(gtk_widget_get_parent(data->form));
 
   gtk_stack_set_visible_child_name(GTK_STACK(pages), "registration");
   gtk_window_set_focus(
-  	GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
+      GTK_WINDOW(gtk_widget_get_parent(gtk_widget_get_parent(pages))), NULL);
   gtk_entry_set_text(GTK_ENTRY(data->username), "");
   gtk_entry_set_text(GTK_ENTRY(data->password), "");
   gtk_label_set_text(GTK_LABEL(data->message), "");

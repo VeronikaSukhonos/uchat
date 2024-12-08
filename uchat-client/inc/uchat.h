@@ -45,6 +45,7 @@ extern int in_call;
 extern int receive_port;
 extern int is_calling;
 extern int incoming;
+extern gboolean is_user_scrolling;
 
 typedef enum { TEXT, VOICE, IMAGE, ANY_FILE } ContentType;
 
@@ -438,7 +439,7 @@ void process_voice_call_accept(cJSON *response, AppData *app_data);
 void process_voice_call_stop(cJSON *response, AppData *app_data);
 
 // UTF-8 validation
-gboolean ensure_valid_utf8(const char* input, char* output, size_t output_size);
+gboolean ensure_valid_utf8(const char *input, char *output, size_t output_size);
 void process_file_message_and_store(const char *json_response,
                                     AppData *app_data);
 int is_image(char *file_path);

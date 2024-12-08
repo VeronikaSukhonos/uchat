@@ -10,7 +10,8 @@ void process_voice_call_start(cJSON *response, AppData *app_data) {
   char caller_ip[INET_ADDRSTRLEN];
 
   // Ensure caller name is valid UTF-8
-  if (!ensure_valid_utf8(caller_name_json->valuestring, caller_name, sizeof(caller_name))) {
+  if (!ensure_valid_utf8(caller_name_json->valuestring, caller_name,
+                         sizeof(caller_name))) {
     g_warning("Invalid UTF-8 in caller name, using sanitized version");
   }
   strcpy(caller_ip, caller_ip_json->valuestring);
@@ -55,7 +56,8 @@ void process_voice_call_accept(cJSON *response, AppData *app_data) {
   char callee_ip[INET_ADDRSTRLEN];
 
   // Ensure callee name is valid UTF-8
-  if (!ensure_valid_utf8(callee_name_json->valuestring, callee_name, sizeof(callee_name))) {
+  if (!ensure_valid_utf8(callee_name_json->valuestring, callee_name,
+                         sizeof(callee_name))) {
     g_warning("Invalid UTF-8 in callee name, using sanitized version");
   }
   strcpy(callee_ip, callee_ip_json->valuestring);
@@ -72,12 +74,12 @@ void process_voice_call_accept(cJSON *response, AppData *app_data) {
 }
 
 void process_voice_call_stop(cJSON *response, AppData *app_data) {
-  if (in_call == 1) {
-    stop_receive_pipeline();
-    stop_send_pipeline();
-    close_voice_call_window(app_data->main_page->voice_call_window,
-                            app_data->main_page);
-    g_print("Stopped voice call\n");
-    in_call = 0;
-  }
+  stop_receive_pipeline();
+  stop_send_pipeline();
+  close_voice_call_window(app_data->main_page->voice_call_window,
+                          app_data->main_page);
+  g_print("Stopped voice call\n");
+  in_call = 0;
+  incoming = 0;
+  is_calling = 0;
 }
