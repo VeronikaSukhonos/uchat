@@ -190,26 +190,15 @@ void show_message_menu(GtkWidget *message_button, gpointer data) {
 }
 
 void start_change_message(GtkWidget *change_message_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
+  t_main_page_temp_node *mp_tn = (t_main_page_temp_node *)data;
   GtkWidget *message_menu =
       gtk_widget_get_parent(gtk_widget_get_parent(change_message_button));
-  MessageNode *changing_message;
+  MessageNode *changing_message = mp_tn->temp_node;
 
   // Find the corresponding message node
-  for (changing_message = (*main_page).messages;
-       changing_message != NULL &&
-       (*changing_message).message->menu != message_menu;
-       changing_message = changing_message->next)
-    ;
-
-  if (changing_message == NULL) {
-    g_print("Changing message not found.\n");
-    return;
-  }
-
-  main_page->opened_chat->changing_message = changing_message;
+  mp_tn->main_page->opened_chat->changing_message = changing_message;
   g_print("Changing message \"%s\"\n",
-          main_page->opened_chat->changing_message->message->content);
+          mp_tn->main_page->opened_chat->changing_message->message->content);
 
   // Ensure valid UTF-8 and set the message content
   const char *message_content = changing_message->message->content;
@@ -219,8 +208,8 @@ void start_change_message(GtkWidget *change_message_button, gpointer data) {
     g_print("Error: Message content is not valid UTF-8.\n");
     message_content = ""; // Default to empty if invalid
   }
-
-  gtk_text_buffer_set_text(main_page->message_buffer, message_content, -1);
+  gtk_text_buffer_set_text(mp_tn->main_page->message_buffer, message_content, -1);
+  gtk_widget_grab_focus(mp_tn->main_page->message_entry);
 }
 
 void change_message(t_main_page_data *main_page, const gchar *message_text) {
@@ -251,24 +240,16 @@ void change_message(t_main_page_data *main_page, const gchar *message_text) {
 }
 
 void delete_message(GtkWidget *delete_message_button, gpointer data) {
-  t_main_page_data *main_page = (t_main_page_data *)data;
+  t_main_page_temp_node *mp_tn = (t_main_page_temp_node *)data;
   GtkWidget *message_menu =
       gtk_widget_get_parent(gtk_widget_get_parent(delete_message_button));
-  MessageNode *delete_message;
-  for (delete_message = (*main_page).messages;
-       delete_message != NULL &&
-       (*delete_message).message->menu != message_menu;
-       delete_message = delete_message->next)
-    ;
-  if (delete_message == NULL) {
-    g_print("Deleting message does not found\n");
-    return;
-  }
+  MessageNode *delete_message = mp_tn->temp_node;
+
   cJSON *json_message = cJSON_CreateObject();
   cJSON_AddStringToObject(json_message, "action", "DELETE_MESSAGE");
   cJSON_AddNumberToObject(json_message, "message_id",
                           delete_message->message->message_id);
-  cJSON_AddNumberToObject(json_message, "chat_id", main_page->opened_chat->id);
+  cJSON_AddNumberToObject(json_message, "chat_id", mp_tn->main_page->opened_chat->id);
   char *json_str = cJSON_Print(json_message);
   g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
@@ -277,8 +258,8 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   cJSON_free(json_message);
   (*delete_message).message->status = DELETED;
   strcpy(delete_message->message->content, "Deleted");
-  if (main_page->opened_chat->changing_message == delete_message)
-    main_page->opened_chat->changing_message = NULL;
+  if (mp_tn->main_page->opened_chat->changing_message == delete_message)
+    mp_tn->main_page->opened_chat->changing_message = NULL;
 }
 
 void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window) {
@@ -541,6 +522,7 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   }
 
   temp_node->message->button = NULL; // Initial value, you can modify later
+  temp_node->message->menu = NULL;
   // If it's a voice message, create the button and connect the signal
   return temp_node;
 }
@@ -737,6 +719,10 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     }
 
+	t_main_page_temp_node *mp_tn = g_malloc(sizeof(t_main_page_temp_node));
+    mp_tn->main_page = main_page;
+    mp_tn->temp_node = temp_node;
+
     // Message menu
     if (strcmp(temp_node->message->sender, username) == 0) {
       (*temp_node).message->menu =
@@ -757,7 +743,7 @@ void create_message_button(t_main_page_data *main_page,
         gtk_box_pack_start(GTK_BOX(message_menu_box), change_message_button,
                            TRUE, FALSE, 0);
         g_signal_connect(change_message_button, "clicked",
-                         G_CALLBACK(start_change_message), main_page);
+                         G_CALLBACK(start_change_message), mp_tn);
       }
 
       GtkWidget *delete_message_button = gtk_button_new_with_label("Delete");
@@ -767,7 +753,7 @@ void create_message_button(t_main_page_data *main_page,
       gtk_box_pack_start(GTK_BOX(message_menu_box), delete_message_button, TRUE,
                          FALSE, 0);
       g_signal_connect(delete_message_button, "clicked",
-                       G_CALLBACK(delete_message), main_page);
+                       G_CALLBACK(delete_message), mp_tn);
 
     } else
       (*temp_node).message->menu = NULL;

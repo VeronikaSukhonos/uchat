@@ -156,7 +156,7 @@ typedef struct s_main_page_data {
   t_group_users_data group_users[USERS_IN_GROUP_COUNT];
   GtkWidget *chats_stack;
   GtkWidget *messages_container;
-  GtkTextView *message_entry;
+  GtkWidget *message_entry;
   GtkTextBuffer *message_buffer;
   GtkWidget *smile_window;
   GtkWidget *mic_button;
@@ -168,6 +168,11 @@ typedef struct s_main_page_data {
   const char *previous_page;
   char accept_call[120];
 } t_main_page_data;
+
+typedef struct s_main_page_temp_node {
+	t_main_page_data *main_page;
+	MessageNode *temp_node;
+} t_main_page_temp_node;
 
 typedef struct s_form_data {
   int sock;
