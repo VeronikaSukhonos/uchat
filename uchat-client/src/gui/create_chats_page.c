@@ -468,6 +468,8 @@ void create_chats_page(GtkWidget *pages, GtkWidget *chats,
   g_signal_connect(message_entry, "key-press-event",
                    G_CALLBACK(on_key_press_event), main_page);
 
+  main_page->message_entry = message_entry;
+
   main_page->mic_button = gtk_button_new();
   gtk_box_pack_start(GTK_BOX(message_entry_box), main_page->mic_button, FALSE,
                      FALSE, 0);

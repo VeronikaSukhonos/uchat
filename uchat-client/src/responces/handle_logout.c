@@ -21,6 +21,7 @@ void handle_logout(AppData *app_data) {
   free_message_list(app_data->main_page->messages);
   app_data->main_page->messages = NULL;
   g_print("Message head set to null\n");
+  gtk_text_buffer_set_text(app_data->main_page->message_buffer, "", -1);
   gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "login");
   gtk_window_set_focus(GTK_WINDOW(gtk_widget_get_parent(app_data->main_overlay)), NULL);
   delete_session();
