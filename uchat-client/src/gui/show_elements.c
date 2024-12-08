@@ -113,10 +113,8 @@ void show_edit_page(GtkWidget *edit_button, gpointer data) {
   gtk_entry_set_text(
       GTK_ENTRY((*main_page).edit_data.student_group),
       gtk_label_get_label(GTK_LABEL((*main_page).profile_data.student_group)));
-
+  gtk_widget_set_sensitive(GTK_WIDGET((*main_page).edit_data.username), FALSE);
   // Set placeholder text
-  gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.username),
-                                 "Username");
   gtk_entry_set_placeholder_text(GTK_ENTRY((*main_page).edit_data.name_surname),
                                  "Name Surname");
   gtk_entry_set_placeholder_text(

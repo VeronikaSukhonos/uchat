@@ -234,7 +234,6 @@ int process_individual_response(cJSON *response, int *logged_in,
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
-      send_json(app_data->main_page->sock, "UPDATE_PROFILE_DATA");
     } else {
       g_print("Error: LOGOUT error.\n");
     }
