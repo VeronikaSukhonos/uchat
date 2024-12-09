@@ -85,7 +85,7 @@ These experiences greatly enhanced our understanding of robust software developm
 🙌 Our Team
 
 -	[Mykyta Cherevan](https://github.com/Nikcher256)  <br />
--	[Veronika Suchonos](https://github.com/VeronikaSukhonos)  <br />
+-	[Veronika Sukhonos](https://github.com/VeronikaSukhonos)  <br />
 -	[Yevheniia Rezchyk](https://github.com/EvgeniaRezchik)  <br />
 -	[Polina Rezchyk](https://github.com/BekkaMushko) <br />
 -	[Olesia Malanchuk](https://github.com/nishiinoya) <br />
