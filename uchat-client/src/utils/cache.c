@@ -227,11 +227,18 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
       strncpy(last_sender, message_sender->valuestring, 63);
 
       cJSON *message_type = cJSON_GetObjectItem(last_message_json, "type");
-      if (cJSON_IsString(message_type) &&
-          strcmp(message_type->valuestring, "file") == 0) {
-        strcpy(last_message, "file message");
-      } else if (strcmp(last_message, "") == 0) {
-        strcpy(last_message, "voice message");
+      cJSON *status = cJSON_GetObjectItem(last_message_json, "status");
+      if (cJSON_IsString(status)) {
+        if (strcmp(status->valuestring, "deleted") != 0) {
+          if (cJSON_IsString(message_type) &&
+              strcmp(message_type->valuestring, "file") == 0) {
+            strcpy(last_message, "file message");
+          } else if (strcmp(last_message, "") == 0) {
+            strcpy(last_message, "voice message");
+          }
+        } else {
+          strcpy(last_message, "deleted");
+        }
       }
 
       // Parse timestamp using sscanf and convert to local time

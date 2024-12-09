@@ -260,8 +260,8 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   strcpy(delete_message->message->content, "Deleted message");
   if (mp_tn->main_page->opened_chat->changing_message == delete_message) {
     mp_tn->main_page->opened_chat->changing_message = NULL;
-    GtkTextBuffer *message_buffer
-          = GTK_TEXT_BUFFER(mp_tn->main_page->message_buffer);
+    GtkTextBuffer *message_buffer =
+          GTK_TEXT_BUFFER(mp_tn->main_page->message_buffer);
     gtk_text_buffer_set_text(message_buffer, "", -1);
   }
 }
