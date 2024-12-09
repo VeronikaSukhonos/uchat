@@ -32,7 +32,8 @@ if (group && strlen(group->valuestring) > 0) {
                  full_name->valuestring, username->valuestring, group->valuestring);
     }
 } else {
-    if (role && strcmp(role->valuestring, " ❔  No status") != 0) {
+    if (role && strcmp(role->valuestring, " ❔  No status") != 0
+    	&& strcmp(role->valuestring, "") != 0) {
         snprintf(description, sizeof(description), "%s\n@%s | %s",
                  full_name->valuestring, username->valuestring, role->valuestring);
     } else {

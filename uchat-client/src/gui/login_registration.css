@@ -634,6 +634,10 @@ combobox.form-role .popup .menu-item {
     margin: 3px 0;
 }
 
+.deleted-message {
+	font-size: 15px;
+}
+
 .play-button, .save-button {
     background: transparent;
     border: none;
@@ -662,19 +666,9 @@ combobox.form-role .popup .menu-item {
 }
 
 .settings-link:hover {
-    color: #604BDC;
-    text-decoration: underline;
+	color: #AFAFAF;
 }
 
-.settings-link:focus {
-    outline: 2px solid #5BCD91;
-    outline-offset: 4px;
-    color: #5BCD91;
-}
-
-.settings-link:active {
-    color: #3B3B3E;
-}
 .support-description-entry, .support-description-entry text {
 	background-color: #1A1A1D;
 	color: white;

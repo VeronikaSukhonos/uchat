@@ -63,12 +63,19 @@ void process_message_delete(const char *json_response, AppData *app_data) {
             gtk_widget_set_visible(msg_node->message->message_label, 1);
           }
           gtk_label_set_text(GTK_LABEL(msg_node->message->message_label),
-                             "Deleted");
-          gtk_widget_destroy(msg_node->message->menu);
+                             "Deleted message");
+          gtk_style_context_add_class(
+          gtk_widget_get_style_context(msg_node->message->message_label),
+            "deleted-message");
+          if (msg_node->message->menu != NULL)
+            gtk_widget_destroy(msg_node->message->menu);
           msg_node->message->menu = NULL;
           if (msg_node->message->message_label) {
             gtk_label_set_text(GTK_LABEL(msg_node->message->message_label),
-                               "Deleted");
+                               "Deleted message");
+            gtk_style_context_add_class(
+            gtk_widget_get_style_context(msg_node->message->message_label),
+            "deleted-message");
           }
         }
 

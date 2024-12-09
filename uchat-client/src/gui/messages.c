@@ -257,9 +257,13 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   free(json_str);
   cJSON_free(json_message);
   (*delete_message).message->status = DELETED;
-  strcpy(delete_message->message->content, "Deleted");
-  if (mp_tn->main_page->opened_chat->changing_message == delete_message)
+  strcpy(delete_message->message->content, "Deleted message");
+  if (mp_tn->main_page->opened_chat->changing_message == delete_message) {
     mp_tn->main_page->opened_chat->changing_message = NULL;
+    GtkTextBuffer *message_buffer
+          = GTK_TEXT_BUFFER(mp_tn->main_page->message_buffer);
+    gtk_text_buffer_set_text(message_buffer, "", -1);
+  }
 }
 
 void show_smile_menu(GtkWidget *smile_button, GtkWidget *smile_window) {
@@ -570,7 +574,10 @@ void create_message_button(t_main_page_data *main_page,
       gtk_widget_set_halign((*temp_node).message->username_label,
                             GTK_ALIGN_START);
     }
-    (*temp_node).message->message_label = gtk_label_new("Deleted");
+    (*temp_node).message->message_label = gtk_label_new("Deleted message");
+    gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->message_label),
+          "deleted-message");
     gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
                        TRUE, FALSE, 0);
     gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
@@ -724,19 +731,27 @@ void create_message_button(t_main_page_data *main_page,
     mp_tn->temp_node = temp_node;
 
     // Message menu
+    GtkWidget *message_menu_box = NULL;
+    if (strcmp(temp_node->message->sender, username) == 0
+    	|| (*temp_node).message->content_type == IMAGE
+    	|| (*temp_node).message->content_type == ANY_FILE) {
+    	(*temp_node).message->menu =
+        	gtk_popover_new((*temp_node).message->button);
+    	gtk_style_context_add_class(
+        	gtk_widget_get_style_context((*temp_node).message->menu),
+        	"smile-window");
+    	message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    	gtk_container_add(GTK_CONTAINER((*temp_node).message->menu),
+        	              message_menu_box);
+    	g_signal_connect((*temp_node).message->button, "clicked",
+        	             G_CALLBACK(show_message_menu), temp_node);
+    }
+    else
+    	(*temp_node).message->menu = NULL;
+
     if (strcmp(temp_node->message->sender, username) == 0) {
-      (*temp_node).message->menu =
-          gtk_popover_new((*temp_node).message->button);
-      gtk_style_context_add_class(
-          gtk_widget_get_style_context((*temp_node).message->menu),
-          "smile-window");
-      GtkWidget *message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-      gtk_container_add(GTK_CONTAINER((*temp_node).message->menu),
-                        message_menu_box);
-      g_signal_connect((*temp_node).message->button, "clicked",
-                       G_CALLBACK(show_message_menu), temp_node);
       if ((*temp_node).message->content_type == TEXT) {
-        GtkWidget *change_message_button = gtk_button_new_with_label("Change");
+        GtkWidget *change_message_button = gtk_button_new();
         gtk_style_context_add_class(
             gtk_widget_get_style_context(change_message_button),
             "popover-buttons");
@@ -744,9 +759,37 @@ void create_message_button(t_main_page_data *main_page,
                            TRUE, FALSE, 0);
         g_signal_connect(change_message_button, "clicked",
                          G_CALLBACK(start_change_message), mp_tn);
+        GtkWidget *change_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_add(GTK_CONTAINER(change_message_button), change_button_box);
+        GtkWidget *change_button_image =
+        	gtk_image_new_from_file("uchat-client/src/gui/resources/edit-icon.png");
+        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_image, FALSE, FALSE, 0);
+        GtkWidget *change_button_label = gtk_label_new("Edit");
+        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_label, FALSE, FALSE, 0);
       }
+    }
 
-      GtkWidget *delete_message_button = gtk_button_new_with_label("Delete");
+    if ((*temp_node).message->content_type == IMAGE
+    	|| (*temp_node).message->content_type == ANY_FILE) {
+      GtkWidget *save_file_button = gtk_button_new();
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context(save_file_button),
+          "popover-buttons");
+      gtk_box_pack_start(GTK_BOX(message_menu_box), save_file_button,
+                         TRUE, FALSE, 0);
+      g_signal_connect(save_file_button, "clicked",
+                       G_CALLBACK(save_file), temp_node);
+      GtkWidget *save_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+      gtk_container_add(GTK_CONTAINER(save_file_button), save_button_box);
+      GtkWidget *save_button_image =
+        gtk_image_new_from_file("uchat-client/src/gui/resources/save-file-icon.png");
+      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_image, FALSE, FALSE, 0);
+      GtkWidget *save_button_label = gtk_label_new("Save");
+      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_label, FALSE, FALSE, 0);
+    }
+
+    if (strcmp(temp_node->message->sender, username) == 0) {
+      GtkWidget *delete_message_button = gtk_button_new();
       gtk_style_context_add_class(
           gtk_widget_get_style_context(delete_message_button),
           "popover-buttons");
@@ -754,9 +797,14 @@ void create_message_button(t_main_page_data *main_page,
                          FALSE, 0);
       g_signal_connect(delete_message_button, "clicked",
                        G_CALLBACK(delete_message), mp_tn);
-
-    } else
-      (*temp_node).message->menu = NULL;
+      GtkWidget *delete_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+      gtk_container_add(GTK_CONTAINER(delete_message_button), delete_button_box);
+      GtkWidget *delete_button_image =
+        gtk_image_new_from_file("uchat-client/src/gui/resources/delete-icon.png");
+      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_image, FALSE, FALSE, 0);
+      GtkWidget *delete_button_label = gtk_label_new("Delete");
+      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_label, FALSE, FALSE, 0);
+    }
 
     // Add the bottom box for labels (time, seen, changes)
     GtkWidget *bottom_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
