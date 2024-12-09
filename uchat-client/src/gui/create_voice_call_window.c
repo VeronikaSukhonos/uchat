@@ -8,14 +8,28 @@ void play_audio(char *filepath) {
 }
 
 int incoming = 0;
+int is_closing = 0;
 
 void close_voice_call_window(GtkWidget *voice_call_window,
                              t_main_page_data *main_page) {
-  if (voice_call_window) {
+  if (voice_call_window && is_closing == 0) {
+    is_closing = 1;
+    cJSON *response = cJSON_CreateObject();
+    cJSON_AddStringToObject(response, "action", "STOP_CALL");
+    char *response_str = cJSON_Print(response);
+    cJSON_free(response);
+    if (send(sock, response_str, strlen(response_str), 0) == -1) {
+      perror("Failed to send status to sender");
+    }
+
     stop_audio();
     play_audio("uchat-client/sounds/hangup.wav");
     gtk_widget_destroy(voice_call_window);
     main_page->voice_call_window = NULL;
+    incoming = 0;
+    is_calling = 0;
+    in_call = 0;
+    is_closing = 0;
   }
 }
 
