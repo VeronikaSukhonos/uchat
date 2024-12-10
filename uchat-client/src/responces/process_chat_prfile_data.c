@@ -154,14 +154,14 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
       gtk_box_pack_start(GTK_BOX(content_box), role_box, FALSE, FALSE, 10);
 
 
-      gtk_grid_attach(GTK_GRID(details_grid), name_label, 0, 0, 1, 1);
-      gtk_grid_attach(GTK_GRID(details_grid), name_value, 1, 0, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), name_label, 0, 0, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), name_value, 1, 0, 1, 1);
 
-      gtk_grid_attach(GTK_GRID(details_grid), group_label, 0, 1, 1, 1);
-      gtk_grid_attach(GTK_GRID(details_grid), group_value, 1, 1, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), group_label, 0, 1, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), group_value, 1, 1, 1, 1);
 
-      gtk_grid_attach(GTK_GRID(details_grid), role_label, 0, 2, 1, 1);
-      gtk_grid_attach(GTK_GRID(details_grid), role_value, 1, 2, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), role_label, 0, 2, 1, 1);
+      // gtk_grid_attach(GTK_GRID(details_grid), role_value, 1, 2, 1, 1);
     }
   }
 
