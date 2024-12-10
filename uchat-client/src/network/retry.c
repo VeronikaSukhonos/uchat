@@ -1,7 +1,7 @@
 #include "uchat.h"
 
 int attempt_reconnection() {
-  sock = connect_to_server("127.0.0.1", PORT);
+  sock = connect_to_server(ip, port);
   if (sock >= 0) {
     g_print("Reconnected to server successfully.\n");
 
@@ -28,7 +28,7 @@ int attempt_reconnection() {
 }
 
 int attempt_main_reconnection(AppData *app_data) {
-  sock = connect_to_server("127.0.0.1", PORT);
+  sock = connect_to_server(ip, port);
   if (sock >= 0) {
     g_print("Reconnected to server successfully.\n");
 

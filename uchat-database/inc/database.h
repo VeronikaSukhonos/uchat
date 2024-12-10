@@ -49,3 +49,5 @@ int delete_message(sqlite3 *db, int message_id);
 int store_file_message(sqlite3 *db, int chat_id, int sender_id,
                        const char *file_type, const unsigned char *file_data,
                        size_t file_size, char *file_path);
+void get_chat_type(sqlite3 *db, int chat_id, char *type);
+cJSON *get_user_profile_data(sqlite3 *db, int user_id);

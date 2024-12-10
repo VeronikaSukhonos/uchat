@@ -350,76 +350,86 @@ void on_profile_window_destroy(GtkWidget *window, gpointer data) {
 }
 
 void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
+
   t_main_page_data *main_page = (t_main_page_data *)data;
+  cJSON *json_message = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_message, "action", "GET_CHAT_PROFILE_DATA");
+  cJSON_AddNumberToObject(json_message, "chat_id", main_page->opened_chat->id);
 
+  char *json_str = cJSON_Print(json_message);
+  g_print("Sending message to server: %s\n", json_str);
+  send(sock, json_str, strlen(json_str), 0);
+
+  cJSON_Delete(json_message);
+  g_free(json_str);
   // If profile window is already open, just focus it
-  if (main_page->profile_window) {
-    gtk_window_present(GTK_WINDOW(main_page->profile_window));
-    return;
-  }
+  // if (main_page->profile_window) {
+  //   gtk_window_present(GTK_WINDOW(main_page->profile_window));
+  //   return;
+  // }
 
-  // Create a new dialog window
-  GtkWidget *dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  main_page->profile_window = dialog; // Store the window reference
+  // // Create a new dialog window
+  // GtkWidget *dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  // main_page->profile_window = dialog; // Store the window reference
 
-  // Check if this is a group chat
-  const gchar *chat_type = NULL;
-  if (main_page->opened_chat && main_page->opened_chat->button) {
-    chat_type = gtk_widget_get_name(main_page->opened_chat->button);
-  }
-  gboolean is_group = (chat_type && strcmp(chat_type, "private") != 0);
+  // // Check if this is a group chat
+  // const gchar *chat_type = NULL;
+  // if (main_page->opened_chat && main_page->opened_chat->button) {
+  //   chat_type = gtk_widget_get_name(main_page->opened_chat->button);
+  // }
+  // gboolean is_group = (chat_type && strcmp(chat_type, "private") != 0);
 
-  // Set title based on chat type
-  gtk_window_set_title(GTK_WINDOW(dialog),
-                       is_group ? "Group Profile" : "User Profile");
-  gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 500);
-  gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
-  gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
-  gtk_container_set_border_width(GTK_CONTAINER(dialog), 20);
+  // // Set title based on chat type
+  // gtk_window_set_title(GTK_WINDOW(dialog),
+  //                      is_group ? "Group Profile" : "User Profile");
+  // gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 500);
+  // gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
+  // gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
+  // gtk_container_set_border_width(GTK_CONTAINER(dialog), 20);
 
-  // Create main container
-  GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
-  gtk_container_add(GTK_CONTAINER(dialog), content_box);
-  gtk_style_context_add_class(gtk_widget_get_style_context(content_box),
-                              "profile-content");
+  // // Create main container
+  // GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
+  // gtk_container_add(GTK_CONTAINER(dialog), content_box);
+  // gtk_style_context_add_class(gtk_widget_get_style_context(content_box),
+  //                             "profile-content");
 
-  // Profile picture - different for group and user
-  const char *avatar_path =
-      is_group ? "uchat-client/src/gui/resources/rabbits_group.png"
-               : "uchat-client/src/gui/resources/rabbit_profile.png";
-  GtkWidget *avatar = gtk_image_new_from_file(avatar_path);
-  gtk_box_pack_start(GTK_BOX(content_box), avatar, FALSE, FALSE, 0);
-  gtk_widget_set_size_request(avatar, 150, 150);
-  gtk_widget_set_halign(avatar, GTK_ALIGN_CENTER);
+  // // Profile picture - different for group and user
+  // const char *avatar_path =
+  //     is_group ? "uchat-client/src/gui/resources/rabbits_group.png"
+  //              : "uchat-client/src/gui/resources/rabbit_profile.png";
+  // GtkWidget *avatar = gtk_image_new_from_file(avatar_path);
+  // gtk_box_pack_start(GTK_BOX(content_box), avatar, FALSE, FALSE, 0);
+  // gtk_widget_set_size_request(avatar, 150, 150);
+  // gtk_widget_set_halign(avatar, GTK_ALIGN_CENTER);
 
-  // Username/Group name
-  GtkWidget *username_label = gtk_label_new(NULL);
-  if (main_page->chat_nickname) {
-    gtk_label_set_text(GTK_LABEL(username_label),
-                       gtk_label_get_text(GTK_LABEL(main_page->chat_nickname)));
-  }
-  gtk_box_pack_start(GTK_BOX(content_box), username_label, FALSE, FALSE, 0);
-  gtk_style_context_add_class(gtk_widget_get_style_context(username_label),
-                              "profile-username");
+  // // Username/Group name
+  // GtkWidget *username_label = gtk_label_new(NULL);
+  // if (main_page->chat_nickname) {
+  //   gtk_label_set_text(GTK_LABEL(username_label),
+  //                      gtk_label_get_text(GTK_LABEL(main_page->chat_nickname)));
+  // }
+  // gtk_box_pack_start(GTK_BOX(content_box), username_label, FALSE, FALSE, 0);
+  // gtk_style_context_add_class(gtk_widget_get_style_context(username_label),
+  //                             "profile-username");
 
-  // Status (only show for users, not groups)
-  if (!is_group) {
-    GtkWidget *status_label = gtk_label_new("online");
-    gtk_box_pack_start(GTK_BOX(content_box), status_label, FALSE, FALSE, 0);
-    gtk_style_context_add_class(gtk_widget_get_style_context(status_label),
-                                "profile-status");
-  }
+  // // Status (only show for users, not groups)
+  // if (!is_group) {
+  //   GtkWidget *status_label = gtk_label_new("online");
+  //   gtk_box_pack_start(GTK_BOX(content_box), status_label, FALSE, FALSE, 0);
+  //   gtk_style_context_add_class(gtk_widget_get_style_context(status_label),
+  //                               "profile-status");
+  // }
 
-  // Info grid
-  GtkWidget *info_grid = gtk_grid_new();
-  gtk_grid_set_row_spacing(GTK_GRID(info_grid), 10);
-  gtk_grid_set_column_spacing(GTK_GRID(info_grid), 15);
-  gtk_box_pack_start(GTK_BOX(content_box), info_grid, TRUE, TRUE, 20);
+  // // Info grid
+  // GtkWidget *info_grid = gtk_grid_new();
+  // gtk_grid_set_row_spacing(GTK_GRID(info_grid), 10);
+  // gtk_grid_set_column_spacing(GTK_GRID(info_grid), 15);
+  // gtk_box_pack_start(GTK_BOX(content_box), info_grid, TRUE, TRUE, 20);
 
-  // Show all widgets
-  gtk_widget_show_all(dialog);
+  // // Show all widgets
+  // gtk_widget_show_all(dialog);
 
-  // Connect destroy signal with custom handler
-  g_signal_connect(dialog, "destroy", G_CALLBACK(on_profile_window_destroy),
-                   main_page);
+  // // Connect destroy signal with custom handler
+  // g_signal_connect(dialog, "destroy", G_CALLBACK(on_profile_window_destroy),
+  //                  main_page);
 }

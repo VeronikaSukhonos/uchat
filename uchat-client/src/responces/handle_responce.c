@@ -348,6 +348,8 @@ int process_individual_response(cJSON *response, int *logged_in,
     }
   } else if (strcmp(action->valuestring, "FILE_FROM_CHAT") == 0) {
     process_file_message_and_store(cJSON_Print(response), app_data);
+  } else if (strcmp(action->valuestring, "CHAT_PROFILE_DATA") == 0) {
+    process_chat_profile_data(cJSON_Print(response), app_data);
   }
   // Clean up JSON object
   // cJSON_Delete(response);

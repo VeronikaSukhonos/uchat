@@ -199,8 +199,12 @@ void handle_request(Client *client, char *buffer, Client clients[],
     }
     handle_get_settings(db, client);
     sqlite3_close(db);
-  } else if (strcmp(action->valuestring, "PIN_MESSAGE") == 0) {
-    // Handle pinning a message
+  } else if (strcmp(action->valuestring, "GET_CHAT_PROFILE_DATA") == 0) {
+    if (open_database(&db) != 0) {
+      fprintf(stderr, "Failed to open database.\n");
+    }
+    handle_get_chat_profile_data(db, client, json, clients, max_clients);
+    sqlite3_close(db);
   } else if (strcmp(action->valuestring, "MUTE_CHAT") == 0) {
     // Handle muting a chat
   } else if (strcmp(action->valuestring, "UNMUTE_CHAT") == 0) {

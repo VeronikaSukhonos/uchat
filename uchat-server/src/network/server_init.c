@@ -21,7 +21,7 @@ int server_init(struct sockaddr_in *address) {
   // Set up the server address structure
   address->sin_family = AF_INET;
   address->sin_addr.s_addr = INADDR_ANY;
-  address->sin_port = htons(PORT);
+  address->sin_port = htons(port);
 
   // Bind the socket to the port
   if (bind(server_fd, (struct sockaddr *)address, sizeof(*address)) < 0) {

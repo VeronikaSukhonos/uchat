@@ -14,7 +14,6 @@
 
 #include <cJSON.h>
 
-#define PORT 8080
 #define BUFFER_SIZE 1024
 #define USERS_IN_GROUP_COUNT 5
 #define KEY_SIZE 32  // 256-bit key for AES-256
@@ -46,6 +45,8 @@ extern int receive_port;
 extern int is_calling;
 extern int incoming;
 extern gboolean is_user_scrolling;
+extern char ip[65];
+extern int port;
 
 typedef enum { TEXT, VOICE, IMAGE, ANY_FILE } ContentType;
 
@@ -114,6 +115,14 @@ typedef struct s_profile_data {
   GtkWidget *support_request;
 } t_profile_data;
 
+typedef struct chat_profile_data {
+  GtkWidget *status;
+  GtkWidget *description;
+  GtkWidget *student_group;
+  GtkWidget *name_surname;
+  GtkWidget *menu_stack; // group
+} chat_profile_data;
+
 typedef struct s_chat_data {
   GtkWidget *button;
   GtkWidget *name;
@@ -133,6 +142,7 @@ typedef struct s_chat_node {
 } t_chat_node;
 
 typedef struct s_main_page_data {
+  chat_profile_data *profile;
   int sock;
   GtkWidget *menu_stack;
   int menu_opened;
@@ -170,8 +180,8 @@ typedef struct s_main_page_data {
 } t_main_page_data;
 
 typedef struct s_main_page_temp_node {
-	t_main_page_data *main_page;
-	MessageNode *temp_node;
+  t_main_page_data *main_page;
+  MessageNode *temp_node;
 } t_main_page_temp_node;
 
 typedef struct s_form_data {
@@ -450,3 +460,4 @@ void process_file_message_and_store(const char *json_response,
 int is_image(char *file_path);
 int process_individual_response(cJSON *response, int *logged_in,
                                 AppData *app_data);
+void process_chat_profile_data(const char *json_response, AppData *app_data);

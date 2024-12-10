@@ -1,6 +1,8 @@
 #include "uchat.h"
 #include <gst/gst.h>
 
+#define DEFAULT_PORT 5000 // Default port if not provided
+#define MAX_PORT 65535
 // Global variable definitions
 int sock = -1;                  // Initialize to an invalid socket by default
 int logged_in = 0;              // Set initial logged-in status to false (0)
@@ -14,6 +16,8 @@ char username[64] = {0};
 int in_call = 0;
 int receive_port = 0; // Tracks if the user is in a call
 int is_calling = 0;
+int port;
+char ip[65] = {0};
 
 guint main_retry_timeout = 10;  // Start with 1 second intervals for reconnect
 guint reconnect_timer_id = 0;   // Timer ID for periodic reconnection
@@ -37,13 +41,39 @@ gboolean periodic_reconnection_attempt(gpointer data) {
 }
 
 // Additional function definitions and main application setup code
+void print_usage(const char *program_name) {
+  fprintf(stderr, "Usage: %s <server_ip> <port>\n", program_name);
+  exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[]) {
+  if (argc != 3) {
+    print_usage(argv[0]);
+  }
+
+  // Parse server IP address and port
+  const char *server_ip = argv[1];
+  char *endptr;
+  port = strtol(argv[2], &endptr, 10);
+
+  // Validate the port
+  if (*endptr != '\0' || port <= 0 || port > MAX_PORT) {
+    fprintf(stderr, "Error: Invalid port number '%s'.\n", argv[2]);
+    print_usage(argv[0]);
+  }
+
+  // Attempt to connect to the server
+  sock = connect_to_server(server_ip, port);
+  if (sock < 0) {
+    fprintf(stderr, "Failed to establish connection. Exiting.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // Initialize GTK and GStreamer
   gtk_init(&argc, &argv);
-  gst_init(&argc, &argv); // Initialize GStreamer
+  gst_init(&argc, &argv);
   receive_port =
       5000 + (getpid() % 1000); // Generates unique ports like 5001, 5002, etc.
-  // Attempt initial connection to the server
-  sock = connect_to_server("127.0.0.1", PORT);
   if (sock < 0) {
     g_print("Initial connection failed. Showing retry window.\n");
     create_update_failed_window(); // Show retry window if connection fails

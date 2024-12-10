@@ -15,11 +15,12 @@
 #include <unistd.h>
 
 #define SHA256_HASH_SIZE (SHA256_SIZE_BYTES * 2 + 1)
-#define PORT 8080
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 30 // Max number of clients to handle
 #define IP_LENGTH 16   // IPv4 address length
 #define FINGERPRINT_LENGTH 256
+
+extern int port;
 
 typedef struct {
   int socket;
@@ -87,3 +88,6 @@ int handle_support_request(Client *client, cJSON *json);
 int handle_get_settings(sqlite3 *db, Client *client);
 int handle_file_message_to_chat(sqlite3 *db, Client *client, cJSON *json,
                                 Client clients[], int max_clients);
+void handle_get_chat_profile_data(sqlite3 *db, Client *client, cJSON *json,
+                                  Client clients[], int max_clients);
+int get_online_status(char *username, Client clients[], int max_clients);
