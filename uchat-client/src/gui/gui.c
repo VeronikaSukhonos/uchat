@@ -135,13 +135,44 @@ int check_password(char *password, GtkWidget *message) {
   if (password_len == 0) {
     gtk_label_set_text(GTK_LABEL(message), "Password is required");
     return 0;
-    // do not forget to change to 8
-  } else if (password_len < 0 || password_len > 20) {
+  } else if (password_len < 8 || password_len > 20) {
     gtk_label_set_text(GTK_LABEL(message),
                        "Password must contain 8-20 symbols");
     return 0;
   }
   // check for password reliability here
+  
+	int has_upper = 0, has_lower = 0, has_digit = 0;
+
+    for (int i = 0; i < password_len; i++) {
+        if (isupper(password[i]))
+            has_upper = 1;
+        if (islower(password[i]))
+            has_lower = 1;
+        if (isdigit(password[i]))
+            has_digit = 1;
+
+        // Break early if all conditions are met
+    	if (has_upper && has_lower && has_digit)
+        	break;
+    }
+    if (!has_upper) {
+        gtk_label_set_text(GTK_LABEL(message),
+                           "Password must contain at least 1 uppercase letter");
+        return 0;
+    }
+    if (!has_lower) {
+        gtk_label_set_text(GTK_LABEL(message),
+                           "Password must contain at least 1 lowercase letter");
+        return 0;
+    }
+
+    if (!has_digit) {
+        gtk_label_set_text(GTK_LABEL(message),
+                           "Password must contain at least 1 number");
+        return 0;
+    }
+
   return 1;
 }
 

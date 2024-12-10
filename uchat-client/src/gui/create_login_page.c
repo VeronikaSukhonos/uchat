@@ -7,7 +7,7 @@ void create_login_page(GtkWidget *pages, GtkWidget *login, t_form_data *data) {
 
   data->form = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(login), data->form, TRUE, FALSE, 0);
-  gtk_widget_set_size_request(GTK_WIDGET(data->form), 450, -1);
+  gtk_widget_set_size_request(GTK_WIDGET(data->form), 500, -1);
   gtk_widget_set_halign(data->form, GTK_ALIGN_CENTER);
   gtk_style_context_add_class(gtk_widget_get_style_context(data->form), "form");
 

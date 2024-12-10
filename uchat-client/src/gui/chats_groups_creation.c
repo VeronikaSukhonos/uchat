@@ -428,9 +428,9 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group name cannot exceed 40 characters");
   }
-  /*else if ((*main_page).group_users_count < 2)
+  else if ((*main_page).group_users_count < 2)
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
-                       "Group must have at least three members");*/
+                       "Group must have at least three members");
   else {
     g_print("Group %s with users ", name);
     char usernames[(*main_page).group_users_count][50];
