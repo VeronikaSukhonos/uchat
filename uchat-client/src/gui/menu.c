@@ -4,7 +4,7 @@ void change_mic_image(GtkWidget *mic_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
 
   if (!main_page || !main_page->opened_chat) {
-    g_printerr("Error: Invalid main_page, opened_chat, or mic_data.\n");
+    // g_printerr("Error: Invalid main_page, opened_chat, or mic_data.\n");
     return;
   }
 
@@ -50,7 +50,7 @@ void open_close_menu(GtkWidget *menu_button, gpointer data) {
                            mic_button_img_start);
 
       // Log or perform additional actions if needed
-      g_print("Recording stopped for chat: %d\n", i->chat.id);
+      // g_print("Recording stopped for chat: %d\n", i->chat.id);
     }
   }
 
@@ -85,7 +85,7 @@ void log_out(GtkWidget *log_out_button, gpointer data) {
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);
   send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
+  // g_print("Sent: %s\n", json_str);
   g_free(json_str);
   // gtk_stack_set_visible_child_name(GTK_STACK((*GtkWidget)data), "login");
 }

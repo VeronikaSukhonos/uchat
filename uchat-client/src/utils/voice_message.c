@@ -23,7 +23,7 @@ void start_recording(const char *output_path) {
   gst_bin_add_many(GST_BIN(pipeline), source, level, encoder, sink, NULL);
 
   if (!gst_element_link_many(source, level, encoder, sink, NULL)) {
-    g_printerr("Elements could not be linked.\n");
+    // g_printerr("Elements could not be linked.\n");
     gst_object_unref(pipeline);
     pipeline = NULL;
     return;
@@ -35,14 +35,14 @@ void start_recording(const char *output_path) {
   gst_object_unref(bus);
 
   gst_element_set_state(pipeline, GST_STATE_PLAYING);
-  g_print("Recording started...\n");
+  // g_print("Recording started...\n");
 }
 
 // Function to stop recording
 void stop_recording() {
   if (pipeline) {
     gst_element_set_state(pipeline, GST_STATE_NULL);
-    g_print("Recording stopped.\n");
+    // g_print("Recording stopped.\n");
     gst_object_unref(pipeline);
     pipeline = NULL;
   }
@@ -52,7 +52,7 @@ void send_voice_message(int sock, const char *file_path, int chat_id) {
   // Read and encode the file into base64
   char *encoded_file = read_and_encode_file(file_path);
   if (!encoded_file) {
-    g_printerr("Failed to encode file: %s\n", file_path);
+    // g_printerr("Failed to encode file: %s\n", file_path);
     return;
   }
 
@@ -71,7 +71,7 @@ void send_voice_message(int sock, const char *file_path, int chat_id) {
   if (sent < 0) {
     perror("Failed to send voice message");
   } else {
-    g_print("Voice message sent successfully. with size %zi\n", sent);
+    // g_print("Voice message sent successfully. with size %zi\n", sent);
   }
 
   // Cleanup

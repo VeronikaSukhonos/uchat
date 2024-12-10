@@ -40,7 +40,7 @@ char *base64_encode(const unsigned char *data, size_t input_length) {
 
 // Function to read file and encode it in Base64
 char *read_and_encode_file(const char *filepath) {
-  printf("Opening file: %s\n", filepath);
+  // printf("Opening file: %s\n", filepath);
   FILE *file = fopen(filepath, "rb");
   if (!file) {
     perror("File open failed");
@@ -72,7 +72,7 @@ char *read_and_encode_file(const char *filepath) {
   }
   fclose(file);
 
-  printf("File read successfully, size: %ld bytes\n", file_size);
+  // printf("File read successfully, size: %ld bytes\n", file_size);
 
   char *encoded_content = base64_encode(file_content, file_size);
   g_free(file_content);

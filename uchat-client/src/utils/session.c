@@ -19,21 +19,21 @@ int check_session_on_server(int sock, const char *username,
   int valread = read(sock, buffer, sizeof(buffer));
   if (valread > 0) {
     buffer[valread] = '\0';
-    g_print("Server response: %s\n", buffer);
+    // g_print("Server response: %s\n", buffer);
     cJSON *response = cJSON_Parse(buffer);
     if (response == NULL) {
-      g_print("Failed to parse server response.\n");
+      // g_print("Failed to parse server response.\n");
       return 0;
     }
 
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Session valid.\n");
+      // g_print("Session valid.\n");
       sync_chat_list_with_server(sock, "cache");
       return 1;
     }
   } else if (valread == 0) {
-    g_print("Server disconnected\n");
+    // g_print("Server disconnected\n");
   }
   delete_cache_directory();
   return 0;
@@ -95,7 +95,7 @@ int load_session(char *username, size_t username_size, char *session_token,
 
   FILE *file = fopen("session.txt", "rb");
   if (file == NULL) {
-    fprintf(stderr, "No session file found. Please log in.\n");
+    // fprintf(stderr, "No session file found. Please log in.\n");
     return -1;
   }
 
@@ -128,7 +128,7 @@ int load_session(char *username, size_t username_size, char *session_token,
 // Delete session file securely
 int delete_session() {
   if (remove("session.txt") == 0) {
-    printf("Session deleted successfully.\n");
+    // printf("Session deleted successfully.\n");
     return 0;
   } else {
     fprintf(stderr, "Failed to delete session file.\n");

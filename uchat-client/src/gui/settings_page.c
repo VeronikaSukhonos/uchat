@@ -3,7 +3,8 @@
 void change_email(GtkWidget *change_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
 
-  char *email = (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).email_change.email));
+  char *email =
+      (char *)gtk_entry_get_text(GTK_ENTRY((*main_page).email_change.email));
   if (check_email(email, (*main_page).email_change.message)) {
     cJSON *json = cJSON_CreateObject();
     cJSON_AddStringToObject(json, "action", "CHANGE_EMAIL_DATA");
@@ -12,7 +13,7 @@ void change_email(GtkWidget *change_button, gpointer data) {
     char *json_str = cJSON_Print(json);
     cJSON_Delete(json);
     send(main_page->sock, json_str, strlen(json_str), 0);
-    g_print("Sent: %s\n", json_str);
+    // g_print("Sent: %s\n", json_str);
     g_free(json_str);
     if (send(main_page->sock, json_str, strlen(json_str), 0) == -1) {
       success_or_error_msg(main_page->email_change.message,
@@ -39,7 +40,7 @@ void show_email(GtkWidget *support_button, gpointer data) {
 }
 void show_support(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
-  //gtk_entry_set_text(GTK_ENTRY((*main_page).support.subject_combo), "");
+  // gtk_entry_set_text(GTK_ENTRY((*main_page).support.subject_combo), "");
   gtk_entry_set_text(GTK_ENTRY((*main_page).support.support_request), "");
   gtk_label_set_label(GTK_LABEL((*main_page).support.message), "");
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
@@ -54,7 +55,7 @@ void show_settings(GtkWidget *settings_button, gpointer data) {
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);
   send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
+  // g_print("Sent: %s\n", json_str);
 
   g_free(json_str);
   gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
@@ -63,28 +64,29 @@ void show_settings(GtkWidget *settings_button, gpointer data) {
 }
 // Page Switch with delay
 gboolean delayed_page_switch(gpointer data) {
-    t_main_page_data *main_page = (t_main_page_data *)data;
+  t_main_page_data *main_page = (t_main_page_data *)data;
 
-    // Clear any previous message or state
-    gtk_label_set_text(GTK_LABEL(main_page->support.message), "");
-    gtk_label_set_text(GTK_LABEL(main_page->change_pw.message), "");
-    main_page->previous_page = main_page->current_page;
-    // Switch to the new page
-    gtk_stack_set_visible_child_name(GTK_STACK(main_page->central_area_stack),
-                                     main_page->current_page);
-    main_page->current_page = main_page->current_page;
+  // Clear any previous message or state
+  gtk_label_set_text(GTK_LABEL(main_page->support.message), "");
+  gtk_label_set_text(GTK_LABEL(main_page->change_pw.message), "");
+  main_page->previous_page = main_page->current_page;
+  // Switch to the new page
+  gtk_stack_set_visible_child_name(GTK_STACK(main_page->central_area_stack),
+                                   main_page->current_page);
+  main_page->current_page = main_page->current_page;
 
-    return FALSE;
+  return FALSE;
 }
 
 // Function to switch to the page after a delay
-void switch_to_page_with_delay(t_main_page_data *main_page, const char *page_name, guint delay_ms) {
-    // Store the new page name
-    main_page->previous_page = main_page->current_page;
-    main_page->current_page = page_name;
+void switch_to_page_with_delay(t_main_page_data *main_page,
+                               const char *page_name, guint delay_ms) {
+  // Store the new page name
+  main_page->previous_page = main_page->current_page;
+  main_page->current_page = page_name;
 
-    // Schedule the delayed page switch
-    g_timeout_add(delay_ms, delayed_page_switch, main_page);
+  // Schedule the delayed page switch
+  g_timeout_add(delay_ms, delayed_page_switch, main_page);
 }
 void send_support_request(GtkWidget *support_button, gpointer data) {
   t_main_page_data *main_page = (t_main_page_data *)data;
@@ -129,7 +131,7 @@ void send_support_request(GtkWidget *support_button, gpointer data) {
     return;
   }
 
-  g_print("Sent: %s\n", json_str);
+  // g_print("Sent: %s\n", json_str);
   g_free(json_str);
 
   gtk_combo_box_set_active(GTK_COMBO_BOX(main_page->support.subject_combo),
@@ -205,22 +207,22 @@ gboolean check_email(const char *email, GtkWidget *message_label) {
   return TRUE;
 }
 void send_json(int socket, const char *action) {
-    cJSON *json = cJSON_CreateObject();
-    if (!json) {
-        g_print("Failed to create JSON object\n");
-        return;
-    }
+  cJSON *json = cJSON_CreateObject();
+  if (!json) {
+    // g_print("Failed to create JSON object\n");
+    return;
+  }
 
-    cJSON_AddStringToObject(json, "action", action);
-    char *json_str = cJSON_Print(json);
-    cJSON_Delete(json);
+  cJSON_AddStringToObject(json, "action", action);
+  char *json_str = cJSON_Print(json);
+  cJSON_Delete(json);
 
-    if (!json_str) {
-        g_print("Failed to create JSON string\n");
-        return;
-    }
+  if (!json_str) {
+    // g_print("Failed to create JSON string\n");
+    return;
+  }
 
-    send(socket, json_str, strlen(json_str), 0);
-    g_print("Sent: %s\n", json_str);
-    g_free(json_str);
+  send(socket, json_str, strlen(json_str), 0);
+  // g_print("Sent: %s\n", json_str);
+  g_free(json_str);
 }

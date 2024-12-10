@@ -49,9 +49,9 @@ void handle_new_data_response(const char *response_data,
       save_encrypted_chat_to_cache(file_path, new_chat);
       cJSON_Delete(new_chat);
 
-      printf("New chat saved to cache: %d (%s)\n", chat_id, chat_name);
+      // printf("New chat saved to cache: %d (%s)\n", chat_id, chat_name);
     } else {
-      printf("Chat already exists in cache: %d (%s)\n", chat_id, chat_name);
+      // printf("Chat already exists in cache: %d (%s)\n", chat_id, chat_name);
     }
   }
 
@@ -68,7 +68,7 @@ void handle_new_data_response(const char *response_data,
     }
 
     if (cJSON_GetArraySize(messages) == 0) {
-      printf("No messages for chat_id: %d\n", chat_id);
+      // printf("No messages for chat_id: %d\n", chat_id);
       continue;
     }
 
@@ -102,7 +102,7 @@ void handle_new_data_response(const char *response_data,
 
               cJSON_AddStringToObject(message, "voice_file_path",
                                       voice_file_path);
-              g_print("Voice message saved to: %s\n", voice_file_path);
+              // g_print("Voice message saved to: %s\n", voice_file_path);
             } else {
               perror("Failed to create voice file");
             }
@@ -149,7 +149,7 @@ void handle_new_data_response(const char *response_data,
 
               cJSON_AddStringToObject(message, "file_path", file_path);
               cJSON_AddStringToObject(message, "file_name", file_name);
-              g_print("File saved to: %s\n", file_path);
+              // g_print("File saved to: %s\n", file_path);
             } else {
               perror("Failed to create file");
             }

@@ -124,9 +124,9 @@ int remove_directory(const char *path) {
 
 void delete_cache_directory() {
   if (remove_directory(CACHE_DIR) == 0) {
-    printf("Cache directory and its contents removed successfully.\n");
+    // printf("Cache directory and its contents removed successfully.\n");
   } else {
-    printf("Failed to remove cache directory.\n");
+    // printf("Failed to remove cache directory.\n");
   }
 }
 void ensure_cache_directory() {
@@ -183,7 +183,7 @@ int read_chat_data_from_encrypted_json(const char *file_path, int *chat_id,
 
   // Parse decrypted JSON
   cJSON *json = cJSON_Parse(decrypted_json);
-  // g_print("extracted data: %s\n", decrypted_json);
+  // //g_print("extracted data: %s\n", decrypted_json);
   g_free(decrypted_json);
   if (!json) {
     fprintf(stderr, "Failed to parse JSON file: %s\n", file_path);
@@ -366,7 +366,7 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
   }
 
   // Debug: Print the initial chat_data
-  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
 
   // Step 3: Get the messages array
   cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
@@ -390,7 +390,7 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
   cJSON_ReplaceItemInObject(chat_data, "messages", updated_messages);
 
   // Debug: Print the updated chat_data
-  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
 
   // Ensure the "members" array is preserved
   cJSON *members = cJSON_GetObjectItem(chat_data, "members");
@@ -399,8 +399,8 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
             "WARNING: Members array is missing or empty for chat_id: %d\n",
             cJSON_GetObjectItem(chat_data, "chat_id")->valueint);
   } else {
-    g_print("Members array preserved with %d members.\n",
-            cJSON_GetArraySize(members));
+    // g_print("Members array preserved with %d members.\n",
+    // cJSON_GetArraySize(members));
   }
 
   // Step 5: Encrypt and save the updated JSON back to the file
@@ -409,7 +409,7 @@ int insert_message_into_chat(const char *file_path, cJSON *new_message) {
   // Step 6: Clean up
   cJSON_Delete(chat_data);
 
-  printf("Message inserted successfully into chat file: %s\n", file_path);
+  // printf("Message inserted successfully into chat file: %s\n", file_path);
   return 0;
 }
 
@@ -498,7 +498,8 @@ void free_message_list(MessageNode *head) {
   while (current_node != NULL) {
     MessageNode *next_node = current_node->next; // Save the next node
     if (current_node->message != NULL) {
-      g_print("deleted node with id: %i\n", current_node->message->message_id);
+      // g_print("deleted node with id: %i\n",
+      // current_node->message->message_id);
       g_free(current_node->message); // Free the associated message data
     }
     g_free(current_node);     // Free the node itself
@@ -613,8 +614,8 @@ void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
   // Cleanup
   cJSON_Delete(chat_data);
 
-  printf("Chat data merged and updated successfully for chat_id: %d\n",
-         chat_id);
+  // printf("Chat data merged and updated successfully for chat_id: %d\n",
+  // chat_id);
 }
 
 int update_message_in_chat(const char *file_path, int message_id,
@@ -635,7 +636,7 @@ int update_message_in_chat(const char *file_path, int message_id,
   }
 
   // Debug: Print the initial chat_data
-  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
 
   // Step 3: Get the messages array
   cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
@@ -669,7 +670,7 @@ int update_message_in_chat(const char *file_path, int message_id,
   }
 
   // Debug: Print the updated chat_data
-  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
 
   // Ensure the "members" array is preserved
   cJSON *members = cJSON_GetObjectItem(chat_data, "members");
@@ -678,8 +679,8 @@ int update_message_in_chat(const char *file_path, int message_id,
             "WARNING: Members array is missing or empty for chat_id: %d\n",
             cJSON_GetObjectItem(chat_data, "chat_id")->valueint);
   } else {
-    g_print("Members array preserved with %d members.\n",
-            cJSON_GetArraySize(members));
+    // g_print("Members array preserved with %d members.\n",
+    // cJSON_GetArraySize(members));
   }
 
   // Step 5: Encrypt and save the updated JSON back to the file
@@ -688,8 +689,8 @@ int update_message_in_chat(const char *file_path, int message_id,
   // Step 6: Clean up
   cJSON_Delete(chat_data);
 
-  printf("Message with ID %d updated successfully in chat file: %s\n",
-         message_id, file_path);
+  // printf("Message with ID %d updated successfully in chat file: %s\n",
+  // message_id, file_path);
   return 0;
 }
 
@@ -711,7 +712,7 @@ int update_message_status_in_json(const char *file_path, int message_id,
   }
 
   // Debug: Print the initial chat_data
-  g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Initial chat_data: %s\n", cJSON_Print(chat_data));
 
   // Step 3: Get the messages array
   cJSON *messages = cJSON_GetObjectItem(chat_data, "messages");
@@ -744,7 +745,7 @@ int update_message_status_in_json(const char *file_path, int message_id,
   }
 
   // Debug: Print the updated chat_data
-  g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
+  // g_print("Updated chat_data: %s\n", cJSON_Print(chat_data));
 
   // Step 5: Encrypt and save the updated JSON back to the file
   save_encrypted_chat_to_cache(file_path, chat_data);
@@ -752,7 +753,7 @@ int update_message_status_in_json(const char *file_path, int message_id,
   // Step 6: Clean up
   cJSON_Delete(chat_data);
 
-  printf("Message status updated successfully for ID %d in file: %s\n",
-         message_id, file_path);
+  // printf("Message status updated successfully for ID %d in file: %s\n",
+  // message_id, file_path);
   return 0;
 }

@@ -54,7 +54,7 @@ void setup_main_application() {
   login_data.sock = sock;
   registration_data.sock = sock;
   main_page.sock = sock;
-  g_print("Connected to the server successfully.%i\n", login_data.sock);
+  // g_print("Connected to the server successfully.%i\n", login_data.sock);
 
   // Load session data and check status
   char serial_number[64] = {0};
@@ -62,7 +62,7 @@ void setup_main_application() {
 
   if (load_session(username, sizeof(username), session_token,
                    sizeof(session_token)) == 0) {
-    g_print("Loaded session for %s. Checking session status...\n", username);
+    // g_print("Loaded session for %s. Checking session status...\n", username);
     logged_in =
         check_session_on_server(sock, username, session_token, serial_number);
   }
@@ -88,11 +88,11 @@ void setup_main_application() {
     g_io_add_watch(gio_channel, G_IO_IN | G_IO_HUP | G_IO_ERR, on_server_data,
                    &app_data);
   } else {
-    g_print("Failed to set up GIOChannel: invalid socket.\n");
+    // g_print("Failed to set up GIOChannel: invalid socket.\n");
   }
 
   if (sock < 0) {
-    g_print("Socket connection is invalid.\n");
+    // g_print("Socket connection is invalid.\n");
   }
   gtk_main();
 
@@ -123,11 +123,11 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
 
   if (condition & G_IO_IN) {
     int response_status = handle_response(sock, &logged_in, app_data);
-    g_print("OnServer\n");
+    // g_print("OnServer\n");
 
     if (response_status == 0) {
       // Successfully received data, do nothing further
-      g_print("Success\n");
+      // g_print("Success\n");
       return TRUE;
     } else {
       if (app_data->main_page->voice_call_window)
@@ -136,7 +136,7 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
       gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
       gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
                                            app_data->reconnect->box, FALSE);
-      g_print("Error in response. Starting reconnection attempts...\n");
+      // g_print("Error in response. Starting reconnection attempts...\n");
 
       // Close the socket and remove the GIOChannel
       if (gio_channel != NULL) {
@@ -166,7 +166,7 @@ gboolean on_server_data(GIOChannel *source, GIOCondition condition,
     gtk_widget_set_child_visible(app_data->reconnect->box, TRUE);
     gtk_overlay_set_overlay_pass_through(GTK_OVERLAY(app_data->main_overlay),
                                          app_data->reconnect->box, FALSE);
-    g_print("Disconnected from server. Starting reconnection attempts...\n");
+    // g_print("Disconnected from server. Starting reconnection attempts...\n");
 
     // Close the GIOChannel if the connection was lost
     if (gio_channel != NULL) {

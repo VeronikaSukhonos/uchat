@@ -9,7 +9,7 @@ void remove_buttons(t_main_page_data *main_page) {
 
       // Ensure chat_box is valid
       if (!chat_box) {
-        g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
+        // g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
         continue;
       }
 
@@ -20,12 +20,12 @@ void remove_buttons(t_main_page_data *main_page) {
           if (msg_node->message->button != NULL) {
             gtk_container_remove(GTK_CONTAINER(chat_box),
                                  msg_node->message->button);
-            g_print("Removed button for message ID: %d\n",
-                    msg_node->message->message_id);
+            // g_print("Removed button for message ID: %d\n",
+            // msg_node->message->message_id);
             msg_node->message->button = NULL;
           } else {
-            g_print("Warning: button is NULL for message ID: %d\n",
-                    msg_node->message->message_id);
+            // g_print("Warning: button is NULL for message ID: %d\n",
+            // msg_node->message->message_id);
           }
         }
       }
@@ -76,7 +76,7 @@ void show_profile(GtkWidget *settings_button, gpointer data) {
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);
   send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
+  // g_print("Sent: %s\n", json_str);
 
   g_free(json_str);
   // Set the full description with default name and group
@@ -161,7 +161,7 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
 
       // You can add a log or other actions as needed
       stop_recording();
-      g_print("Recording stopped for chat: %d\n", i->chat.id);
+      // g_print("Recording stopped for chat: %d\n", i->chat.id);
     }
     if (i->chat.changing_message) {
       i->chat.changing_message = NULL;
@@ -179,7 +179,7 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
 
       // Ensure chat_box is valid
       if (!chat_box) {
-        g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
+        // g_print("Error: chat_box is NULL for chat ID: %d\n", i->chat.id);
         continue;
       }
 
@@ -190,12 +190,12 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
           if (msg_node->message->button != NULL) {
             gtk_container_remove(GTK_CONTAINER(chat_box),
                                  msg_node->message->button);
-            g_print("Removed button for message ID: %d\n",
-                    msg_node->message->message_id);
+            // g_print("Removed button for message ID: %d\n",
+            // msg_node->message->message_id);
             msg_node->message->button = NULL;
           } else {
-            g_print("Warning: button is NULL for message ID: %d\n",
-                    msg_node->message->message_id);
+            // g_print("Warning: button is NULL for message ID: %d\n",
+            // msg_node->message->message_id);
           }
         }
       }
@@ -269,18 +269,18 @@ void show_chat(GtkWidget *chat_button, gpointer data) {
       for (MessageNode *msg_node = main_page->messages; msg_node != NULL;
            msg_node = msg_node->next) {
         if (msg_node == NULL) {
-          g_print("msg_node in NULL\n");
+          // g_print("msg_node in NULL\n");
           break;
         }
         if (msg_node->message == NULL) {
-          g_print("msg_node in NULL\n");
+          // g_print("msg_node in NULL\n");
           break;
         }
         if (msg_node->message->chat_id == i->chat.id) {
           create_message_button(
               main_page, msg_node); // Create a new button for each message
-          g_print("Created button for message ID: %d\n",
-                  msg_node->message->message_id);
+          // g_print("Created button for message ID: %d\n",
+          // msg_node->message->message_id);
         }
       }
 
@@ -302,7 +302,7 @@ void show_profile_from_icon(GtkWidget *profile_icon, gpointer data) {
   char *json_str = cJSON_Print(json);
   cJSON_Delete(json);
   send(main_page->sock, json_str, strlen(json_str), 0);
-  g_print("Sent: %s\n", json_str);
+  // g_print("Sent: %s\n", json_str);
   g_free(json_str);
 
   // Set the visible child to user_info with a smooth transition
@@ -357,7 +357,7 @@ void show_participant_profile(GtkWidget *profile_icon, gpointer data) {
   cJSON_AddNumberToObject(json_message, "chat_id", main_page->opened_chat->id);
 
   char *json_str = cJSON_Print(json_message);
-  g_print("Sending message to server: %s\n", json_str);
+  // g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
 
   cJSON_Delete(json_message);

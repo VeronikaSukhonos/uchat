@@ -60,12 +60,12 @@ void registration_submit(GtkWidget *registration_button, t_form_data *data) {
     else {
       // send JSON REGISTER
       char *json_str = build_json_register(username, password);
-      g_print("Sock: %i", data->sock);
+      // g_print("Sock: %i", data->sock);
       send(data->sock, json_str, strlen(json_str), 0);
       g_free(json_str);
-      g_print("Registration sended to server:\nUsername: %s\nPassword: "
-              "%s\nRepassword: %s\n",
-              username, password, repassword);
+      // g_print("Registration sended to server:\nUsername: %s\nPassword: "
+      //"%s\nRepassword: %s\n",
+      // username, password, repassword);
       gtk_entry_set_text(GTK_ENTRY(data->username), "");
       gtk_entry_set_text(GTK_ENTRY(data->password), "");
       gtk_entry_set_text(GTK_ENTRY(data->repassword), "");
@@ -93,11 +93,12 @@ void login_submit(GtkWidget *login_button, t_form_data *data) {
     char serial_number[64] = {0};
     get_serial_number(serial_number, sizeof(serial_number));
     char *json_str = build_json_login(username, password, serial_number);
-    g_print("Sock: %i", data->sock);
+    // g_print("Sock: %i", data->sock);
     send(data->sock, json_str, strlen(json_str), 0);
     g_free(json_str);
-    g_print("Login sended to server:\nUsername: %s\nPassword: %s\n", username,
-            password);
+    // g_print("Login sended to server:\nUsername: %s\nPassword: %s\n",
+    // username,
+    // password);
     gtk_entry_set_text(GTK_ENTRY(data->username), "");
     gtk_entry_set_text(GTK_ENTRY(data->password), "");
     gtk_label_set_text(GTK_LABEL(data->message), "");
@@ -141,37 +142,37 @@ int check_password(char *password, GtkWidget *message) {
     return 0;
   }
   // check for password reliability here
-  
-	int has_upper = 0, has_lower = 0, has_digit = 0;
 
-    for (int i = 0; i < password_len; i++) {
-        if (isupper(password[i]))
-            has_upper = 1;
-        if (islower(password[i]))
-            has_lower = 1;
-        if (isdigit(password[i]))
-            has_digit = 1;
+  int has_upper = 0, has_lower = 0, has_digit = 0;
 
-        // Break early if all conditions are met
-    	if (has_upper && has_lower && has_digit)
-        	break;
-    }
-    if (!has_upper) {
-        gtk_label_set_text(GTK_LABEL(message),
-                           "Password must contain at least 1 uppercase letter");
-        return 0;
-    }
-    if (!has_lower) {
-        gtk_label_set_text(GTK_LABEL(message),
-                           "Password must contain at least 1 lowercase letter");
-        return 0;
-    }
+  for (int i = 0; i < password_len; i++) {
+    if (isupper(password[i]))
+      has_upper = 1;
+    if (islower(password[i]))
+      has_lower = 1;
+    if (isdigit(password[i]))
+      has_digit = 1;
 
-    if (!has_digit) {
-        gtk_label_set_text(GTK_LABEL(message),
-                           "Password must contain at least 1 number");
-        return 0;
-    }
+    // Break early if all conditions are met
+    if (has_upper && has_lower && has_digit)
+      break;
+  }
+  if (!has_upper) {
+    gtk_label_set_text(GTK_LABEL(message),
+                       "Password must contain at least 1 uppercase letter");
+    return 0;
+  }
+  if (!has_lower) {
+    gtk_label_set_text(GTK_LABEL(message),
+                       "Password must contain at least 1 lowercase letter");
+    return 0;
+  }
+
+  if (!has_digit) {
+    gtk_label_set_text(GTK_LABEL(message),
+                       "Password must contain at least 1 number");
+    return 0;
+  }
 
   return 1;
 }

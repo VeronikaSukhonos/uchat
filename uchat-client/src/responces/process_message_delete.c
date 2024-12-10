@@ -30,13 +30,13 @@ void process_message_delete(const char *json_response, AppData *app_data) {
   char file_path[256];
   snprintf(file_path, sizeof(file_path), "cache/chat_%d.json", chat_id);
 
-  printf("Chat ID: %d\n", chat_id);
-  printf("Message ID: %d\n", message_id);
-  printf("File Path: %s\n", file_path);
+  // printf("Chat ID: %d\n", chat_id);
+  // printf("Message ID: %d\n", message_id);
+  // printf("File Path: %s\n", file_path);
 
   // Update the message status in the encrypted JSON file
   if (update_message_status_in_json(file_path, message_id, "deleted") == 0) {
-    printf("Message status successfully updated in cache.\n");
+    // printf("Message status successfully updated in cache.\n");
 
     // Update the message node in main_page->messages
     MessageNode *msg_node;
@@ -54,19 +54,17 @@ void process_message_delete(const char *json_response, AppData *app_data) {
           if (msg_node->message->content_type == VOICE) {
             gtk_widget_destroy(msg_node->message->voice_message_button);
             gtk_widget_set_visible(msg_node->message->message_label, 1);
-          }
-          else if (msg_node->message->content_type == ANY_FILE) {
+          } else if (msg_node->message->content_type == ANY_FILE) {
             gtk_widget_destroy(msg_node->message->save_file_button);
-          }
-          else if (msg_node->message->content_type == IMAGE) {
+          } else if (msg_node->message->content_type == IMAGE) {
             gtk_widget_destroy(msg_node->message->image_file);
             gtk_widget_set_visible(msg_node->message->message_label, 1);
           }
           gtk_label_set_text(GTK_LABEL(msg_node->message->message_label),
                              "Deleted message");
           gtk_style_context_add_class(
-          gtk_widget_get_style_context(msg_node->message->message_label),
-            "deleted-message");
+              gtk_widget_get_style_context(msg_node->message->message_label),
+              "deleted-message");
           if (msg_node->message->menu != NULL)
             gtk_widget_destroy(msg_node->message->menu);
           msg_node->message->menu = NULL;
@@ -74,12 +72,12 @@ void process_message_delete(const char *json_response, AppData *app_data) {
             gtk_label_set_text(GTK_LABEL(msg_node->message->message_label),
                                "Deleted message");
             gtk_style_context_add_class(
-            gtk_widget_get_style_context(msg_node->message->message_label),
-            "deleted-message");
+                gtk_widget_get_style_context(msg_node->message->message_label),
+                "deleted-message");
           }
         }
 
-        g_print("Marked message ID %d as DELETED.\n", message_id);
+        // g_print("Marked message ID %d as DELETED.\n", message_id);
         break;
       }
     }

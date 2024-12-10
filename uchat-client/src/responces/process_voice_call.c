@@ -17,7 +17,7 @@ void process_voice_call_start(cJSON *response, AppData *app_data) {
   strcpy(caller_ip, caller_ip_json->valuestring);
 
   if (in_call == 1) {
-    g_print("Already in Call\n");
+    // g_print("Already in Call\n");
     return;
   }
   play_audio("uchat-client/sounds/ringing.wav");
@@ -78,7 +78,7 @@ void process_voice_call_stop(cJSON *response, AppData *app_data) {
   stop_send_pipeline();
   close_voice_call_window(app_data->main_page->voice_call_window,
                           app_data->main_page);
-  g_print("Stopped voice call\n");
+  // g_print("Stopped voice call\n");
   in_call = 0;
   incoming = 0;
   is_calling = 0;

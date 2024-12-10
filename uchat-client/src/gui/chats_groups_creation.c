@@ -37,21 +37,21 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
                                   const char *last_sender,
                                   const char *last_time, const char *unread) {
   // Debug: Print all input variables
-  g_print("Updating/Creating Chat Button:\n");
-  g_print("  chat_id: %d\n", chat_id);
-  g_print("  name: %s\n", name);
-  g_print("  chat_type: %s\n", chat_type);
-  g_print("  last_message: %s\n", last_message);
-  g_print("  last_sender: %s\n", last_sender);
-  g_print("  last_time: %s\n", last_time);
-  g_print("  unread: %s\n", unread);
+  // g_print("Updating/Creating Chat Button:\n");
+  // g_print("  chat_id: %d\n", chat_id);
+  // g_print("  name: %s\n", name);
+  // g_print("  chat_type: %s\n", chat_type);
+  // g_print("  last_message: %s\n", last_message);
+  // g_print("  last_sender: %s\n", last_sender);
+  // g_print("  last_time: %s\n", last_time);
+  // g_print("  unread: %s\n", unread);
 
   // Search for the chat in the linked list
   t_chat_node *current = main_page->chats;
   while (current) {
     if (current->chat.id == chat_id) {
       // Debug: Found existing chat
-      g_print("Chat ID %d found, updating details...\n", chat_id);
+      // g_print("Chat ID %d found, updating details...\n", chat_id);
 
       // Update existing chat button details
       if (current->chat.last_time) {
@@ -85,11 +85,12 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
         if (strlen(unread) > 0) {
           gtk_style_context_add_class(style_context,
                                       "chat-button-unread-border");
-          g_print("Added 'unread-border' style for chat_id: %d\n", chat_id);
+          // g_print("Added 'unread-border' style for chat_id: %d\n", chat_id);
         } else {
           gtk_style_context_remove_class(style_context,
                                          "chat-button-unread-border");
-          g_print("Removed 'unread-border' style for chat_id: %d\n", chat_id);
+          // g_print("Removed 'unread-border' style for chat_id: %d\n",
+          // chat_id);
         }
       } else {
         g_warning("Style context is NULL for chat_id: %d", chat_id);
@@ -101,7 +102,7 @@ void create_or_update_chat_button(t_main_page_data *main_page, int chat_id,
   }
 
   // If chat_id does not exist, create a new chat button
-  g_print("Chat ID %d not found, creating a new button...\n", chat_id);
+  // g_print("Chat ID %d not found, creating a new button...\n", chat_id);
   new_chat_button_from_json(main_page, chat_id, name, chat_type, last_message,
                             last_sender, last_time, unread);
 }
@@ -166,7 +167,7 @@ void new_chat_button_from_json(t_main_page_data *main_page, int chat_id,
   gtk_container_add(GTK_CONTAINER((*temp_node).chat.button), main_box);
 
   // Set chat icon based on type
-  g_print("Type:%s\n", chat_type);
+  // g_print("Type:%s\n", chat_type);
   GtkWidget *image = gtk_image_new_from_file(
       strcmp(chat_type, "private") == 0
           ? "uchat-client/src/gui/resources/rabbit_chats.png"
@@ -350,7 +351,7 @@ void chat_creation(GtkWidget *create_chat_button, gpointer data) {
     char *json_str = cJSON_Print(json);
     cJSON_Delete(json);
     send(main_page->sock, json_str, strlen(json_str), 0);
-    g_print("Sent: %s\n", json_str);
+    // g_print("Sent: %s\n", json_str);
     g_free(json_str);
     // if (получилось) {
     // new_chat_button(main_page, username, 'c');
@@ -405,7 +406,7 @@ void adding_user(GtkWidget *add_user_button, gpointer data) {
         char *json_str = cJSON_Print(json);
         cJSON_Delete(json);
         send(main_page->sock, json_str, strlen(json_str), 0);
-        g_print("Sent: %s\n", json_str);
+        // g_print("Sent: %s\n", json_str);
         g_free(json_str);
       }
 
@@ -427,16 +428,15 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
   } else if (strlen(name) > 40) {
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group name cannot exceed 40 characters");
-  }
-  else if ((*main_page).group_users_count < 2)
+  } else if ((*main_page).group_users_count < 2)
     gtk_label_set_text(GTK_LABEL((*main_page).create_group_data.message),
                        "Group must have at least three members");
   else {
-    g_print("Group %s with users ", name);
+    // g_print("Group %s with users ", name);
     char usernames[(*main_page).group_users_count][50];
     for (int i = 0; i < (*main_page).group_users_count; ++i) {
-      g_print("%s%c", (*main_page).group_users[i].username,
-              i == (*main_page).group_users_count - 1 ? '\n' : ' ');
+      // g_print("%s%c", (*main_page).group_users[i].username,
+      // i == (*main_page).group_users_count - 1 ? '\n' : ' ');
       strcpy(usernames[i], (*main_page).group_users[i].username);
     }
     for (int i = 0; i < (*main_page).group_users_count; ++i) {
@@ -447,7 +447,7 @@ void group_creation(GtkWidget *create_group_button, gpointer data) {
     char *json_str =
         build_json_group_chat(name, usernames, (*main_page).group_users_count);
     send((*main_page).sock, json_str, strlen(json_str), 0);
-    printf("Sent: %s\n", json_str);
+    // printf("Sent: %s\n", json_str);
     g_free(json_str);
     (*main_page).group_users_count = 0;
     //    gtk_stack_set_visible_child_name(GTK_STACK((*main_page).menu_stack),

@@ -30,8 +30,8 @@ void read_and_create_chat_button(const char *file_path,
     if (current_chat->chat.id == chat_id) {
       // Set this chat as the currently opened chat
       main_page->opened_chat = &current_chat->chat;
-      g_print("Chat ID %d is now set as opened_chat.\n", chat_id);
-      
+      // g_print("Chat ID %d is now set as opened_chat.\n", chat_id);
+
       // Simulate a click on the chat button to update the top bar
       show_chat(current_chat->chat.button, main_page);
       return;
@@ -40,7 +40,7 @@ void read_and_create_chat_button(const char *file_path,
   }
 
   // If the chat_id is not found in the list, log a warning
-  g_print("Warning: Chat ID %d not found in main_page->chats.\n", chat_id);
+  // g_print("Warning: Chat ID %d not found in main_page->chats.\n", chat_id);
 }
 
 void save_single_chat_to_encrypted_cache(cJSON *chat, const char *cache_dir,

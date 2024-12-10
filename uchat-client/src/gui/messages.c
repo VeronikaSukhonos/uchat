@@ -12,29 +12,29 @@ void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
   GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
   if (!gst_pad_is_linked(sinkpad)) {
     if (gst_pad_link(pad, sinkpad) != GST_PAD_LINK_OK) {
-      g_printerr("Failed to link decodebin pad to sink pad.\n");
+      // g_printerr("Failed to link decodebin pad to sink pad.\n");
     } else {
-      g_print("Pad linked successfully.\n");
+      // g_print("Pad linked successfully.\n");
     }
   } else {
-    g_print("Pad was already linked.\n");
+    // g_print("Pad was already linked.\n");
   }
   gst_object_unref(sinkpad);
 }
 
 // This is the function that will be run in a new thread to play the audio
 void stop_audio() {
-  g_print("Stopping audio playback...\n");
+  // g_print("Stopping audio playback...\n");
 
   // Try to acquire the mutex to ensure no other thread is stopping playback
   if (pthread_mutex_trylock(&play_mutex) != 0) {
-    g_print("Another thread is already stopping playback. Waiting...\n");
-    // pthread_mutex_lock(&play_mutex); // Block until the mutex is available
+    // g_print("Another thread is already stopping playback. Waiting...\n");
+    //  pthread_mutex_lock(&play_mutex); // Block until the mutex is available
   }
 
   // Now the mutex is locked, proceed to stop playback safely
   if (current_pipeline != NULL) {
-    g_print("Setting pipeline state to NULL...\n");
+    // g_print("Setting pipeline state to NULL...\n");
 
     // Set pipeline state to NULL
     gst_element_set_state(current_pipeline, GST_STATE_NULL);
@@ -43,20 +43,20 @@ void stop_audio() {
     GstState state;
     gst_element_get_state(current_pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
     if (state != GST_STATE_NULL) {
-      g_printerr("Failed to transition pipeline to NULL state.\n");
+      // g_printerr("Failed to transition pipeline to NULL state.\n");
     }
 
     // Unref the pipeline
     gst_object_unref(current_pipeline);
     current_pipeline = NULL;
 
-    g_print("Current audio pipeline stopped and cleared successfully.\n");
+    // g_print("Current audio pipeline stopped and cleared successfully.\n");
   } else {
-    g_print("No active audio pipeline to stop.\n");
+    // g_print("No active audio pipeline to stop.\n");
   }
 
   pthread_mutex_unlock(&play_mutex);
-  g_print("Mutex unlocked after stopping audio.\n");
+  // g_print("Mutex unlocked after stopping audio.\n");
 }
 
 void *play_audio_thread(void *data) {
@@ -64,11 +64,11 @@ void *play_audio_thread(void *data) {
   char file_path[50];
   strcpy(file_path, temp_node->message->voice_path);
 
-  g_print("The message is being played: %s\n", file_path);
+  // g_print("The message is being played: %s\n", file_path);
 
   // Attempt to lock the mutex
   if (pthread_mutex_trylock(&play_mutex) != 0) {
-    g_printerr("Audio playback is already in progress, exiting thread.\n");
+    // g_printerr("Audio playback is already in progress, exiting thread.\n");
     return NULL;
   }
 
@@ -80,27 +80,27 @@ void *play_audio_thread(void *data) {
   sink = gst_element_factory_make("autoaudiosink", "sink");
 
   if (!pipeline || !source || !decodebin || !sink) {
-    g_printerr("Failed to create GStreamer elements.\n");
+    // g_printerr("Failed to create GStreamer elements.\n");
     pthread_mutex_unlock(&play_mutex); // Unlock the mutex before returning
     return NULL;
   }
 
-  g_print("GStreamer elements created successfully.\n");
+  // g_print("GStreamer elements created successfully.\n");
 
   // Set the source file location
   g_object_set(G_OBJECT(source), "location", file_path, NULL);
 
   // Add elements to the pipeline
   gst_bin_add_many(GST_BIN(pipeline), source, decodebin, sink, NULL);
-  g_print("Elements added to the pipeline.\n");
+  // g_print("Elements added to the pipeline.\n");
 
   // Link the source to decodebin
   gst_element_link(source, decodebin);
-  g_print("Source linked to decodebin.\n");
+  // g_print("Source linked to decodebin.\n");
 
   // Handle dynamic pads for decodebin
   g_signal_connect(decodebin, "pad-added", G_CALLBACK(on_pad_added), sink);
-  g_print("Dynamic pad setup for decodebin.\n");
+  // g_print("Dynamic pad setup for decodebin.\n");
 
   // Set the current pipeline
   current_pipeline = pipeline;
@@ -108,14 +108,14 @@ void *play_audio_thread(void *data) {
   // Start playing the audio
   GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
-    g_printerr("Failed to change pipeline state to PLAYING.\n");
+    // g_printerr("Failed to change pipeline state to PLAYING.\n");
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref(pipeline);
     pthread_mutex_unlock(&play_mutex);
     return NULL;
   }
 
-  g_print("Audio playback started.\n");
+  // g_print("Audio playback started.\n");
 
   // Monitor the bus for EOS or error messages
   GstBus *bus = gst_element_get_bus(pipeline);
@@ -126,14 +126,14 @@ void *play_audio_thread(void *data) {
     if (msg != NULL) {
       switch (GST_MESSAGE_TYPE(msg)) {
       case GST_MESSAGE_EOS:
-        g_print("Audio playback completed (EOS).\n");
+        // g_print("Audio playback completed (EOS).\n");
         running = FALSE;
         break;
       case GST_MESSAGE_ERROR: {
         GError *err;
         gchar *debug_info;
         gst_message_parse_error(msg, &err, &debug_info);
-        g_printerr("Error: %s\n", err->message);
+        // g_printerr("Error: %s\n", err->message);
         g_free(debug_info);
         g_error_free(err);
         running = FALSE;
@@ -147,39 +147,39 @@ void *play_audio_thread(void *data) {
   }
 
   // Clean up the pipeline
-  g_print("Cleaning up pipeline...\n");
+  // g_print("Cleaning up pipeline...\n");
   gst_element_set_state(pipeline, GST_STATE_NULL);
   gst_object_unref(bus);
   gst_object_unref(pipeline);
   current_pipeline = NULL;
 
-  g_print("Pipeline cleaned up.\n");
+  // g_print("Pipeline cleaned up.\n");
 
   // Unlock the mutex to indicate the thread is done
   pthread_mutex_unlock(&play_mutex);
-  g_print("Mutex unlocked after playback.\n");
+  // g_print("Mutex unlocked after playback.\n");
 
   return NULL;
 }
 
 // Function to stop the current audio thread (if any) and start a new one
 void play_voice(GtkWidget *button, gpointer data) {
-  g_print("play_voice function called.\n");
+  // g_print("play_voice function called.\n");
 
   // Stop any currently playing audio
   stop_audio();
 
   // Create a new thread to handle the audio playback
   if (pthread_create(&audio_thread, NULL, play_audio_thread, data) != 0) {
-    g_printerr("Failed to create audio thread.\n");
+    // g_printerr("Failed to create audio thread.\n");
     return;
   }
 
-  g_print("New audio thread created successfully.\n");
+  // g_print("New audio thread created successfully.\n");
 
   // Detach the thread so it can clean up itself when done
   pthread_detach(audio_thread);
-  g_print("New audio thread detached.\n");
+  // g_print("New audio thread detached.\n");
 }
 
 void show_message_menu(GtkWidget *message_button, gpointer data) {
@@ -198,15 +198,15 @@ void start_change_message(GtkWidget *change_message_button, gpointer data) {
 
   // Find the corresponding message node
   mp_tn->main_page->opened_chat->changing_message = changing_message;
-  g_print("Changing message \"%s\"\n",
-          mp_tn->main_page->opened_chat->changing_message->message->content);
+  // g_print("Changing message \"%s\"\n",
+  // mp_tn->main_page->opened_chat->changing_message->message->content);
 
   // Ensure valid UTF-8 and set the message content
   const char *message_content = changing_message->message->content;
   if (!message_content) {
     message_content = ""; // Default to an empty string
   } else if (!g_utf8_validate(message_content, -1, NULL)) {
-    g_print("Error: Message content is not valid UTF-8.\n");
+    // g_print("Error: Message content is not valid UTF-8.\n");
     message_content = ""; // Default to empty if invalid
   }
   gtk_text_buffer_set_text(mp_tn->main_page->message_buffer, message_content,
@@ -226,7 +226,7 @@ void change_message(t_main_page_data *main_page, const gchar *message_text) {
   main_page->opened_chat->changing_message->message->status = MODIFIED;
 
   char *json_str = cJSON_Print(json_message);
-  g_print("Sending message to server: %s\n", json_str);
+  // g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
 
   free(json_str);
@@ -235,7 +235,7 @@ void change_message(t_main_page_data *main_page, const gchar *message_text) {
   //     GTK_LABEL(
   //         main_page->opened_chat->changing_message->message->changed_label),
   //     "Modified");
-  // g_print("message changed from \"%s\" to \"%s\"\n",
+  // //g_print("message changed from \"%s\" to \"%s\"\n",
   //         main_page->opened_chat->changing_message->message->content,
   //         message_text);
   // main_page->opened_chat->changing_message = NULL;
@@ -254,7 +254,7 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   cJSON_AddNumberToObject(json_message, "chat_id",
                           mp_tn->main_page->opened_chat->id);
   char *json_str = cJSON_Print(json_message);
-  g_print("Sending message to server: %s\n", json_str);
+  // g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
 
   free(json_str);
@@ -383,7 +383,7 @@ void send_message_to_server(int chat_id, const gchar *message) {
   cJSON_AddStringToObject(json_message, "message", message);
 
   char *json_str = cJSON_Print(json_message);
-  g_print("Sending message to server: %s\n", json_str);
+  // g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
 
   cJSON_Delete(json_message);
@@ -471,12 +471,12 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   }
   if (cJSON_IsNumber(id_json)) {
     temp_node->message->message_id = id_json->valueint;
-    g_print("Message ID set to: %d\n",
-            temp_node->message->message_id); // Debugging print
+    // g_print("Message ID set to: %d\n",
+    // temp_node->message->message_id); // Debugging print
   } else {
-    g_print(
-        "Error: message_id not found or not a number.\n"); // Debugging error if
-                                                           // missing or invalid
+    // g_print(
+    //"Error: message_id not found or not a number.\n"); // Debugging error if
+    // missing or invalid
     temp_node->message->message_id = 0; // Set default ID if invalid
   }
 
@@ -516,7 +516,7 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   if (message_type == VOICE && cJSON_IsString(voice_path_json)) {
     strncpy(temp_node->message->voice_path, voice_path_json->valuestring,
             sizeof(temp_node->message->voice_path) - 1);
-    g_print("filepath set to %s\n", temp_node->message->voice_path);
+    // g_print("filepath set to %s\n", temp_node->message->voice_path);
   }
 
   if ((message_type == ANY_FILE || message_type == IMAGE) &&
@@ -525,7 +525,7 @@ MessageNode *create_message_node(t_main_page_data *main_page,
     char *filename =
         cJSON_GetObjectItem(message_json, "file_name")->valuestring;
     strcpy(temp_node->message->content, filename);
-    g_print("filepath set to %s\n", temp_node->message->voice_path);
+    // g_print("filepath set to %s\n", temp_node->message->voice_path);
   }
 
   temp_node->message->button = NULL; // Initial value, you can modify later
@@ -534,7 +534,7 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   return temp_node;
 }
 
-// void test(gpointer *ptr) { g_print("test\n"); }
+// void test(gpointer *ptr) { //g_print("test\n"); }
 
 void create_message_button(t_main_page_data *main_page,
                            MessageNode *temp_node) {
@@ -668,7 +668,7 @@ void create_message_button(t_main_page_data *main_page,
           "play-button");
       gtk_widget_set_halign((*temp_node).message->voice_message_button,
                             GTK_ALIGN_START);
-      // g_print("Connecting signal to play voice for message: %s\n",
+      // //g_print("Connecting signal to play voice for message: %s\n",
       //         temp_node->message.voice_path);
       // Make sure the signal handler is connected to the voice button
       g_signal_connect(temp_node->message->voice_message_button, "clicked",
@@ -719,7 +719,7 @@ void create_message_button(t_main_page_data *main_page,
       // Change to image filepath
       (*temp_node).message->image_file =
           resize_image_file((*temp_node).message->voice_path);
-      g_print("Path: %s\n", (*temp_node).message->voice_path);
+      // g_print("Path: %s\n", (*temp_node).message->voice_path);
       gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
                          (*temp_node).message->image_file, FALSE, FALSE, 0);
       gtk_style_context_add_class(
@@ -908,7 +908,7 @@ void send_message_f(GtkWidget *widget, gpointer data) {
     // MessageNode *new_message = create_message_node(main_page, TEXT, chat_id);
     // create_message_button(main_page, new_message);
   } else {
-    g_print("Cannot send an empty message.\n");
+    // g_print("Cannot send an empty message.\n");
   }
   gtk_text_buffer_set_text(message_buffer, "", -1);
 }

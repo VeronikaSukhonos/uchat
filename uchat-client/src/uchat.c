@@ -75,10 +75,10 @@ int main(int argc, char *argv[]) {
   receive_port =
       5000 + (getpid() % 1000); // Generates unique ports like 5001, 5002, etc.
   if (sock < 0) {
-    g_print("Initial connection failed. Showing retry window.\n");
+    // g_print("Initial connection failed. Showing retry window.\n");
     create_update_failed_window(); // Show retry window if connection fails
   } else {
-    g_print("Connected to the server successfully.\n");
+    // g_print("Connected to the server successfully.\n");
     setup_main_application(); // Open main app if connected
   }
   return 0;

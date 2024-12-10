@@ -4,7 +4,7 @@ GtkWidget *profile_window = NULL;
 
 void process_chat_profile_data(const char *json_response, AppData *app_data) {
 
-  //apply_css(profile_window, "uchat-client/src/gui/resources/styles.css");
+  // apply_css(profile_window, "uchat-client/src/gui/resources/styles.css");
   cJSON *response = cJSON_Parse(json_response);
   if (!response) {
     fprintf(stderr, "Failed to parse JSON response.\n");
@@ -34,19 +34,20 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
                        is_group ? "Group Profile" : "User Profile");
   gtk_window_set_default_size(GTK_WINDOW(profile_window), 400, 500);
   gtk_window_set_position(GTK_WINDOW(profile_window), GTK_WIN_POS_CENTER);
+  gtk_window_set_resizable(GTK_WINDOW(profile_window), FALSE);
 
   // Main container for the profile window
   GtkWidget *main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(profile_window), main_container);
   gtk_style_context_add_class(gtk_widget_get_style_context(main_container),
                               "main-page-form");
-  
+
   GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_box_pack_start(GTK_BOX(main_container), content_box, TRUE, FALSE, 0);
   gtk_widget_set_size_request(GTK_WIDGET(content_box), 375, -1);
   gtk_widget_set_halign(content_box, GTK_ALIGN_CENTER);
   gtk_style_context_add_class(gtk_widget_get_style_context(content_box),
-  							  "form");
+                              "form");
 
   GtkWidget *title_label =
       gtk_label_new(is_group ? "Group Members" : "User Details");
@@ -59,8 +60,7 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
   const char *avatar_path =
       is_group ? "uchat-client/src/gui/resources/rabbits_group.png"
                : "uchat-client/src/gui/resources/rabbit_big.png";
-  GdkPixbuf *original_avatar = gdk_pixbuf_new_from_file(
-      avatar_path, NULL);
+  GdkPixbuf *original_avatar = gdk_pixbuf_new_from_file(avatar_path, NULL);
   GdkPixbuf *resized_avatar =
       gdk_pixbuf_scale_simple(original_avatar, 150, 150, GDK_INTERP_BILINEAR);
   GtkWidget *avatar = gtk_image_new_from_pixbuf(resized_avatar);
@@ -68,8 +68,7 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
   g_object_unref(resized_avatar);
   gtk_box_pack_start(GTK_BOX(content_box), avatar, FALSE, FALSE, 0);
   gtk_widget_set_halign(avatar, GTK_ALIGN_CENTER);
-  gtk_style_context_add_class(gtk_widget_get_style_context(avatar),
-                              "img-edit");
+  gtk_style_context_add_class(gtk_widget_get_style_context(avatar), "img-edit");
 
   // Members info
   GtkWidget *info_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -95,22 +94,26 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
     if (strcmp(username, Username) != 0 && !is_group) {
       GtkWidget *username_label = gtk_label_new(Username);
       gtk_box_pack_start(GTK_BOX(info_box), username_label, TRUE, TRUE, 0);
-      gtk_style_context_add_class(
-      	gtk_widget_get_style_context(username_label), "profile-name");
+      gtk_style_context_add_class(gtk_widget_get_style_context(username_label),
+                                  "profile-name");
 
       GtkWidget *status_label =
           gtk_label_new(strcmp(status, "online") == 0 ? "online" : "offline");
-      const char *status_class = strcmp(status, "online") == 0 ? "status" : "form-message";
+      const char *status_class =
+          strcmp(status, "online") == 0 ? "status" : "form-message";
       gtk_box_pack_start(GTK_BOX(info_box), status_label, TRUE, TRUE, 0);
-      gtk_style_context_add_class(
-      	gtk_widget_get_style_context(status_label), status_class);
+      gtk_style_context_add_class(gtk_widget_get_style_context(status_label),
+                                  status_class);
     } else if (is_group) {
       GtkWidget *username_label = gtk_label_new(Username);
       GtkWidget *status_label =
           gtk_label_new(strcmp(status, "online") == 0 ? "online" : "offline");
-      const char *status_class = strcmp(status, "online") == 0 ? "form-message-success" : "form-message";
+      const char *status_class = strcmp(status, "online") == 0
+                                     ? "form-message-success"
+                                     : "form-message";
 
-      GtkStyleContext *status_context = gtk_widget_get_style_context(status_label);
+      GtkStyleContext *status_context =
+          gtk_widget_get_style_context(status_label);
       gtk_style_context_add_class(status_context, status_class);
       gtk_grid_attach(GTK_GRID(member_grid), username_label, 0, i, 1, 1);
       gtk_widget_set_halign(username_label, GTK_ALIGN_CENTER);
@@ -123,16 +126,16 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
     if (!is_group && strcmp(username, Username) != 0) {
       // Additional details for private chats
       GtkWidget *name_value = gtk_label_new(full_name);
-  	  gtk_style_context_add_class(
-      gtk_widget_get_style_context(name_value), "form-label");
+      gtk_style_context_add_class(gtk_widget_get_style_context(name_value),
+                                  "form-label");
 
       GtkWidget *group_value = gtk_label_new(group);
-        	gtk_style_context_add_class(
-      gtk_widget_get_style_context(group_value), "form-label");
+      gtk_style_context_add_class(gtk_widget_get_style_context(group_value),
+                                  "form-label");
 
       GtkWidget *role_value = gtk_label_new(role);
-        	gtk_style_context_add_class(
-      gtk_widget_get_style_context(role_value), "form-label");
+      gtk_style_context_add_class(gtk_widget_get_style_context(role_value),
+                                  "form-label");
 
       gtk_box_pack_start(GTK_BOX(info_box), name_value, FALSE, FALSE, 0);
       gtk_box_pack_start(GTK_BOX(info_box), group_value, FALSE, FALSE, 0);

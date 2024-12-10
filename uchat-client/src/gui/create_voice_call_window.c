@@ -12,7 +12,7 @@ int is_closing = 0;
 
 void close_voice_call_window(GtkWidget *voice_call_window,
                              t_main_page_data *main_page) {
-  g_print("called close_voice_call_window\n");
+  // g_print("called close_voice_call_window\n");
   if (voice_call_window && is_closing == 0 && incoming == 0) {
     is_closing = 1;
     cJSON *response = cJSON_CreateObject();
@@ -69,13 +69,13 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
   start_send_pipeline(caller_ip->valuestring, caller_port->valueint);
 
   cJSON_free(temp);
-  g_print(" try Closed\n");
+  // g_print(" try Closed\n");
   close_voice_call_window(main_page->voice_call_window, main_page);
   gtk_widget_destroy(main_page->voice_call_window);
   main_page->voice_call_window = NULL;
   in_call = 1;
   incoming = 0;
-  g_print("Closed\n");
+  // g_print("Closed\n");
   create_voice_call_window(NULL, main_page, caller_name->valuestring);
   gtk_label_set_text(GTK_LABEL(main_page->voice_call_window_label), "In call");
   play_audio("uchat-client/sounds/accept.wav");
@@ -84,7 +84,7 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
 void create_voice_call_window(GtkWidget *voice_call_button,
                               t_main_page_data *main_page, char *caller) {
   if (main_page->voice_call_window) {
-    g_print("window exists\n");
+    // g_print("window exists\n");
     return;
   }
 

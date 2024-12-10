@@ -19,7 +19,7 @@ void change_profile(GtkWidget *change_button, gpointer data) {
     // gtk_label_set_label(GTK_LABEL((*main_page).profile_data.username),
     //                     username);
     // gtk_label_set_label(GTK_LABEL((*main_page).profile_data.description),
-    //                     g_strdup_printf("%s\n@%s | %s | %s", name_surname,
+    //                     g_strdup_//printf("%s\n@%s | %s | %s", name_surname,
     //                     username, student_group, role));
 
     // Switch to the user info page
@@ -33,7 +33,7 @@ void change_profile(GtkWidget *change_button, gpointer data) {
     char *json_str = cJSON_Print(json);
     cJSON_Delete(json);
     send(main_page->sock, json_str, strlen(json_str), 0);
-    g_print("Sent: %s\n", json_str);
+    // g_print("Sent: %s\n", json_str);
     g_free(json_str);
     gtk_stack_set_visible_child_name(GTK_STACK((*main_page).central_area_stack),
                                      "user_info");

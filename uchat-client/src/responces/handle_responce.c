@@ -79,12 +79,12 @@ char *receive_large_json(int socket_fd) {
 int handle_response(int sock, int *logged_in, AppData *app_data) {
   char *buffer = receive_large_json(sock);
   if (buffer == (char *)-1) {
-    g_print("Server disconnected or an error occurred.\n");
+    // g_print("Server disconnected or an error occurred.\n");
     *logged_in = 0;
     return -1; // Return -1 for disconnection or error
   }
 
-  g_print("Buffer: %s\n", buffer);
+  // g_print("Buffer: %s\n", buffer);
 
   // Split and process each JSON object
   size_t len = strlen(buffer);
@@ -108,7 +108,7 @@ int handle_response(int sock, int *logged_in, AppData *app_data) {
       // Parse and process the individual JSON object
       cJSON *response = cJSON_Parse(json_str);
       if (!response) {
-        g_print("Failed to parse JSON: %s\n", json_str);
+        // g_print("Failed to parse JSON: %s\n", json_str);
         g_free(json_str);
         continue;
       }
@@ -139,35 +139,35 @@ int process_individual_response(cJSON *response, int *logged_in,
 
   cJSON *action = cJSON_GetObjectItem(response, "action");
   if (!cJSON_IsString(action)) {
-    g_print("Error: 'action' field is missing or not a string.\n");
+    // g_print("Error: 'action' field is missing or not a string.\n");
     cJSON_Delete(response);
     return -1;
   }
 
   if (strcmp(action->valuestring, "LOGIN") == 0) {
     if (handle_login_response(response) == 0) {
-      g_print("Login successful.\n");
+      // g_print("Login successful.\n");
       *logged_in = 1;
       gtk_stack_set_visible_child_name(GTK_STACK(app_data->pages), "chats");
 
       // Sync chat list after login
       sync_chat_list_with_server(sock, "cache");
     } else {
-      g_print("Error: Login Error.\n");
+      // g_print("Error: Login Error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->login_data->message),
                          "Wrong password or login");
     }
   } else if (strcmp(action->valuestring, "REGISTER") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Registration successful\n");
+      // g_print("Registration successful\n");
       gtk_style_context_add_class(
           gtk_widget_get_style_context(app_data->registration_data->message),
           "form-message-success");
       gtk_label_set_text(GTK_LABEL(app_data->registration_data->message),
                          "Registration was successful. Please log in!");
     } else {
-      g_print("Error: Registration error.\n");
+      // g_print("Error: Registration error.\n");
       gtk_label_set_text(GTK_LABEL(app_data->registration_data->message),
                          "Choose another username");
     }
@@ -215,7 +215,7 @@ int process_individual_response(cJSON *response, int *logged_in,
   } else if (strcmp(action->valuestring, "CREATE_CHAT") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Created_chat successful\n");
+      // g_print("Created_chat successful\n");
       ensure_cache_directory();
       save_single_chat_to_encrypted_cache(cJSON_GetObjectItem(response, "chat"),
                                           "cache", app_data);
@@ -225,7 +225,7 @@ int process_individual_response(cJSON *response, int *logged_in,
       gtk_stack_set_visible_child_name(
           GTK_STACK(app_data->main_page->central_area_stack), "chat");
     } else {
-      g_print("Error: No such user.\n");
+      // g_print("Error: No such user.\n");
       gtk_label_set_text(
           GTK_LABEL(app_data->main_page->create_chat_data.message),
           "User is not found");
@@ -235,7 +235,7 @@ int process_individual_response(cJSON *response, int *logged_in,
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
       handle_logout(app_data);
     } else {
-      g_print("Error: LOGOUT error.\n");
+      // g_print("Error: LOGOUT error.\n");
     }
   } else if (strcmp(action->valuestring, "CHAT_LIST") == 0) {
     ensure_cache_directory();
@@ -270,7 +270,7 @@ int process_individual_response(cJSON *response, int *logged_in,
         char *logout_str = cJSON_Print(logout);
         cJSON_Delete(logout);
         send(app_data->main_page->sock, logout_str, strlen(logout_str), 0);
-        g_print("Sent: %s\n", logout_str);
+        // g_print("Sent: %s\n", logout_str);
         if (logout_str) {
           g_free(logout_str);
           logout_str = NULL;
@@ -284,26 +284,26 @@ int process_individual_response(cJSON *response, int *logged_in,
              0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Sending  successful\n");
+      // g_print("Sending  successful\n");
       process_message_and_store(cJSON_Print(response), app_data);
     } else {
-      g_print("Error: Sending error.\n");
+      // g_print("Error: Sending error.\n");
     }
   } else if (strcmp(action->valuestring,
                     "SEND_VOICE_MESSAGE_TO_SERVER_STATUS") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Sending  successful\n");
+      // g_print("Sending  successful\n");
       process_voice_message_and_store(cJSON_Print(response), app_data);
     } else {
-      g_print("Error: Sending error.\n");
+      // g_print("Error: Sending error.\n");
     }
   } else if (strcmp(action->valuestring, "CALL") == 0) {
     process_voice_call_start(response, app_data);
   } else if (strcmp(action->valuestring, "ACCEPT_CALL") == 0) {
     process_voice_call_accept(response, app_data);
   } else if (strcmp(action->valuestring, "CALL_OFFLINE") == 0) {
-    g_print("User is offline\n");
+    // g_print("User is offline\n");
     gtk_label_set_text(GTK_LABEL(app_data->main_page->voice_call_window_label),
                        "Offline");
   } else if (strcmp(action->valuestring, "STOP_CALL") == 0) {
@@ -316,20 +316,20 @@ int process_individual_response(cJSON *response, int *logged_in,
   } else if (strcmp(action->valuestring, "UPDATE_MESSAGE_STATUS") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Updating  successful\n");
+      // g_print("Updating  successful\n");
       process_message_update(cJSON_Print(response), app_data);
     } else {
-      g_print("Error: Sending error.\n");
+      // g_print("Error: Sending error.\n");
     }
   } else if (strcmp(action->valuestring, "UPDATE_MESSAGE_FROM_CHAT") == 0) {
     process_message_update_from_chat(cJSON_Print(response), app_data);
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE_STATUS") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Updating  successful\n");
+      // g_print("Updating  successful\n");
       process_message_delete(cJSON_Print(response), app_data);
     } else {
-      g_print("Error: Sending error.\n");
+      // g_print("Error: Sending error.\n");
     }
   } else if (strcmp(action->valuestring, "DELETE_MESSAGE_FROM_CHAT") == 0) {
     process_message_delete(cJSON_Print(response), app_data);
@@ -341,10 +341,10 @@ int process_individual_response(cJSON *response, int *logged_in,
                     "SEND_FILE_MESSAGE_TO_SERVER_STATUS") == 0) {
     cJSON *status = cJSON_GetObjectItem(response, "status");
     if (strcmp(status->valuestring, "SUCCESS") == 0) {
-      g_print("Sending  successful\n");
+      // g_print("Sending  successful\n");
       process_file_message_and_store(cJSON_Print(response), app_data);
     } else {
-      g_print("Error: Sending error.\n");
+      // g_print("Error: Sending error.\n");
     }
   } else if (strcmp(action->valuestring, "FILE_FROM_CHAT") == 0) {
     process_file_message_and_store(cJSON_Print(response), app_data);

@@ -21,8 +21,8 @@ void process_message_and_store(const char *json_response, AppData *app_data) {
   char file_path[256];
   snprintf(file_path, sizeof(file_path), "cache/chat_%d.json", chat_id);
 
-  printf("Chat ID: %d\n", chat_id);
-  printf("File Path: %s\n", file_path);
+  // printf("Chat ID: %d\n", chat_id);
+  // printf("File Path: %s\n", file_path);
 
   // Extract `message` object
   cJSON *message = cJSON_GetObjectItem(response, "message");
@@ -35,7 +35,7 @@ void process_message_and_store(const char *json_response, AppData *app_data) {
   // At this point, you can insert the message into the encrypted file
   // Use your function to insert the message at the beginning of the file
   if (insert_message_into_chat(file_path, message) == 0) {
-    printf("Message successfully stored in cache.\n");
+    // printf("Message successfully stored in cache.\n");
     char name[64] = {0}, chat_type[20] = {0}, last_message[1024] = {0};
     char last_sender[64] = {0}, last_time[32] = {0}, unread[16] = {0};
     int chatId;
@@ -43,8 +43,8 @@ void process_message_and_store(const char *json_response, AppData *app_data) {
     if (read_chat_data_from_encrypted_json(file_path, &chatId, name, chat_type,
                                            last_message, last_sender, last_time,
                                            unread) == 0) {
-      g_print("last sender: %s\n", last_sender);
-      // Create or update the chat button
+      // g_print("last sender: %s\n", last_sender);
+      //  Create or update the chat button
       create_or_update_chat_button(app_data->main_page, chat_id, name,
                                    chat_type, last_message, last_sender,
                                    last_time, unread);

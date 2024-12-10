@@ -3,7 +3,7 @@
 int attempt_reconnection() {
   sock = connect_to_server(ip, port);
   if (sock >= 0) {
-    g_print("Reconnected to server successfully.\n");
+    // g_print("Reconnected to server successfully.\n");
 
     // Ensure retry window and timeout cleanup
     if (retry_window) {
@@ -19,7 +19,7 @@ int attempt_reconnection() {
     if (main_window == -1)
       setup_main_application(); // Start main app interface
   } else {
-    g_print("Retry connection failed.\n");
+    // g_print("Retry connection failed.\n");
     retry_timeout = 10;
     retry_timeout *= 2; // Double the timeout for next attempt
     retry_timeout_id = g_timeout_add_seconds(1, retry_connection, NULL);
@@ -30,7 +30,7 @@ int attempt_reconnection() {
 int attempt_main_reconnection(AppData *app_data) {
   sock = connect_to_server(ip, port);
   if (sock >= 0) {
-    g_print("Reconnected to server successfully.\n");
+    // g_print("Reconnected to server successfully.\n");
 
     // Stop the periodic reconnection timer
     if (reconnect_timer_id > 0) {
@@ -65,10 +65,11 @@ int attempt_main_reconnection(AppData *app_data) {
     remove_all_chat_buttons(app_data->main_page);
     free_message_list(app_data->main_page->messages);
     app_data->main_page->messages = NULL;
-    g_print("Message head set to null\n");
+    // g_print("Message head set to null\n");
     if (load_session(username, sizeof(username), session_token,
                      sizeof(session_token)) == 0) {
-      g_print("Loaded session for %s. Checking session status...\n", username);
+      // g_print("Loaded session for %s. Checking session status...\n",
+      // username);
       logged_in =
           check_session_on_server(sock, username, session_token, serial_number);
     }
@@ -92,7 +93,7 @@ int attempt_main_reconnection(AppData *app_data) {
     main_retry_timeout = 10;
     reconnect_timer_id =
         g_timeout_add_seconds(1, periodic_reconnection_attempt, app_data);
-    g_print("Retry connection failed. Retrying again in 10 second...\n");
+    // g_print("Retry connection failed. Retrying again in 10 second...\n");
   }
   return 0;
 }

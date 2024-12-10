@@ -6,7 +6,7 @@ int connect_to_server(const char *server_ip, int port) {
 
   // Create socket
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("Socket creation error\n");
+    //printf("Socket creation error\n");
     return -1;
   }
 
@@ -16,14 +16,14 @@ int connect_to_server(const char *server_ip, int port) {
 
   // Convert IP address from text to binary form
   if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
-    printf("Invalid address/Address not supported\n");
+    //printf("Invalid address/Address not supported\n");
     close(sock);
     return -1;
   }
 
   // Connect to the server
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    printf("Connection failed\n");
+    //printf("Connection failed\n");
     close(sock);
     return -1;
   }

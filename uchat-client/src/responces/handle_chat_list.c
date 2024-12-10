@@ -8,7 +8,7 @@
 void handle_chat_list_response(cJSON *response, const char *cache_dir) {
   cJSON *chats = cJSON_GetObjectItem(response, "chats");
   if (!cJSON_IsArray(chats)) {
-    printf("No chat list found in response.\n");
+    // printf("No chat list found in response.\n");
     return;
   }
 
@@ -116,8 +116,8 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
               // Add the file path to the JSON message object
               cJSON_AddStringToObject(json_message, "voice_file_path",
                                       file_path);
-              g_print("success to write voice message to file: %s\n",
-                      file_path);
+              // g_print("success to write voice message to file: %s\n",
+              // file_path);
             } else {
               fprintf(stderr, "Failed to write voice message to file: %s\n",
                       file_path);
@@ -155,7 +155,8 @@ void handle_chat_list_response(cJSON *response, const char *cache_dir) {
             // Add the file path to the JSON message object
             cJSON_AddStringToObject(json_message, "file_path", file_path);
             cJSON_AddStringToObject(json_message, "file_name", file_name);
-            g_print("success to write voice message to file: %s\n", file_path);
+            // g_print("success to write voice message to file: %s\n",
+            // file_path);
           } else {
             fprintf(stderr, "Failed to write voice message to file: %s\n",
                     file_path);

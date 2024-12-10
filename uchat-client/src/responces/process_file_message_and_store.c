@@ -78,7 +78,7 @@ void process_file_message_and_store(const char *json_response,
   fclose(file);
   g_free(decoded_file);
 
-  printf("Voice message saved to file: %s\n", file_path);
+  // printf("Voice message saved to file: %s\n", file_path);
   cJSON_DeleteItemFromObject(message, "file_path");
   cJSON_DeleteItemFromObject(message, "file_type");
   cJSON_DeleteItemFromObject(message, "file_data");
@@ -94,12 +94,12 @@ void process_file_message_and_store(const char *json_response,
   snprintf(chat_file_path, sizeof(chat_file_path), "cache/chat_%d.json",
            chat_id);
 
-  printf("Chat ID: %d\n", chat_id);
-  printf("Encrypted File Path: %s\n", chat_file_path);
+  // printf("Chat ID: %d\n", chat_id);
+  // printf("Encrypted File Path: %s\n", chat_file_path);
 
   // Insert the message into the encrypted JSON file
   if (insert_message_into_chat(chat_file_path, message) == 0) {
-    printf("Voice message successfully stored in cache.\n");
+    // printf("Voice message successfully stored in cache.\n");
     char name[64] = {0}, chat_type[20] = {0}, last_message[1024] = {0};
     char last_sender[64] = {0}, last_time[32] = {0}, unread[16] = {0};
     int chatId;
@@ -107,8 +107,8 @@ void process_file_message_and_store(const char *json_response,
     if (read_chat_data_from_encrypted_json(chat_file_path, &chatId, name,
                                            chat_type, last_message, last_sender,
                                            last_time, unread) == 0) {
-      g_print("last sender: %s\n", last_sender);
-      // Create or update the chat button
+      // g_print("last sender: %s\n", last_sender);
+      //  Create or update the chat button
       create_or_update_chat_button(app_data->main_page, chat_id, name,
                                    chat_type, last_message, last_sender,
                                    last_time, unread);
@@ -121,8 +121,8 @@ void process_file_message_and_store(const char *json_response,
       app_data->main_page, is_image(file_path) == 1 ? IMAGE : ANY_FILE, chat_id,
       message);
   create_message_button(app_data->main_page, msg_node);
-  g_print("Signal connected to play voice for message ID: %d\n",
-          msg_node->message->message_id);
+  // g_print("Signal connected to play voice for message ID: %d\n",
+  // msg_node->message->message_id);
 
   // Clean up
   cJSON_Delete(response);
