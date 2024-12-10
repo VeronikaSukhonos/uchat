@@ -1,9 +1,10 @@
 #include <uchat.h>
 
-void process_chat_profile_data(const char *json_response, AppData *app_data) {
-  static GtkWidget *profile_window = NULL;
+GtkWidget *profile_window = NULL;
 
-  apply_css(profile_window, "uchat-client/src/gui/resources/styles.css");
+void process_chat_profile_data(const char *json_response, AppData *app_data) {
+
+  //apply_css(profile_window, "uchat-client/src/gui/resources/styles.css");
   cJSON *response = cJSON_Parse(json_response);
   if (!response) {
     fprintf(stderr, "Failed to parse JSON response.\n");
@@ -20,7 +21,7 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
   }
 
   // If the profile window already exists, destroy it to redraw
-  if (profile_window) {
+  if (GTK_IS_WIDGET(profile_window)) {
     gtk_widget_destroy(profile_window);
     profile_window = NULL;
   }
@@ -33,34 +34,47 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
                        is_group ? "Group Profile" : "User Profile");
   gtk_window_set_default_size(GTK_WINDOW(profile_window), 400, 500);
   gtk_window_set_position(GTK_WINDOW(profile_window), GTK_WIN_POS_CENTER);
-  gtk_container_set_border_width(GTK_CONTAINER(profile_window), 20);
 
   // Main container for the profile window
-  GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-  gtk_container_add(GTK_CONTAINER(profile_window), content_box);
+  GtkWidget *main_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_container_add(GTK_CONTAINER(profile_window), main_container);
+  gtk_style_context_add_class(gtk_widget_get_style_context(main_container),
+                              "main-page-form");
+  
+  GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(main_container), content_box, TRUE, FALSE, 0);
+  gtk_widget_set_size_request(GTK_WIDGET(content_box), 375, -1);
+  gtk_widget_set_halign(content_box, GTK_ALIGN_CENTER);
+  gtk_style_context_add_class(gtk_widget_get_style_context(content_box),
+  							  "form");
+
+  GtkWidget *title_label =
+      gtk_label_new(is_group ? "Group Members" : "User Details");
+  gtk_box_pack_start(GTK_BOX(content_box), title_label, FALSE, FALSE, 0);
+  gtk_widget_set_halign(title_label, GTK_ALIGN_CENTER);
+  gtk_style_context_add_class(gtk_widget_get_style_context(title_label),
+                              "form-name-label");
 
   // Profile picture
   const char *avatar_path =
       is_group ? "uchat-client/src/gui/resources/rabbits_group.png"
-               : "uchat-client/src/gui/resources/rabbit_profile.png";
-  GtkWidget *avatar = gtk_image_new_from_file(avatar_path);
-  gtk_widget_set_name(avatar, "avatar");
+               : "uchat-client/src/gui/resources/rabbit_big.png";
+  GdkPixbuf *original_avatar = gdk_pixbuf_new_from_file(
+      avatar_path, NULL);
+  GdkPixbuf *resized_avatar =
+      gdk_pixbuf_scale_simple(original_avatar, 150, 150, GDK_INTERP_BILINEAR);
+  GtkWidget *avatar = gtk_image_new_from_pixbuf(resized_avatar);
+  g_object_unref(original_avatar);
+  g_object_unref(resized_avatar);
   gtk_box_pack_start(GTK_BOX(content_box), avatar, FALSE, FALSE, 0);
-  gtk_widget_set_size_request(avatar, 150, 150);
   gtk_widget_set_halign(avatar, GTK_ALIGN_CENTER);
-
-  // Title: Username/Group name
-  GtkWidget *title_label =
-      gtk_label_new(is_group ? "Group Members" : "User Details");
-  gtk_widget_set_name(title_label, "title");
-  gtk_widget_set_halign(title_label, GTK_ALIGN_CENTER);
-  gtk_box_pack_start(GTK_BOX(content_box), title_label, FALSE, FALSE, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(avatar),
+                              "img-edit");
 
   // Members info
-  GtkWidget *info_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-  gtk_widget_set_name(info_box, "info-box");
-  gtk_box_pack_start(GTK_BOX(content_box), info_box, TRUE, TRUE, 10);
-  gtk_widget_set_name(info_box, "fade-in");
+  GtkWidget *info_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_box_pack_start(GTK_BOX(content_box), info_box, TRUE, TRUE, 0);
+  int i = 0;
 
   cJSON *member;
   cJSON_ArrayForEach(member, members) {
@@ -72,96 +86,61 @@ void process_chat_profile_data(const char *json_response, AppData *app_data) {
     const char *role = cJSON_GetObjectItem(member, "role")->valuestring;
 
     // Create a member info box
-    GtkWidget *member_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-    gtk_widget_set_name(member_box, "member-box");
-    gtk_box_pack_start(GTK_BOX(info_box), member_box, FALSE, FALSE, 5);
+    GtkWidget *member_grid = gtk_grid_new();
+    gtk_box_pack_start(GTK_BOX(info_box), member_grid, FALSE, FALSE, 0);
+    gtk_grid_set_row_homogeneous(GTK_GRID(member_grid), TRUE);
+    gtk_grid_set_column_homogeneous(GTK_GRID(member_grid), TRUE);
 
     // Username and status for all members in a group
     if (strcmp(username, Username) != 0 && !is_group) {
       GtkWidget *username_label = gtk_label_new(Username);
+      gtk_box_pack_start(GTK_BOX(info_box), username_label, TRUE, TRUE, 0);
+      gtk_style_context_add_class(
+      	gtk_widget_get_style_context(username_label), "profile-name");
+
       GtkWidget *status_label =
-          gtk_label_new(strcmp(status, "online") == 0 ? "Online" : "Offline");
-      const char *status_class = strcmp(status, "online") == 0 ? "status-online" : "status-offline";
-
-      GtkStyleContext *status_context = gtk_widget_get_style_context(status_label);      
-      gtk_style_context_add_class(status_context, status_class);
-      gtk_box_pack_start(GTK_BOX(member_box), username_label, TRUE, TRUE, 5);
-      gtk_box_pack_start(GTK_BOX(member_box), status_label, TRUE, TRUE, 5);
-     
-
-
+          gtk_label_new(strcmp(status, "online") == 0 ? "online" : "offline");
+      const char *status_class = strcmp(status, "online") == 0 ? "status" : "form-message";
+      gtk_box_pack_start(GTK_BOX(info_box), status_label, TRUE, TRUE, 0);
+      gtk_style_context_add_class(
+      	gtk_widget_get_style_context(status_label), status_class);
     } else if (is_group) {
       GtkWidget *username_label = gtk_label_new(Username);
       GtkWidget *status_label =
-          gtk_label_new(strcmp(status, "online") == 0 ? "Online" : "Offline");
-      const char *status_class = strcmp(status, "online") == 0 ? "status-online" : "status-offline";
+          gtk_label_new(strcmp(status, "online") == 0 ? "online" : "offline");
+      const char *status_class = strcmp(status, "online") == 0 ? "form-message-success" : "form-message";
 
       GtkStyleContext *status_context = gtk_widget_get_style_context(status_label);
       gtk_style_context_add_class(status_context, status_class);
-      gtk_box_pack_start(GTK_BOX(member_box), username_label, TRUE, TRUE, 5);
-      gtk_box_pack_start(GTK_BOX(member_box), status_label, TRUE, TRUE, 5);
+      gtk_grid_attach(GTK_GRID(member_grid), username_label, 0, i, 1, 1);
+      gtk_widget_set_halign(username_label, GTK_ALIGN_CENTER);
+      gtk_grid_attach(GTK_GRID(member_grid), status_label, 1, i, 1, 1);
+      gtk_widget_set_hexpand(username_label, TRUE);
+      gtk_widget_set_hexpand(status_label, TRUE);
+      i++;
     }
 
     if (!is_group && strcmp(username, Username) != 0) {
       // Additional details for private chats
-      GtkWidget *details_grid = gtk_grid_new();
-      gtk_grid_set_row_spacing(GTK_GRID(details_grid), 0);
-      gtk_grid_set_column_spacing(GTK_GRID(details_grid), 0);
-      gtk_box_pack_start(GTK_BOX(info_box), details_grid, FALSE, FALSE, 0);
-
-      GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-
-      
-      GtkStyleContext *context = gtk_widget_get_style_context(separator);
-      gtk_style_context_add_class(context, "white-line");
-
-      
-      GtkWidget *name_label = gtk_label_new("Name:");
       GtkWidget *name_value = gtk_label_new(full_name);
-      gtk_widget_set_name(name_value, "name");
+  	  gtk_style_context_add_class(
+      gtk_widget_get_style_context(name_value), "form-label");
 
-      GtkWidget *group_label = gtk_label_new("Group:");
       GtkWidget *group_value = gtk_label_new(group);
-      gtk_widget_set_name(group_value, "group");
+        	gtk_style_context_add_class(
+      gtk_widget_get_style_context(group_value), "form-label");
 
-      GtkWidget *role_label = gtk_label_new("Role:");
       GtkWidget *role_value = gtk_label_new(role);
-      gtk_widget_set_name(role_value, "role");
+        	gtk_style_context_add_class(
+      gtk_widget_get_style_context(role_value), "form-label");
 
-      
-      GtkWidget *name_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-      GtkWidget *group_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-      GtkWidget *role_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+      gtk_box_pack_start(GTK_BOX(info_box), name_value, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(info_box), group_value, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(info_box), role_value, FALSE, FALSE, 0);
 
-      
-      gtk_box_pack_start(GTK_BOX(name_box), name_label, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(name_box), name_value, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(group_box), group_label, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(group_box), group_value, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(role_box), role_label, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(role_box), role_value, FALSE, FALSE, 0);
-
-      
-      gtk_widget_set_halign(name_box, GTK_ALIGN_CENTER);
-      gtk_widget_set_halign(group_box, GTK_ALIGN_CENTER);
-      gtk_widget_set_halign(role_box, GTK_ALIGN_CENTER);
-    
-      gtk_box_set_spacing(GTK_BOX(content_box), 0);
-      
-      gtk_box_pack_start(GTK_BOX(content_box), separator, FALSE, FALSE, 0);
-      gtk_box_pack_start(GTK_BOX(content_box), name_box, FALSE, FALSE, 5);
-      gtk_box_pack_start(GTK_BOX(content_box), group_box, FALSE, FALSE, 10);
-      gtk_box_pack_start(GTK_BOX(content_box), role_box, FALSE, FALSE, 10);
-
-
-      // gtk_grid_attach(GTK_GRID(details_grid), name_label, 0, 0, 1, 1);
-      // gtk_grid_attach(GTK_GRID(details_grid), name_value, 1, 0, 1, 1);
-
-      // gtk_grid_attach(GTK_GRID(details_grid), group_label, 0, 1, 1, 1);
-      // gtk_grid_attach(GTK_GRID(details_grid), group_value, 1, 1, 1, 1);
-
-      // gtk_grid_attach(GTK_GRID(details_grid), role_label, 0, 2, 1, 1);
-      // gtk_grid_attach(GTK_GRID(details_grid), role_value, 1, 2, 1, 1);
+      gtk_widget_set_halign(name_value, GTK_ALIGN_CENTER);
+      gtk_widget_set_halign(group_value, GTK_ALIGN_CENTER);
+      gtk_widget_set_halign(role_value, GTK_ALIGN_CENTER);
     }
   }
 
