@@ -10,15 +10,12 @@ static GstElement *current_pipeline = NULL; // Track the current pipeline
 // Function to handle dynamically linking pads
 void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
   GstPad *sinkpad = gst_element_get_static_pad(sink, "sink");
-  GstPadLinkReturn ret;
   if (!gst_pad_is_linked(sinkpad)) {
-    ret = gst_pad_link(pad, sinkpad);
-    if (GST_PAD_LINK_FAILED(ret)) {
+    if (gst_pad_link(pad, sinkpad) != GST_PAD_LINK_OK) {
       g_printerr("Failed to link decodebin pad to sink pad.\n");
     } else {
       g_print("Pad linked successfully.\n");
     }
-    g_print("Pad linked dynamically.\n");
   } else {
     g_print("Pad was already linked.\n");
   }
@@ -26,6 +23,42 @@ void on_pad_added(GstElement *element, GstPad *pad, GstElement *sink) {
 }
 
 // This is the function that will be run in a new thread to play the audio
+void stop_audio() {
+  g_print("Stopping audio playback...\n");
+
+  // Try to acquire the mutex to ensure no other thread is stopping playback
+  if (pthread_mutex_trylock(&play_mutex) != 0) {
+    g_print("Another thread is already stopping playback. Waiting...\n");
+    // pthread_mutex_lock(&play_mutex); // Block until the mutex is available
+  }
+
+  // Now the mutex is locked, proceed to stop playback safely
+  if (current_pipeline != NULL) {
+    g_print("Setting pipeline state to NULL...\n");
+
+    // Set pipeline state to NULL
+    gst_element_set_state(current_pipeline, GST_STATE_NULL);
+
+    // Wait for state transition to NULL to complete
+    GstState state;
+    gst_element_get_state(current_pipeline, &state, NULL, GST_CLOCK_TIME_NONE);
+    if (state != GST_STATE_NULL) {
+      g_printerr("Failed to transition pipeline to NULL state.\n");
+    }
+
+    // Unref the pipeline
+    gst_object_unref(current_pipeline);
+    current_pipeline = NULL;
+
+    g_print("Current audio pipeline stopped and cleared successfully.\n");
+  } else {
+    g_print("No active audio pipeline to stop.\n");
+  }
+
+  pthread_mutex_unlock(&play_mutex);
+  g_print("Mutex unlocked after stopping audio.\n");
+}
+
 void *play_audio_thread(void *data) {
   MessageNode *temp_node = (MessageNode *)data;
   char file_path[50];
@@ -33,8 +66,11 @@ void *play_audio_thread(void *data) {
 
   g_print("The message is being played: %s\n", file_path);
 
-  // Lock the mutex to ensure no race conditions when accessing the pipeline
-  pthread_mutex_lock(&play_mutex);
+  // Attempt to lock the mutex
+  if (pthread_mutex_trylock(&play_mutex) != 0) {
+    g_printerr("Audio playback is already in progress, exiting thread.\n");
+    return NULL;
+  }
 
   // Create the GStreamer elements for the new pipeline
   GstElement *pipeline, *source, *decodebin, *sink;
@@ -73,14 +109,15 @@ void *play_audio_thread(void *data) {
   GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
   if (ret == GST_STATE_CHANGE_FAILURE) {
     g_printerr("Failed to change pipeline state to PLAYING.\n");
-    current_pipeline = NULL;           // Clear current pipeline on failure
-    pthread_mutex_unlock(&play_mutex); // Unlock the mutex before returning
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref(pipeline);
+    pthread_mutex_unlock(&play_mutex);
     return NULL;
   }
 
   g_print("Audio playback started.\n");
 
-  // Non-blocking loop to monitor the bus
+  // Monitor the bus for EOS or error messages
   GstBus *bus = gst_element_get_bus(pipeline);
   gboolean running = TRUE;
   while (running) {
@@ -110,60 +147,24 @@ void *play_audio_thread(void *data) {
   }
 
   // Clean up the pipeline
+  g_print("Cleaning up pipeline...\n");
   gst_element_set_state(pipeline, GST_STATE_NULL);
   gst_object_unref(bus);
   gst_object_unref(pipeline);
   current_pipeline = NULL;
+
   g_print("Pipeline cleaned up.\n");
 
   // Unlock the mutex to indicate the thread is done
   pthread_mutex_unlock(&play_mutex);
   g_print("Mutex unlocked after playback.\n");
-  if (audio_thread != 0) {
-    g_print("Cancelling and joining the previous audio thread.\n");
-    pthread_cancel(audio_thread);     // Cancel the previous thread
-    pthread_join(audio_thread, NULL); // Wait for the thread to finish
-    audio_thread = 0;
-    g_print("Previous audio thread stopped successfully.\n");
-  }
 
   return NULL;
-}
-// Function to stop the current audio pipeline
-void stop_audio() {
-  g_print("Stopping audio playback...\n");
-  pthread_mutex_unlock(&play_mutex);
-
-  if (current_pipeline != NULL) {
-    g_print("Setting pipeline state to NULL...\n");
-    gst_element_set_state(current_pipeline, GST_STATE_NULL);
-    gst_object_unref(current_pipeline);
-    current_pipeline = NULL;
-    if (audio_thread != 0) {
-      g_print("Cancelling and joining the previous audio thread.\n");
-      pthread_cancel(audio_thread);     // Cancel the previous thread
-      pthread_join(audio_thread, NULL); // Wait for the thread to finish
-      audio_thread = 0;
-      g_print("Previous audio thread stopped successfully.\n");
-    }
-    g_print("Current audio pipeline stopped and cleared successfully.\n");
-  } else {
-    g_print("No active audio pipeline to stop.\n");
-  }
 }
 
 // Function to stop the current audio thread (if any) and start a new one
 void play_voice(GtkWidget *button, gpointer data) {
   g_print("play_voice function called.\n");
-
-  // Check if a thread is already running, if so, stop playback
-  if (audio_thread != 0) {
-    g_print("Cancelling and joining the previous audio thread.\n");
-    pthread_cancel(audio_thread);     // Cancel the previous thread
-    pthread_join(audio_thread, NULL); // Wait for the thread to finish
-    audio_thread = 0;
-    g_print("Previous audio thread stopped successfully.\n");
-  }
 
   // Stop any currently playing audio
   stop_audio();
@@ -208,7 +209,8 @@ void start_change_message(GtkWidget *change_message_button, gpointer data) {
     g_print("Error: Message content is not valid UTF-8.\n");
     message_content = ""; // Default to empty if invalid
   }
-  gtk_text_buffer_set_text(mp_tn->main_page->message_buffer, message_content, -1);
+  gtk_text_buffer_set_text(mp_tn->main_page->message_buffer, message_content,
+                           -1);
   gtk_widget_grab_focus(mp_tn->main_page->message_entry);
 }
 
@@ -249,7 +251,8 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   cJSON_AddStringToObject(json_message, "action", "DELETE_MESSAGE");
   cJSON_AddNumberToObject(json_message, "message_id",
                           delete_message->message->message_id);
-  cJSON_AddNumberToObject(json_message, "chat_id", mp_tn->main_page->opened_chat->id);
+  cJSON_AddNumberToObject(json_message, "chat_id",
+                          mp_tn->main_page->opened_chat->id);
   char *json_str = cJSON_Print(json_message);
   g_print("Sending message to server: %s\n", json_str);
   send(sock, json_str, strlen(json_str), 0);
@@ -261,7 +264,7 @@ void delete_message(GtkWidget *delete_message_button, gpointer data) {
   if (mp_tn->main_page->opened_chat->changing_message == delete_message) {
     mp_tn->main_page->opened_chat->changing_message = NULL;
     GtkTextBuffer *message_buffer =
-          GTK_TEXT_BUFFER(mp_tn->main_page->message_buffer);
+        GTK_TEXT_BUFFER(mp_tn->main_page->message_buffer);
     gtk_text_buffer_set_text(message_buffer, "", -1);
   }
 }
@@ -425,9 +428,9 @@ MessageNode *create_message_node(t_main_page_data *main_page,
   //     (*main_page).messages;         // Insert at the beginning of the list
   // (*main_page).messages = temp_node; // Update the head of the list
 
-  temp_node->message->main_window = 
-	gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(
-	gtk_widget_get_parent(main_page->central_area_stack))));
+  temp_node->message->main_window =
+      gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(
+          gtk_widget_get_parent(main_page->central_area_stack))));
 
   temp_node->message->chat_id = chat_id;
   temp_node->message->content_type = message_type;
@@ -576,8 +579,8 @@ void create_message_button(t_main_page_data *main_page,
     }
     (*temp_node).message->message_label = gtk_label_new("Deleted message");
     gtk_style_context_add_class(
-          gtk_widget_get_style_context((*temp_node).message->message_label),
-          "deleted-message");
+        gtk_widget_get_style_context((*temp_node).message->message_label),
+        "deleted-message");
     gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->message_label,
                        TRUE, FALSE, 0);
     gtk_label_set_xalign(GTK_LABEL((*temp_node).message->message_label), 0);
@@ -682,20 +685,23 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     } else if ((*temp_node).message->content_type == ANY_FILE) {
       // If it is file message, show save button and filename
-      (*temp_node).message->file_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->file_container, FALSE, FALSE, 0);
+      (*temp_node).message->file_container =
+          gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box),
+                         (*temp_node).message->file_container, FALSE, FALSE, 0);
       (*temp_node).message->save_file_button = gtk_button_new();
       GtkWidget *save_file_button_image = gtk_image_new_from_file(
           "uchat-client/src/gui/resources/file-icon.png");
       gtk_button_set_image(GTK_BUTTON((*temp_node).message->save_file_button),
                            save_file_button_image);
       gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
-                         (*temp_node).message->save_file_button, FALSE, FALSE, 0);
+                         (*temp_node).message->save_file_button, FALSE, FALSE,
+                         0);
       gtk_style_context_add_class(
           gtk_widget_get_style_context((*temp_node).message->save_file_button),
           "save-button");
       g_signal_connect(temp_node->message->save_file_button, "clicked",
-                        G_CALLBACK(save_file), temp_node);
+                       G_CALLBACK(save_file), temp_node);
       (*temp_node).message->message_label =
           gtk_label_new((*temp_node).message->content);
       gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
@@ -706,14 +712,16 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     } else if ((*temp_node).message->content_type == IMAGE) {
       // If it is image message, show image
-      (*temp_node).message->file_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_box_pack_start(GTK_BOX(main_box), (*temp_node).message->file_container, FALSE, FALSE, 0);
+      (*temp_node).message->file_container =
+          gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+      gtk_box_pack_start(GTK_BOX(main_box),
+                         (*temp_node).message->file_container, FALSE, FALSE, 0);
       // Change to image filepath
       (*temp_node).message->image_file =
           resize_image_file((*temp_node).message->voice_path);
       g_print("Path: %s\n", (*temp_node).message->voice_path);
       gtk_box_pack_start(GTK_BOX((*temp_node).message->file_container),
-      					 (*temp_node).message->image_file, FALSE, FALSE, 0);
+                         (*temp_node).message->image_file, FALSE, FALSE, 0);
       gtk_style_context_add_class(
           gtk_widget_get_style_context((*temp_node).message->image_file),
           "image-file");
@@ -726,28 +734,27 @@ void create_message_button(t_main_page_data *main_page,
           GTK_LABEL((*temp_node).message->message_label), PANGO_WRAP_WORD_CHAR);
     }
 
-	t_main_page_temp_node *mp_tn = g_malloc(sizeof(t_main_page_temp_node));
+    t_main_page_temp_node *mp_tn = g_malloc(sizeof(t_main_page_temp_node));
     mp_tn->main_page = main_page;
     mp_tn->temp_node = temp_node;
 
     // Message menu
     GtkWidget *message_menu_box = NULL;
-    if (strcmp(temp_node->message->sender, username) == 0
-    	|| (*temp_node).message->content_type == IMAGE
-    	|| (*temp_node).message->content_type == ANY_FILE) {
-    	(*temp_node).message->menu =
-        	gtk_popover_new((*temp_node).message->button);
-    	gtk_style_context_add_class(
-        	gtk_widget_get_style_context((*temp_node).message->menu),
-        	"smile-window");
-    	message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    	gtk_container_add(GTK_CONTAINER((*temp_node).message->menu),
-        	              message_menu_box);
-    	g_signal_connect((*temp_node).message->button, "clicked",
-        	             G_CALLBACK(show_message_menu), temp_node);
-    }
-    else
-    	(*temp_node).message->menu = NULL;
+    if (strcmp(temp_node->message->sender, username) == 0 ||
+        (*temp_node).message->content_type == IMAGE ||
+        (*temp_node).message->content_type == ANY_FILE) {
+      (*temp_node).message->menu =
+          gtk_popover_new((*temp_node).message->button);
+      gtk_style_context_add_class(
+          gtk_widget_get_style_context((*temp_node).message->menu),
+          "smile-window");
+      message_menu_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+      gtk_container_add(GTK_CONTAINER((*temp_node).message->menu),
+                        message_menu_box);
+      g_signal_connect((*temp_node).message->button, "clicked",
+                       G_CALLBACK(show_message_menu), temp_node);
+    } else
+      (*temp_node).message->menu = NULL;
 
     if (strcmp(temp_node->message->sender, username) == 0) {
       if ((*temp_node).message->content_type == TEXT) {
@@ -759,33 +766,38 @@ void create_message_button(t_main_page_data *main_page,
                            TRUE, FALSE, 0);
         g_signal_connect(change_message_button, "clicked",
                          G_CALLBACK(start_change_message), mp_tn);
-        GtkWidget *change_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-        gtk_container_add(GTK_CONTAINER(change_message_button), change_button_box);
-        GtkWidget *change_button_image =
-        	gtk_image_new_from_file("uchat-client/src/gui/resources/edit-icon.png");
-        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_image, FALSE, FALSE, 0);
+        GtkWidget *change_button_box =
+            gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        gtk_container_add(GTK_CONTAINER(change_message_button),
+                          change_button_box);
+        GtkWidget *change_button_image = gtk_image_new_from_file(
+            "uchat-client/src/gui/resources/edit-icon.png");
+        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_image,
+                           FALSE, FALSE, 0);
         GtkWidget *change_button_label = gtk_label_new("Edit");
-        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_label, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(change_button_box), change_button_label,
+                           FALSE, FALSE, 0);
       }
     }
 
-    if ((*temp_node).message->content_type == IMAGE
-    	|| (*temp_node).message->content_type == ANY_FILE) {
+    if ((*temp_node).message->content_type == IMAGE ||
+        (*temp_node).message->content_type == ANY_FILE) {
       GtkWidget *save_file_button = gtk_button_new();
       gtk_style_context_add_class(
-          gtk_widget_get_style_context(save_file_button),
-          "popover-buttons");
-      gtk_box_pack_start(GTK_BOX(message_menu_box), save_file_button,
-                         TRUE, FALSE, 0);
-      g_signal_connect(save_file_button, "clicked",
-                       G_CALLBACK(save_file), temp_node);
+          gtk_widget_get_style_context(save_file_button), "popover-buttons");
+      gtk_box_pack_start(GTK_BOX(message_menu_box), save_file_button, TRUE,
+                         FALSE, 0);
+      g_signal_connect(save_file_button, "clicked", G_CALLBACK(save_file),
+                       temp_node);
       GtkWidget *save_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
       gtk_container_add(GTK_CONTAINER(save_file_button), save_button_box);
-      GtkWidget *save_button_image =
-        gtk_image_new_from_file("uchat-client/src/gui/resources/save-file-icon.png");
-      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_image, FALSE, FALSE, 0);
+      GtkWidget *save_button_image = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/save-file-icon.png");
+      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_image, FALSE,
+                         FALSE, 0);
       GtkWidget *save_button_label = gtk_label_new("Save");
-      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_label, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(save_button_box), save_button_label, FALSE,
+                         FALSE, 0);
     }
 
     if (strcmp(temp_node->message->sender, username) == 0) {
@@ -797,13 +809,17 @@ void create_message_button(t_main_page_data *main_page,
                          FALSE, 0);
       g_signal_connect(delete_message_button, "clicked",
                        G_CALLBACK(delete_message), mp_tn);
-      GtkWidget *delete_button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-      gtk_container_add(GTK_CONTAINER(delete_message_button), delete_button_box);
-      GtkWidget *delete_button_image =
-        gtk_image_new_from_file("uchat-client/src/gui/resources/delete-icon.png");
-      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_image, FALSE, FALSE, 0);
+      GtkWidget *delete_button_box =
+          gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+      gtk_container_add(GTK_CONTAINER(delete_message_button),
+                        delete_button_box);
+      GtkWidget *delete_button_image = gtk_image_new_from_file(
+          "uchat-client/src/gui/resources/delete-icon.png");
+      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_image, FALSE,
+                         FALSE, 0);
       GtkWidget *delete_button_label = gtk_label_new("Delete");
-      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_label, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(delete_button_box), delete_button_label, FALSE,
+                         FALSE, 0);
     }
 
     // Add the bottom box for labels (time, seen, changes)

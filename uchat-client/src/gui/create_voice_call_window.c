@@ -12,7 +12,8 @@ int is_closing = 0;
 
 void close_voice_call_window(GtkWidget *voice_call_window,
                              t_main_page_data *main_page) {
-  if (voice_call_window && is_closing == 0) {
+  g_print("called close_voice_call_window\n");
+  if (voice_call_window && is_closing == 0 && incoming == 0) {
     is_closing = 1;
     cJSON *response = cJSON_CreateObject();
     cJSON_AddStringToObject(response, "action", "STOP_CALL");
@@ -66,11 +67,12 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
   cJSON *caller_port = cJSON_GetObjectItem(temp, "caller_port");
   cJSON *caller_name = cJSON_GetObjectItem(temp, "caller_name");
   start_send_pipeline(caller_ip->valuestring, caller_port->valueint);
-  in_call = 1;
-  incoming = 0;
+
   cJSON_free(temp);
   g_print(" try Closed\n");
   close_voice_call_window(main_page->voice_call_window, main_page);
+  in_call = 1;
+  incoming = 0;
   g_print("Closed\n");
   create_voice_call_window(NULL, main_page, caller_name->valuestring);
   gtk_label_set_text(GTK_LABEL(main_page->voice_call_window_label), "In call");
