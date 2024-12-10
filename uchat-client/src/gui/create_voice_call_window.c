@@ -71,6 +71,8 @@ void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {
   cJSON_free(temp);
   g_print(" try Closed\n");
   close_voice_call_window(main_page->voice_call_window, main_page);
+  gtk_widget_destroy(main_page->voice_call_window);
+  main_page->voice_call_window = NULL;
   in_call = 1;
   incoming = 0;
   g_print("Closed\n");
