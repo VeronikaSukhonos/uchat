@@ -7,7 +7,7 @@ An innovative instant messaging application designed and implemented during the 
 ## 🌟 Features  
 - **Flawless Design** for a seamless user experience.  
 - **Text Messaging**: Send messages with support for files, images, emojis, and more.  
-- **Voice and Video Calling**: Stay connected anytime.  
+- **Voice Calling**: Stay connected anytime.  
 - **User Management**: Update user information, change passwords, and manage groups.  
 - **Message Management**: Edit or delete messages with ease.  
 
