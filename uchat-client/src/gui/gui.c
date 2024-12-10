@@ -15,8 +15,8 @@ void load_css(const gchar *file) {
   g_object_unref(provider);
 }
 
-void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
-                            GtkWidget *entry_box) {
+gboolean change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
+                                GtkWidget *entry_box) {
   if (event->in) {
     gtk_style_context_add_class(gtk_widget_get_style_context(entry_box),
                                 "focus");
@@ -24,6 +24,7 @@ void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
     gtk_style_context_remove_class(gtk_widget_get_style_context(entry_box),
                                    "focus");
   }
+  return FALSE;
 }
 
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry) {

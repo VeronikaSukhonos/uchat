@@ -283,8 +283,8 @@ void show_profile(GtkWidget *settings_button, gpointer data);
 void show_edit_page(GtkWidget *edit_button, gpointer data);
 void show_new_group(GtkWidget *new_group_button, gpointer data);
 void show_new_chat(GtkWidget *new_chat_button, gpointer data);
-void change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
-                            GtkWidget *entry_box);
+gboolean change_entry_box_focus(GtkWidget *entry, GdkEventFocus *event,
+                                GtkWidget *entry_box);
 void change_password_visibility(GtkWidget *pw_button, GtkWidget *pw_entry);
 
 void registration_submit(GtkWidget *registration_button, t_form_data *data);

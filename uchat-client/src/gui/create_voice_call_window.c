@@ -52,6 +52,9 @@ void stop_voice_call(GtkWidget *reject_button, t_main_page_data *main_page) {
   if (strcmp(label, "Offline") == 0) {
     close_voice_call_window(main_page->voice_call_window, main_page);
   }
+  incoming = 0;
+  is_calling = 0;
+  in_call = 0;
 }
 
 void accept_voice_call(GtkWidget *accept_button, t_main_page_data *main_page) {

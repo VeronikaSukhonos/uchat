@@ -158,15 +158,37 @@ void clean_name(char *name) {
   size_t username_len = strlen(username);
 
   while (*read_ptr) {
-    // Check if `username` is at the current position
+    // Check if `username` matches at the current position
     if (strncmp(read_ptr, username, username_len) == 0) {
-      read_ptr += username_len; // Skip the username
-    } else if (*read_ptr == '-') {
-      read_ptr++; // Skip the `-` character
+      // Check if `username` is preceded or followed by `-` and nothing else
+      char before = (read_ptr == name)
+                        ? '\0'
+                        : *(read_ptr - 1);     // Character before `username`
+      char after = *(read_ptr + username_len); // Character after `username`
+
+      if ((before == '-' || before == '\0') &&
+          (after == '-' || after == '\0')) {
+        // Skip `username` and any `-` following it
+        read_ptr += username_len;
+        if (*read_ptr == '-') {
+          read_ptr++;
+        }
+        // Also remove preceding `-` if it exists
+        if (before == '-' && write_ptr != name && *(write_ptr - 1) == '-') {
+          write_ptr--; // Move write pointer back to overwrite preceding `-`
+        }
+      } else {
+        // Copy `username` as it's not surrounded by valid `-` conditions
+        while (username_len--) {
+          *write_ptr++ = *read_ptr++;
+        }
+        username_len = strlen(username); // Reset length for next iteration
+      }
     } else {
       *write_ptr++ = *read_ptr++; // Copy valid character
     }
   }
+
   *write_ptr = '\0'; // Null-terminate the cleaned string
 }
 
@@ -604,7 +626,8 @@ void merge_chat_data_with_server(const char *file_path, cJSON *new_messages,
 
     // If the message wasn't found in existing messages, add it to the end
     if (!found) {
-      cJSON_AddItemToArray(existing_messages, cJSON_Duplicate(new_message, 1));
+      cJSON_InsertItemInArray(existing_messages, 0,
+                              cJSON_Duplicate(new_message, 1));
     }
   }
 

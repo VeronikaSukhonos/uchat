@@ -1,6 +1,8 @@
 #include "uchat.h"
 
 void close_main_window(GtkWidget *main_window, t_main_page_data *main_page) {
+  gtk_drag_dest_set(main_page->message_entry, GTK_DEST_DEFAULT_ALL, NULL, 0,
+                    GDK_ACTION_COPY);
   gtk_widget_destroy((*main_page).smile_window);
   gtk_main_quit();
 }

@@ -120,7 +120,8 @@ void process_file_message_and_store(const char *json_response,
   MessageNode *msg_node = create_message_node(
       app_data->main_page, is_image(file_path) == 1 ? IMAGE : ANY_FILE, chat_id,
       message);
-  create_message_button(app_data->main_page, msg_node);
+  if (app_data->main_page->opened_chat)
+    create_message_button(app_data->main_page, msg_node);
   // g_print("Signal connected to play voice for message ID: %d\n",
   // msg_node->message->message_id);
 
