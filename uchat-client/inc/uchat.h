@@ -211,7 +211,7 @@ typedef struct {
   GtkWidget *main_overlay;
   t_reconnect_message *reconnect;
 } AppData;
-
+void apply_css(GtkWidget *widget, const char *css_path);
 // encrypt
 int derive_key_from_serial(const char *serial, unsigned char *key);
 int encrypt_session(const unsigned char *plaintext, int plaintext_len,

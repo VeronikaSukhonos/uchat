@@ -1,0 +1,102 @@
+.profile_window {
+    border-radius: 15px; /* Rounded corners */
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+    animation: fadeIn 1s ease-out; /* Smooth transition for the window */
+}
+
+label#title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ECF0F1;
+    margin: 15px 0;
+}
+
+label.status-online {
+    color: #2ECC71; /* Green for online status */
+    font-weight: bold;
+    font-size: 20px;
+}
+
+label.status-offline {
+    color: #E74C3C; /* Red for offline status */
+    font-style: italic;
+    font-size: 20px;
+}
+
+#profile_window label {
+    color: #ECF0F1;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: normal;
+}
+
+#name {
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #ECF0F1;
+}
+
+#group {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ECF0F1; /* Lighter gray for group */
+}
+
+#role {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ECF0F1; 
+    border: 1px solid #ECF0F1;
+    padding: 5px 12px;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+#avatar {
+    animation: fadeIn 1s ease-out;
+}
+
+#profile_window .member-box {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: #2C3E50; /* Darker background for member box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Light shadow */
+}
+
+#profile_window .member-box:hover {
+    background-color: #1A252F; /* Slightly darker on hover */
+}
+
+#profile_window .member-box label {
+    font-size: 18px;
+    color: #ECF0F1;
+    margin-right: 15px;
+}
+
+#profile_window .info-box {
+    animation: fadeIn 1s ease-out;
+}
+
+.white-line {
+    border-top: 1px solid white;  /* Белая линия */
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* Эффект появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-out; /* Эффект появления с плавностью */
+}
