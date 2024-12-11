@@ -15,8 +15,9 @@ An innovative instant messaging application designed and implemented during the 
 
 ## 💻 Technology Stack  
 - **Programming Language**: C  
-- **Framework**: GTK-3  
-- **Data Format**: JSON  
+- **Backend**: OpenSSL, SQLite
+- **Frontend**: GTK-3, CSS, GStreamer
+- **Data Format**: cJSON  
 
 ---
 
@@ -43,16 +44,26 @@ _Step 3: Run the Server_
 Open a terminal in the project directory and start the server.
 
 ```bash
-./uchat_server
+./uchat_server <port>
 ```
+
+- Replace <port> with the desired port number the server should listen on (e.g., 8080).
+ 
+- The server will start and wait for client connections.
+ 
 ---
 _Step 4: Run the Client_
 
 Open another terminal in the project directory and start the client.
 
 ```bash
-./uchat
+./uchat <server_ip> <port>
 ```
+- Replace <server_ip> with the IP address of the machine running the server (use 127.0.0.1 for local testing).
+- Replace <port> with the same port number used to start the server.
+- The client will connect to the server and allow interaction.
+
+
 ---
 
 _Step 5. Start Chatting_
