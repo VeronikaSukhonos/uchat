@@ -62,12 +62,10 @@ int main(int argc, char *argv[]) {
     print_usage(argv[0]);
   }
 
+  strcpy(ip, server_ip);
+
   // Attempt to connect to the server
   sock = connect_to_server(server_ip, port);
-  if (sock < 0) {
-    fprintf(stderr, "Failed to establish connection. Exiting.\n");
-    exit(EXIT_FAILURE);
-  }
 
   // Initialize GTK and GStreamer
   gtk_init(&argc, &argv);

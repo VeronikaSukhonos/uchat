@@ -28,6 +28,7 @@ int attempt_reconnection() {
 }
 
 int attempt_main_reconnection(AppData *app_data) {
+  // g_print("ip: %s, port: %d", ip, port);
   sock = connect_to_server(ip, port);
   if (sock >= 0) {
     // g_print("Reconnected to server successfully.\n");
