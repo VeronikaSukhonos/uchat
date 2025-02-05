@@ -32,7 +32,7 @@ Enhance your communication with voice messages, images and files. Bring joy to y
 </details>
 
 <details>
-<summary><b>🎙️Voice Calling</b>: stay connected anytime.</summary>
+<summary><b>🎙️ Voice Calling</b>: stay connected anytime.</summary>
 Have quick brainstorms and convenient collaborations on pair assignments with voice calls in private chats.
 <div align="center"><img src="./gifs/voice-call-out.gif" alt="voice call"></div>
 <div align="center"><img src="./gifs/voice-call-in.gif" alt="voice call"></div>
@@ -52,7 +52,7 @@ View and manage your personal profile with options to update your full name, gro
 </details>
 
 <details>
-<summary><b>🫂 Built-In Support</b>: report bugs and suggest improvements.</summary>
+<summary><b>🤝 Built-In Support</b>: report bugs and suggest improvements.</summary>
 Tell us your problems and provide feedback directly within the application.
 <div align="center"><img src="./gifs/support.gif" alt="support"></div>
 </details>
